@@ -12,53 +12,50 @@ bool inbounds(int x, int y)
 }
 
 
-// struct Entity* assetAtLocation(int x, int y, struct Entity* head)
-// {
-//     struct Entity* current = head;
-//     while(current != NULL){
-//         if(current->x == x && current->y == y)
-//         {
-//             return current;
-//         }
-//         current = current->next;
-//     }
-//     return NULL;
-// }
-
 void moveSprite(int dx, int dy, Entity *entity)
 {
     entity->x += dx;
     entity->y += dy;
 }
 
-void updateBoxStatus(Entity *box, Entity goals[], int goalsLength)
+void updateCrate(struct EntityListNode *head, Entity *crate)
 {
-    for(int i = 0; i < goalsLength; i++)
-    {
-        if(box->x == goals[i].x && box->y == goals[i].y)
+    crate->type = crate_t;
+    while(head != NULL){
+        if(head->entity->x == crate->x && head->entity->y == crate->y && head->entity->type == goal_t )
         {
-            box->color = COLOR_BOX_ACTIVE;
-            break;
+            crate->type = crate_active_t;
         }
-        else{
-            box->color = COLOR_BOX;
-        }
+        head = head->next;
     }
 }
 
-bool gameSolved(Entity* assetList)
+bool gameSolved(struct EntityListNode *head)
 {
+    // Test if every goal has a crate on the same location.
     bool solved = true;
-    Entity* goal = assetList;
-    while(goal != NULL){
-        if(goal->type == goal_t){
-
+    struct EntityListNode* current = head;
+    while(current != NULL)
+    {
+        if(current->entity->type == goal_t){
+            solved = false;
+            struct EntityListNode* test = head;
+            while(test != NULL)
+            {
+                if((test->entity->type == crate_active_t || test->entity->type == crate_t) && test->entity->x == current->entity->x && test->entity->y == current->entity->y)
+                {
+                    solved = true;
+                    break;
+                }
+                test = test->next;
+            }
         }
-        goal = goal->next;
+        if(solved == false){
+            break;
+        }
+        current = current->next;
     }
-
-
-    return false;
+    return solved;
 }
 
 struct Entity* appendAsset(struct Entity** head, int  col, int row,  enum EntityType type, uint16_t color)
@@ -130,7 +127,6 @@ struct Entity* entityAtLocation(struct EntityListNode** head, int x, int y)
 
 struct EntityListNode* entitiesAtLocation(struct EntityListNode* head, int x, int y)
 {
-    int count = 0;
     // Store entities at location here
     struct EntityListNode *entitiesHere = NULL;
     struct EntityListNode *current = NULL;
@@ -138,7 +134,6 @@ struct EntityListNode* entitiesAtLocation(struct EntityListNode* head, int x, in
     while(head != NULL){
         if(head->entity->x == x && head->entity->y == y)
         {
-            ++count;
             // make a new entity list entry
             if (entitiesHere == NULL){
                 entitiesHere = (struct EntityListNode *) malloc(sizeof(struct EntityListNode));
@@ -155,4 +150,39 @@ struct EntityListNode* entitiesAtLocation(struct EntityListNode* head, int x, in
         head = head->next;
     }
     return entitiesHere;
+}
+
+bool entityBlocksMovement(struct EntityListNode* head, int x, int y)
+{
+    while(head != NULL){
+        if(head->entity->x == x && head->entity->y == y && head->entity->type == wall_t){
+            return true;
+        }
+        head = head->next;
+    }
+    return false;
+}
+
+struct Entity* crateAtLocation(struct EntityListNode* head, int x, int y)
+{
+    while(head != NULL){
+        if( head->entity->x == x && head->entity->y == y && (head->entity->type == crate_t || head->entity->type == crate_active_t))
+        {
+            return head->entity;
+        }
+        head = head->next;
+    }
+    return NULL;
+}
+
+void deleteAssets(struct EntityListNode* assets)
+{
+    struct EntityListNode *current = NULL;
+    while(assets != NULL)
+    {
+        current = assets;
+        assets = assets->next;
+        free(current);
+    }
+    Serial.println("finished removing assets");
 }
