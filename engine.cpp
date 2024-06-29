@@ -12,21 +12,18 @@ bool inbounds(int x, int y)
 }
 
 
-
-
-
-struct Entity* assetAtLocation(int x, int y, struct Entity* head)
-{
-    struct Entity* current = head;
-    while(current != NULL){
-        if(current->x == x && current->y == y)
-        {
-            return current;
-        }
-        current = current->next;
-    }
-    return NULL;
-}
+// struct Entity* assetAtLocation(int x, int y, struct Entity* head)
+// {
+//     struct Entity* current = head;
+//     while(current != NULL){
+//         if(current->x == x && current->y == y)
+//         {
+//             return current;
+//         }
+//         current = current->next;
+//     }
+//     return NULL;
+// }
 
 void moveSprite(int dx, int dy, Entity *entity)
 {
@@ -88,28 +85,74 @@ struct Entity* appendAsset(struct Entity** head, int  col, int row,  enum Entity
 }
 
 
-void prependEntity(struct Entity** head, struct Entity* entity)
+struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, int x, int y, uint16_t color)
 {
-    /* Add entry to *start* of linked list */
-    struct EntityListNode* new_node;
-    new_node = (EntityListNode *) malloc(sizeof(EntityListNode));
-    new_node->entity = entity;
-    new_node->next = head*;
-    head* = new_node;
+    // // Create entity
+    struct Entity *e = (struct Entity *) malloc(sizeof(struct Entity));
+    e->type = type;
+    e->x = x;
+    e->y = y;
+    e->color = color;
+    // Create linked-list node
+    struct EntityListNode *node = (struct EntityListNode *) malloc(sizeof(struct EntityListNode));
+    node->entity = e;
+    node->next = NULL;
+
+    // Add node into provided linked-list (head)
+    // List is empty
+    if(*head == NULL){
+        *head = node;
+        return e;
+    }
+    // find last list item
+    struct EntityListNode *temp = *head;
+    while(temp->next != NULL)
+    {
+        temp = temp->next;
+    }
+    temp->next = node;
+    return e;
 }
 
-void appendEntity(struct Entity** head, struct Entity* entity)
+struct Entity* entityAtLocation(struct EntityListNode** head, int x, int y)
 {
-    /* Add entry to *start* of linked list */
-    struct EntityListNode* new_node;
-    new_node = (EntityListNode *) malloc(sizeof(EntityListNode));
-    new_node->entity = entity;
+    struct EntityListNode* temp = *head;
 
-    struct EntityListNode *t = *head;
-    while(t->next != NULL)
-    {
-        t = t->next;
+    while(temp != NULL){
+        if(temp->entity->x == x && temp->entity->y == y)
+        {
+            return temp->entity;
+        }
+        temp = temp->next;
     }
-    t->next = new_node;
-    new_node->next = NULL;
+    return NULL;
+}
+
+struct EntityListNode* entitiesAtLocation(struct EntityListNode* head, int x, int y)
+{
+    int count = 0;
+    // Store entities at location here
+    struct EntityListNode *entitiesHere = NULL;
+    struct EntityListNode *current = NULL;
+
+    while(head != NULL){
+        if(head->entity->x == x && head->entity->y == y)
+        {
+            ++count;
+            // make a new entity list entry
+            if (entitiesHere == NULL){
+                entitiesHere = (struct EntityListNode *) malloc(sizeof(struct EntityListNode));
+                entitiesHere->entity = head->entity;
+                entitiesHere->next = NULL;
+                current = entitiesHere;
+            }else{
+                struct EntityListNode *node = (struct EntityListNode *) malloc(sizeof(struct EntityListNode));
+                node->entity = head->entity;
+                current->next = node;
+                current = current->next;
+            }
+        }
+        head = head->next;
+    }
+    return entitiesHere;
 }

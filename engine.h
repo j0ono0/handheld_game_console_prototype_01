@@ -37,18 +37,17 @@
     // Linked lists
     struct EntityListNode {
         struct Entity* entity;
-        struct EntityListNode* prev;
         struct EntityListNode* next;
-    }
+    };
 
 
     bool inbounds(int x, int y);
-    struct Entity* assetAtLocation(int x, int y, struct Entity* head);
     void moveSprite(int dx, int dy, Entity *entity);
     void updateBoxStatus(Entity *box, Entity goals[], int goalsLength);
     bool gameSolved(Entity* assetList);
     struct Entity* appendAsset(struct Entity** head, int  col, int row, EntityType, uint16_t color);
 
-    void prependEntity(struct Entity** head, struct Entity* entity);
-    void appendEntity(struct Entity** head, struct Entity* entity);
+    struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, int x, int y, uint16_t color);
+    struct Entity* entityAtLocation(struct EntityListNode* head, int x, int y);
+    struct EntityListNode* entitiesAtLocation(struct EntityListNode* head, int x, int y);
 #endif
