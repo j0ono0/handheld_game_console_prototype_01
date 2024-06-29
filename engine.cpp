@@ -11,13 +11,19 @@ bool inbounds(int x, int y)
     return true;
 }
 
-Entity *entityAtLocation(int x, int y, struct Entity array[2], int len)
+
+
+
+
+struct Entity* assetAtLocation(int x, int y, struct Entity* head)
 {
-    for(int i = 0; i < len; i++)
-    {
-        if(array[i].x == x && array[i].y == y){
-            return &array[i];
+    struct Entity* current = head;
+    while(current != NULL){
+        if(current->x == x && current->y == y)
+        {
+            return current;
         }
+        current = current->next;
     }
     return NULL;
 }
@@ -34,7 +40,7 @@ void updateBoxStatus(Entity *box, Entity goals[], int goalsLength)
     {
         if(box->x == goals[i].x && box->y == goals[i].y)
         {
-            box->color = COLOR_BOX_TARGET;
+            box->color = COLOR_BOX_ACTIVE;
             break;
         }
         else{
@@ -43,38 +49,34 @@ void updateBoxStatus(Entity *box, Entity goals[], int goalsLength)
     }
 }
 
-bool gameSolved(Entity boxes[], int boxCount, Entity goals[], int goalCount)
+bool gameSolved(Entity* assetList)
 {
-    int count = 0;
-    // Check if all goals are covered by boxes
-    for(int b = 0; b < boxCount; b++){
-        for(int g = 0; g < goalCount; g++){
-            if(boxes[b].x == goals[g].x && boxes[b].y == goals[g].y)
-            {
-                count++;
-                break;
-            }
+    bool solved = true;
+    Entity* goal = assetList;
+    while(goal != NULL){
+        if(goal->type == goal_t){
+
         }
+        goal = goal->next;
     }
-    if (count == goalCount)
-    {
-        return true;
-    }
+
+
     return false;
 }
 
-struct Entity* appendAsset(struct Entity** head, int  col, int row,  enum EntityType, uint16_t color)
+struct Entity* appendAsset(struct Entity** head, int  col, int row,  enum EntityType type, uint16_t color)
 {
     struct Entity* newNode = (struct Entity*)malloc(sizeof(struct Entity));
     newNode->x = col;
     newNode->y = row;
+    newNode->type = type;
     newNode->color = color;
     newNode->next = NULL;
 
     if(*head == NULL)
     {
         *head = newNode;
-        return *head;
+        return newNode;
     }
     struct Entity* current = *head;
     while(current->next != NULL)
@@ -82,5 +84,32 @@ struct Entity* appendAsset(struct Entity** head, int  col, int row,  enum Entity
         current = current->next;
     }
     current->next = newNode;
-    return current;
+    return newNode;
+}
+
+
+void prependEntity(struct Entity** head, struct Entity* entity)
+{
+    /* Add entry to *start* of linked list */
+    struct EntityListNode* new_node;
+    new_node = (EntityListNode *) malloc(sizeof(EntityListNode));
+    new_node->entity = entity;
+    new_node->next = head*;
+    head* = new_node;
+}
+
+void appendEntity(struct Entity** head, struct Entity* entity)
+{
+    /* Add entry to *start* of linked list */
+    struct EntityListNode* new_node;
+    new_node = (EntityListNode *) malloc(sizeof(EntityListNode));
+    new_node->entity = entity;
+
+    struct EntityListNode *t = *head;
+    while(t->next != NULL)
+    {
+        t = t->next;
+    }
+    t->next = new_node;
+    new_node->next = NULL;
 }

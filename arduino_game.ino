@@ -25,46 +25,15 @@ struct BtnHandler inputBtn{ .current=0, .processed=false, .duration=0};
 Entity* assetList;
 Entity* player1;
 
-Entity plr;
-Entity* boxArr;
-Entity* goalArr;
-Entity* wallArr;
-int boxCount = 0;
-int goalCount = 0;
-int wallCount = 0;
 
 enum GameMode gameMode;
 int currentMap;
 
-void drawCrates(){
-    for (int i=0; i < boxCount; i++){
-        if(boxArr[i].color == COLOR_BOX)
-        {
-            tft.drawSprite(boxArr[i].x, boxArr[i].y, sprite_crate.width, sprite_crate.height, (uint16_t*)(sprite_crate.pixel_data));
-        }
-        else
-        {
-            tft.drawSprite(boxArr[i].x, boxArr[i].y, sprite_crate_active.width, sprite_crate_active.height, (uint16_t*)(sprite_crate_active.pixel_data));
-        }
-    }
-}
 
-void drawAllAssets(){
-    tft.drawSprites(goalArr, goalCount);
-    drawCrates();
-    tft.drawSprites(wallArr, wallCount);
-    tft.drawSprite(plr.x, plr.y, sprite_16x24_plr.width, sprite_16x24_plr.height, (uint16_t*)(sprite_16x24_plr.pixel_data));
-}
-void drawDynamicAssets(){
-    tft.drawSprites(goalArr, goalCount);
-    drawCrates();
-    tft.drawSprite(plr.x, plr.y, sprite_16x24_plr.width, sprite_16x24_plr.height, (uint16_t*)(sprite_16x24_plr.pixel_data));
-}
 
 void drawAssets(struct Entity* e)
 {
-    tft.fillScreen(COLOR_FLOOR);
-    while(e->next != NULL)
+    while(e != NULL)
     {
         // switch(e->type){
         //     case plr_t:
@@ -93,40 +62,11 @@ void drawAssets(struct Entity* e)
 
 void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1]){
 
-
-    boxCount = 0;
-    goalCount = 0;
-    wallCount = 0;
-
-    // Count how large arrays need to be for game level
+    // Output map to console
     for(int row = 0; row < GRID_HEIGHT; row++)
     {
         for(int col = 0; col < GRID_WIDTH; col++)
         { 
-            if(gameMap[row][col] == "@"[0])
-            {
-                plr.x = col;
-                plr.y = row;
-            }
-            else if(gameMap[row][col] == "B"[0])
-            {
-                boxCount++;
-                goalCount++;
-            }
-            else if(gameMap[row][col] == "b"[0])
-            {
-                boxCount++;
-            }
-            else if(gameMap[row][col] == "#"[0])
-            {
-                wallCount++;
-            }
-            else if(gameMap[row][col] == "X"[0])
-            {
-                goalCount++;
-            }
-
-            // Output map to console
             if(gameMap[row][col] == "."[0])
             {
                 Serial.print(" ");
@@ -139,64 +79,40 @@ void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1]){
         Serial.print('\n');
     }
 
-    // Create arrays for game assets
-    boxArr = (Entity*)malloc(boxCount * sizeof(struct Entity));
-    goalArr = (Entity*)malloc(goalCount * sizeof(struct Entity));
-    wallArr = (Entity*)malloc(wallCount * sizeof(struct Entity));
-    
-    // Populate array
-    int boxIndex = 0;
-    int goalIndex = 0;
-    int wallIndex = 0;
     for(int row = 0; row < GRID_HEIGHT; row++)
     {
         for(int col = 0; col < GRID_WIDTH; col++)
         {
             if(gameMap[row][col] == "B"[0])
             {
-                boxArr[boxIndex] = {.x=col, .y=row, .color=COLOR_BOX_TARGET, .type=crate_active_t};
-                boxIndex++;
-                goalArr[goalIndex] = {.x=col, .y=row, .color=COLOR_FLOOR_TARGET, .type=goal_t};
-                goalIndex++;
-
                 appendAsset(&assetList, col, row, goal_t, COLOR_FLOOR_TARGET);
-                appendAsset(&assetList, col, row, crate_active_t, COLOR_BOX_TARGET);
+                appendAsset(&assetList, col, row, crate_active_t, COLOR_BOX_ACTIVE);
 
             }
             else if(gameMap[row][col] == "b"[0])
             {
-                boxArr[boxIndex] = {.x=col, .y=row, .color=COLOR_BOX, .type=crate_t};
-                boxIndex++;
-
                 appendAsset(&assetList, col, row, crate_t, COLOR_BOX);
 
             }
             else if(gameMap[row][col] == "#"[0])
             {
-                wallArr[wallIndex] = {.x=col, .y=row, .color=COLOR_WALL, .type=wall_t};
-                wallIndex++;
-
                 appendAsset(&assetList, col, row, wall_t, COLOR_WALL);
 
             }
             else if(gameMap[row][col] == "X"[0])
             {
-                goalArr[goalIndex] = {.x=col, .y=row, .color=COLOR_FLOOR_TARGET, .type=goal_t};
-                goalIndex++;
-
                 appendAsset(&assetList, col, row, goal_t, COLOR_FLOOR_TARGET);
 
             }else if(gameMap[row][col] == "@"[0])
             {
-                plr.x = col;
-                plr.y = row;
                 player1 = appendAsset(&assetList, col, row, plr_t, COLOR_PLAYER);
                 player1->x = col;
                 player1->y = row;
+                player1->color = COLOR_PLAYER;
             }
         }
     }
-    Serial.println((unsigned int)&player1);
+    Serial.println("assets build.");
 }
 
 void setup() {
@@ -228,15 +144,17 @@ void loop() {
         if(userInput == 7 )
         {
             Serial.println("starting game mode.");
-            tft.fillScreen(COLOR_FLOOR);
-            drawAllAssets();
             gameMode = inGame;
+            tft.fillScreen(COLOR_FLOOR);
+            return;
         }
         else{
             // Wait for start
             return;
         }
     }
+    
+    drawAssets(assetList);
 
     // Progress game
     if (userInput >= 3 && userInput <= 6){
@@ -258,59 +176,66 @@ void loop() {
                 break;
         }
 
-        nextX = plr.x + dx;
-        nextY = plr.y + dy;
-        Entity *wallAtLocation = entityAtLocation(nextX, nextY, wallArr, wallCount);
+        nextX = player1->x + dx;
+        nextY = player1->y + dy;
 
-        // Location blocks motion, end loop early
-        if(!inbounds(nextX, nextY) || wallAtLocation){
-            Serial.println("your way is blocked.");
+        if(!inbounds(nextX, nextY)){
+            Serial.println("Out of bounds!");
             return;
         }
 
-        Entity *boxAtLocation = entityAtLocation(nextX, nextY, boxArr, boxCount);
-        
+        Entity *targetEntity;
+        targetEntity = assetAtLocation(nextX, nextY, assetList);      
+       
         // Location is vacant, move player
-        if(!boxAtLocation)
+        if(!targetEntity || targetEntity->type == goal_t)
         {
-            tft.eraseSprite(plr.x, plr.y, sprite_16x24_plr.width, sprite_16x24_plr.height);
-            moveSprite(dx, dy, &plr);
-            drawDynamicAssets();
+            tft.fillRect(player1->x*GRID_SIZE, player1->y*GRID_SIZE, GRID_SIZE, GRID_SIZE, COLOR_FLOOR);
+            moveSprite(dx, dy, player1);
             return;
         }
-        
-        // Test if boxAtLocation can also be pushed to vacant coordinate
-        nextX = boxAtLocation->x + dx;
-        nextY = boxAtLocation->y + dy;        
-        if(inbounds(nextX, nextY) && !entityAtLocation(nextX, nextY, boxArr, boxCount) && !entityAtLocation(nextX, nextY, wallArr, wallCount))
+
+        if(targetEntity->type == wall_t)
         {
-            tft.eraseSprite(plr.x, plr.y, sprite_16x24_plr.width, sprite_16x24_plr.height);
-            tft.eraseSprite(boxAtLocation->x, boxAtLocation->y, sprite_crate.width, sprite_crate.height);
-            moveSprite(dx, dy, &plr);
-            moveSprite(dx, dy, boxAtLocation);
-            updateBoxStatus(boxAtLocation, goalArr, goalCount);
+            Serial.println("That way is blocked!");
+            return;
         }
 
-        drawDynamicAssets();
+
+        // Test if targetEntity can also be pushed to vacant coordinate
+        nextX = targetEntity->x + dx;
+        nextY = targetEntity->y + dy;
+        struct Entity* nextBlockingAsset =  assetAtLocation(nextX, nextY, assetList);
+        if(inbounds(nextX, nextY) && (!nextBlockingAsset || nextBlockingAsset->type == goal_t))
+        {
+            tft.fillRect(player1->x*GRID_SIZE, player1->y*GRID_SIZE, GRID_SIZE, GRID_SIZE, COLOR_FLOOR);
+            tft.eraseSprite(targetEntity->x, targetEntity->y, sprite_crate.width, sprite_crate.height);
+            moveSprite(dx, dy, player1);
+            moveSprite(dx, dy, targetEntity);
+            if(nextBlockingAsset->type == goal_t){
+                targetEntity->type = crate_active_t;
+            }
+                targetEntity->type = crate_t;
+            // updateBoxStatus(boxAtLocation, goalArr, goalCount);
+        }
+
         
         // Test end game criteria
-        if(gameSolved(boxArr, boxCount, goalArr, goalCount))
-        {
-            delay(300);
-            gameMode = success;
-            free(boxArr);
-            free(goalArr);
-            free(wallArr);
-            // Prepare assets for next level
-            // TODO: better map progression function
-            currentMap++;
-            if(currentMap > 1){
-                currentMap = 0;
-                tft.drawSuccess();
-            }else{
-                tft.drawMapComplete(currentMap);
-            }
-            buildAssets(maps_20x15[currentMap]);
-        }
+        // if(gameSolved(assetList))
+        // {
+        //     drawAssets(assetList);
+        //     delay(300);
+        //     gameMode = success;
+        //     // Prepare assets for next level
+        //     // TODO: better map progression function
+        //     currentMap++;
+        //     if(currentMap > 1){
+        //         currentMap = 0;
+        //         tft.drawSuccess();
+        //     }else{
+        //         tft.drawMapComplete(currentMap);
+        //     }
+        //     buildAssets(maps_20x15[currentMap]);
+        // }
     }
 }
