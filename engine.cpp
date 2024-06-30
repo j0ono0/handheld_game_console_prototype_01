@@ -152,6 +152,24 @@ void deleteAssets(struct EntityListNode **assets)
     Serial.println("finished removing assets");
 }
 
+bool atLocation(Entity *entity, int x, int y)
+{
+    if (entity->x == x && entity->y == y)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool coLocated(Entity *a, Entity *b)
+{
+    if (a->x == b->x && a->y == b->y)
+    {
+        return true;
+    }
+    return false;
+}
+
 #ifdef __arm__
 // should use uinstd.h to define sbrk but Due causes a conflict
 extern "C" char *sbrk(int incr);

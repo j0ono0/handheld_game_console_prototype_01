@@ -53,5 +53,7 @@ struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, i
 bool entityBlocksMovement(struct EntityListNode *head, int x, int y);
 struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y);
 void deleteAssets(struct EntityListNode **assets);
+bool atLocation(Entity *entity, int x, int y);
+bool coLocated(Entity *a, Entity *b);
 int availableMemory();
 #endif

@@ -30,6 +30,33 @@ EntityListNode *assets;
 enum GameMode gameMode;
 int currentMap;
 
+uint16_t colorOfType(enum EntityType type)
+{
+    uint16_t color = COLOR_FLOOR;
+    switch (type)
+    {
+    case plr_t:
+        color = COLOR_PLAYER;
+        break;
+    case crate_t:
+        color = COLOR_BOX;
+        break;
+    case crate_active_t:
+        color = COLOR_BOX_ACTIVE;
+        break;
+    case goal_t:
+        color = COLOR_FLOOR_TARGET;
+        break;
+    case wall_t:
+        color = COLOR_WALL;
+        break;
+    case floor_t:
+        color = COLOR_FLOOR;
+        break;
+    }
+    return color;
+}
+
 void drawAssets(struct EntityListNode *head)
 {
     while (head != NULL)
@@ -53,31 +80,29 @@ void drawAssets(struct EntityListNode *head)
         //     default:
         //         break;
         // }
-        uint16_t color = 0x0;
-        switch (head->entity->type)
-        {
-        case plr_t:
-            color = COLOR_PLAYER;
-            break;
-        case crate_t:
-            color = COLOR_BOX;
-            break;
-        case crate_active_t:
-            color = COLOR_BOX_ACTIVE;
-            break;
-        case goal_t:
-            color = COLOR_FLOOR_TARGET;
-            break;
-        case wall_t:
-            color = COLOR_WALL;
-            break;
-        case floor_t:
-            color = COLOR_FLOOR;
-            break;
-        }
-        tft.fillRect(head->entity->x * GRID_SIZE, head->entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, color);
+
+        tft.fillRect(head->entity->x * GRID_SIZE, head->entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, colorOfType(head->entity->type));
         head = head->next;
     }
+}
+
+void drawAsset(struct Entity *entity)
+{
+    tft.fillRect(entity->x * GRID_SIZE, entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, colorOfType(entity->type));
+}
+
+void drawAssetAtLocation(struct EntityListNode *head, int x, int y)
+{
+    uint16_t color = COLOR_FLOOR;
+    while (head != NULL)
+    {
+        if (atLocation(head->entity, x, y))
+        {
+            color = colorOfType(head->entity->type);
+        }
+        head = head->next;
+    }
+    tft.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE, color);
 }
 
 void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
@@ -164,6 +189,7 @@ void loop()
             Serial.println("starting game mode.");
             gameMode = inGame;
             tft.fillScreen(COLOR_FLOOR);
+            drawAssets(assets);
             return;
         }
         else
@@ -172,8 +198,6 @@ void loop()
             return;
         }
     }
-
-    drawAssets(assets);
 
     // Progress game
     if (userInput >= 3 && userInput <= 6)
@@ -225,11 +249,16 @@ void loop()
                 crate->x += dx;
                 crate->y += dy;
                 updateCrate(assets, crate);
+                // TODO: this is super ineffecient!!!!
+                drawAssetAtLocation(assets, crate->x - dx, crate->y - dy);
+                drawAsset(crate);
             }
         }
         tft.fillRect(plr1->x * GRID_SIZE, plr1->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, COLOR_FLOOR);
         plr1->x = nextX;
         plr1->y = nextY;
+        drawAssetAtLocation(assets, plr1->x - dx, plr1->y - dy);
+        drawAsset(plr1);
 
         if (gameSolved(assets))
         {
