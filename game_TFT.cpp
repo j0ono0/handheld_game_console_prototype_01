@@ -1,6 +1,12 @@
 #include "game_TFT.h"
 
 
+#include "sprite_plr.c"
+#include "sprite_16x24_plr.c"
+#include "sprite_crate.c"
+#include "sprite_crate_active.c"
+
+
 void Extended_Tft::drawSprite(int x, int y, uint16_t color){
 
 	beginSPITransaction(_clock);
@@ -30,13 +36,6 @@ void Extended_Tft::eraseSprite(int x, int y, int width, int height){
     writedata16_last(COLOR_FLOOR);
 
 	endSPITransaction();
-}
-
-void Extended_Tft::drawSprites(struct Entity array[], int len)
-{
-    for(int i = 0; i < len; i++){
-        drawSprite(array[i].x, array[i].y, array[i].color);
-    }
 }
 
 void Extended_Tft::drawIntro()
@@ -75,9 +74,8 @@ void Extended_Tft::drawSuccess()
     println("Press start to play again.");
 }
 
-void Extended_Tft::drawSprite(int16_t x, int16_t y, int16_t w, int16_t h, const uint16_t *pcolors)
+void Extended_Tft::drawSprite(int x, int y, int w, int h, uint16_t *pcolors)
 {
-
 	for(int sy=0; sy < h; sy++) 
     {
 		for(int sx=0; sx < w; sx++) 
@@ -88,4 +86,13 @@ void Extended_Tft::drawSprite(int16_t x, int16_t y, int16_t w, int16_t h, const 
             }
         }
 	}
+}
+
+void Extended_Tft::drawPlr(int x, int y)
+{
+    // TODO: enable selecting different sprites ** will require standardising sprite sizes?
+    int w = sprite_16x24_plr.width;
+    int h = sprite_16x24_plr.height;
+    uint16_t *pcolors = (uint16_t*)(sprite_16x24_plr.pixel_data);
+    drawSprite(x, y, w, h, pcolors);
 }

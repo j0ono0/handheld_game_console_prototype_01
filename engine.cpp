@@ -1,4 +1,6 @@
+#include "Arduino.h"
 #include "engine.h"
+
 
 bool inbounds(int x, int y)
 {
@@ -170,6 +172,8 @@ bool coLocated(Entity *a, Entity *b)
     return false;
 }
 
+
+/////////////////////////////////////////////////////////
 #ifdef __arm__
 // should use uinstd.h to define sbrk but Due causes a conflict
 extern "C" char *sbrk(int incr);

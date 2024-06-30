@@ -2,7 +2,7 @@
 #define game_engine_h
 
 #include <cstdint>
-#include "game_TFT.h"
+#include "config.h"
 
 struct Loc
 {
@@ -55,5 +55,6 @@ struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y);
 void deleteAssets(struct EntityListNode **assets);
 bool atLocation(Entity *entity, int x, int y);
 bool coLocated(Entity *a, Entity *b);
+
 int availableMemory();
 #endif

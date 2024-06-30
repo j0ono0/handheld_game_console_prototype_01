@@ -4,14 +4,9 @@
 #include "engine.h"
 #include "game_maps.h"
 
-#include "sprite_plr.c"
-#include "sprite_16x24_plr.c"
-#include "sprite_crate.c"
-#include "sprite_crate_active.c"
 
 /** NOTES **********************
 
-TFT_DC LOW = sending command byte
 display is 320 x 240
 
 *******************************/
@@ -19,6 +14,7 @@ display is 320 x 240
 #define TFT_DC 9
 #define TFT_CS 10
 Extended_Tft tft = Extended_Tft(TFT_CS, TFT_DC);
+
 struct BtnHandler inputBtn
 {
     .current = 0, .processed = false, .duration = 0
@@ -80,15 +76,25 @@ void drawAssets(struct EntityListNode *head)
         //     default:
         //         break;
         // }
-
-        tft.fillRect(head->entity->x * GRID_SIZE, head->entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, colorOfType(head->entity->type));
+        if(head->entity->type == plr_t)
+        {
+            tft.drawPlr(head->entity->x, head->entity->y);
+        }
+        else{
+            tft.fillRect(head->entity->x * GRID_SIZE, head->entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, colorOfType(head->entity->type));
+        }
         head = head->next;
     }
 }
 
 void drawAsset(struct Entity *entity)
 {
-    tft.fillRect(entity->x * GRID_SIZE, entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, colorOfType(entity->type));
+    if(entity->type == plr_t)
+    {
+        tft.drawPlr(entity->x, entity->y);
+    }else{
+        tft.fillRect(entity->x * GRID_SIZE, entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, colorOfType(entity->type));
+    }
 }
 
 void drawAssetAtLocation(struct EntityListNode *head, int x, int y)
@@ -98,7 +104,13 @@ void drawAssetAtLocation(struct EntityListNode *head, int x, int y)
     {
         if (atLocation(head->entity, x, y))
         {
-            color = colorOfType(head->entity->type);
+            if(head->entity->type == plr_t)
+            {
+                tft.drawPlr(x, y);
+            }
+            else{
+                color = colorOfType(head->entity->type);
+            }
         }
         head = head->next;
     }
@@ -250,15 +262,19 @@ void loop()
                 crate->y += dy;
                 updateCrate(assets, crate);
                 // TODO: this is super ineffecient!!!!
-                drawAssetAtLocation(assets, crate->x - dx, crate->y - dy);
                 drawAsset(crate);
+                drawAssetAtLocation(assets, crate->x - dx, crate->y - dy);
             }
         }
-        tft.fillRect(plr1->x * GRID_SIZE, plr1->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, COLOR_FLOOR);
+
         plr1->x = nextX;
         plr1->y = nextY;
+
+        // Clear old plr1 sprite from screen (NOTE: plr sprite spans x2 grid cells)
         drawAssetAtLocation(assets, plr1->x - dx, plr1->y - dy);
-        drawAsset(plr1);
+        drawAssetAtLocation(assets, plr1->x - dx, plr1->y - dy - 1);
+        // Draw plr1 sprite
+        tft.drawPlr(plr1->x, plr1->y);
 
         if (gameSolved(assets))
         {
