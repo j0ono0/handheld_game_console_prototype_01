@@ -112,52 +112,6 @@ struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, i
     return e;
 }
 
-struct Entity *entityAtLocation(struct EntityListNode **head, int x, int y)
-{
-    struct EntityListNode *temp = *head;
-
-    while (temp != NULL)
-    {
-        if (temp->entity->x == x && temp->entity->y == y)
-        {
-            return temp->entity;
-        }
-        temp = temp->next;
-    }
-    return NULL;
-}
-
-struct EntityListNode *entitiesAtLocation(struct EntityListNode *head, int x, int y)
-{
-    // Store entities at location here
-    struct EntityListNode *entitiesHere = NULL;
-    struct EntityListNode *current = NULL;
-
-    while (head != NULL)
-    {
-        if (head->entity->x == x && head->entity->y == y)
-        {
-            // make a new entity list entry
-            if (entitiesHere == NULL)
-            {
-                entitiesHere = (struct EntityListNode *)malloc(sizeof(struct EntityListNode));
-                entitiesHere->entity = head->entity;
-                entitiesHere->next = NULL;
-                current = entitiesHere;
-            }
-            else
-            {
-                struct EntityListNode *node = (struct EntityListNode *)malloc(sizeof(struct EntityListNode));
-                node->entity = head->entity;
-                current->next = node;
-                current = current->next;
-            }
-        }
-        head = head->next;
-    }
-    return entitiesHere;
-}
-
 bool entityBlocksMovement(struct EntityListNode *head, int x, int y)
 {
     while (head != NULL)
@@ -205,7 +159,7 @@ extern "C" char *sbrk(int incr);
 extern char *__brkval;
 #endif // __arm__
 
-int freeMemory()
+int availableMemory()
 {
     char top;
 #ifdef __arm__

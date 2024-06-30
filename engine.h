@@ -50,10 +50,8 @@ bool gameSolved(struct EntityListNode *head);
 struct Entity *appendAsset(struct Entity **head, int col, int row, EntityType, uint16_t color);
 
 struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, int x, int y, uint16_t color);
-struct Entity *entityAtLocation(struct EntityListNode *head, int x, int y);
-struct EntityListNode *entitiesAtLocation(struct EntityListNode *head, int x, int y);
 bool entityBlocksMovement(struct EntityListNode *head, int x, int y);
 struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y);
 void deleteAssets(struct EntityListNode **assets);
-int freeMemory();
+int availableMemory();
 #endif

@@ -130,7 +130,7 @@ void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
     }
     Serial.println("assets build.");
     Serial.println("free memory: ");
-    Serial.println(freeMemory());
+    Serial.println(availableMemory());
 }
 
 void setup()
