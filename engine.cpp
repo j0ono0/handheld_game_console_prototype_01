@@ -1,16 +1,14 @@
 #include "engine.h"
 
-
 bool inbounds(int x, int y)
 {
-    if(x < 0 || y < 0 || x > GRID_WIDTH || y > GRID_HEIGHT)
+    if (x < 0 || y < 0 || x > GRID_WIDTH || y > GRID_HEIGHT)
     {
         Serial.print(x);
         return false;
     }
     return true;
 }
-
 
 void moveSprite(int dx, int dy, Entity *entity)
 {
@@ -21,8 +19,9 @@ void moveSprite(int dx, int dy, Entity *entity)
 void updateCrate(struct EntityListNode *head, Entity *crate)
 {
     crate->type = crate_t;
-    while(head != NULL){
-        if(head->entity->x == crate->x && head->entity->y == crate->y && head->entity->type == goal_t )
+    while (head != NULL)
+    {
+        if (head->entity->x == crate->x && head->entity->y == crate->y && head->entity->type == goal_t)
         {
             crate->type = crate_active_t;
         }
@@ -34,15 +33,16 @@ bool gameSolved(struct EntityListNode *head)
 {
     // Test if every goal has a crate on the same location.
     bool solved = true;
-    struct EntityListNode* current = head;
-    while(current != NULL)
+    struct EntityListNode *current = head;
+    while (current != NULL)
     {
-        if(current->entity->type == goal_t){
+        if (current->entity->type == goal_t)
+        {
             solved = false;
-            struct EntityListNode* test = head;
-            while(test != NULL)
+            struct EntityListNode *test = head;
+            while (test != NULL)
             {
-                if((test->entity->type == crate_active_t || test->entity->type == crate_t) && test->entity->x == current->entity->x && test->entity->y == current->entity->y)
+                if ((test->entity->type == crate_active_t || test->entity->type == crate_t) && test->entity->x == current->entity->x && test->entity->y == current->entity->y)
                 {
                     solved = true;
                     break;
@@ -50,7 +50,8 @@ bool gameSolved(struct EntityListNode *head)
                 test = test->next;
             }
         }
-        if(solved == false){
+        if (solved == false)
+        {
             break;
         }
         current = current->next;
@@ -58,22 +59,22 @@ bool gameSolved(struct EntityListNode *head)
     return solved;
 }
 
-struct Entity* appendAsset(struct Entity** head, int  col, int row,  enum EntityType type, uint16_t color)
+struct Entity *appendAsset(struct Entity **head, int col, int row, enum EntityType type, uint16_t color)
 {
-    struct Entity* newNode = (struct Entity*)malloc(sizeof(struct Entity));
+    struct Entity *newNode = (struct Entity *)malloc(sizeof(struct Entity));
     newNode->x = col;
     newNode->y = row;
     newNode->type = type;
     newNode->color = color;
     newNode->next = NULL;
 
-    if(*head == NULL)
+    if (*head == NULL)
     {
         *head = newNode;
         return newNode;
     }
-    struct Entity* current = *head;
-    while(current->next != NULL)
+    struct Entity *current = *head;
+    while (current->next != NULL)
     {
         current = current->next;
     }
@@ -81,29 +82,29 @@ struct Entity* appendAsset(struct Entity** head, int  col, int row,  enum Entity
     return newNode;
 }
 
-
 struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, int x, int y, uint16_t color)
 {
     // // Create entity
-    struct Entity *e = (struct Entity *) malloc(sizeof(struct Entity));
+    struct Entity *e = (struct Entity *)malloc(sizeof(struct Entity));
     e->type = type;
     e->x = x;
     e->y = y;
     e->color = color;
     // Create linked-list node
-    struct EntityListNode *node = (struct EntityListNode *) malloc(sizeof(struct EntityListNode));
+    struct EntityListNode *node = (struct EntityListNode *)malloc(sizeof(struct EntityListNode));
     node->entity = e;
     node->next = NULL;
 
     // Add node into provided linked-list (head)
     // List is empty
-    if(*head == NULL){
+    if (*head == NULL)
+    {
         *head = node;
         return e;
     }
     // find last list item
     struct EntityListNode *temp = *head;
-    while(temp->next != NULL)
+    while (temp->next != NULL)
     {
         temp = temp->next;
     }
@@ -111,12 +112,13 @@ struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, i
     return e;
 }
 
-struct Entity* entityAtLocation(struct EntityListNode** head, int x, int y)
+struct Entity *entityAtLocation(struct EntityListNode **head, int x, int y)
 {
-    struct EntityListNode* temp = *head;
+    struct EntityListNode *temp = *head;
 
-    while(temp != NULL){
-        if(temp->entity->x == x && temp->entity->y == y)
+    while (temp != NULL)
+    {
+        if (temp->entity->x == x && temp->entity->y == y)
         {
             return temp->entity;
         }
@@ -125,23 +127,27 @@ struct Entity* entityAtLocation(struct EntityListNode** head, int x, int y)
     return NULL;
 }
 
-struct EntityListNode* entitiesAtLocation(struct EntityListNode* head, int x, int y)
+struct EntityListNode *entitiesAtLocation(struct EntityListNode *head, int x, int y)
 {
     // Store entities at location here
     struct EntityListNode *entitiesHere = NULL;
     struct EntityListNode *current = NULL;
 
-    while(head != NULL){
-        if(head->entity->x == x && head->entity->y == y)
+    while (head != NULL)
+    {
+        if (head->entity->x == x && head->entity->y == y)
         {
             // make a new entity list entry
-            if (entitiesHere == NULL){
-                entitiesHere = (struct EntityListNode *) malloc(sizeof(struct EntityListNode));
+            if (entitiesHere == NULL)
+            {
+                entitiesHere = (struct EntityListNode *)malloc(sizeof(struct EntityListNode));
                 entitiesHere->entity = head->entity;
                 entitiesHere->next = NULL;
                 current = entitiesHere;
-            }else{
-                struct EntityListNode *node = (struct EntityListNode *) malloc(sizeof(struct EntityListNode));
+            }
+            else
+            {
+                struct EntityListNode *node = (struct EntityListNode *)malloc(sizeof(struct EntityListNode));
                 node->entity = head->entity;
                 current->next = node;
                 current = current->next;
@@ -152,10 +158,12 @@ struct EntityListNode* entitiesAtLocation(struct EntityListNode* head, int x, in
     return entitiesHere;
 }
 
-bool entityBlocksMovement(struct EntityListNode* head, int x, int y)
+bool entityBlocksMovement(struct EntityListNode *head, int x, int y)
 {
-    while(head != NULL){
-        if(head->entity->x == x && head->entity->y == y && head->entity->type == wall_t){
+    while (head != NULL)
+    {
+        if (head->entity->x == x && head->entity->y == y && head->entity->type == wall_t)
+        {
             return true;
         }
         head = head->next;
@@ -163,10 +171,11 @@ bool entityBlocksMovement(struct EntityListNode* head, int x, int y)
     return false;
 }
 
-struct Entity* crateAtLocation(struct EntityListNode* head, int x, int y)
+struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y)
 {
-    while(head != NULL){
-        if( head->entity->x == x && head->entity->y == y && (head->entity->type == crate_t || head->entity->type == crate_active_t))
+    while (head != NULL)
+    {
+        if (head->entity->x == x && head->entity->y == y && (head->entity->type == crate_t || head->entity->type == crate_active_t))
         {
             return head->entity;
         }
@@ -175,14 +184,35 @@ struct Entity* crateAtLocation(struct EntityListNode* head, int x, int y)
     return NULL;
 }
 
-void deleteAssets(struct EntityListNode* assets)
+void deleteAssets(struct EntityListNode **assets)
 {
-    struct EntityListNode *current = NULL;
-    while(assets != NULL)
+    // struct EntityListNode *current = *assets;
+    struct EntityListNode *prev = NULL;
+    while (*assets != NULL)
     {
-        current = assets;
-        assets = assets->next;
-        free(current);
+        prev = *assets;
+        *assets = prev->next;
+        free(prev->entity);
+        free(prev);
     }
     Serial.println("finished removing assets");
+}
+
+#ifdef __arm__
+// should use uinstd.h to define sbrk but Due causes a conflict
+extern "C" char *sbrk(int incr);
+#else  // __ARM__
+extern char *__brkval;
+#endif // __arm__
+
+int freeMemory()
+{
+    char top;
+#ifdef __arm__
+    return &top - reinterpret_cast<char *>(sbrk(0));
+#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
+    return &top - __brkval;
+#else  // __arm__
+    return __brkval ? &top - __brkval : &top - __malloc_heap_start;
+#endif // __arm__
 }

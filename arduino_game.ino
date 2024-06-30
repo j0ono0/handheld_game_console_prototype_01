@@ -9,7 +9,6 @@
 #include "sprite_crate.c"
 #include "sprite_crate_active.c"
 
-
 /** NOTES **********************
 
 TFT_DC LOW = sending command byte
@@ -17,24 +16,23 @@ display is 320 x 240
 
 *******************************/
 
-#define TFT_DC  9
+#define TFT_DC 9
 #define TFT_CS 10
 Extended_Tft tft = Extended_Tft(TFT_CS, TFT_DC);
-struct BtnHandler inputBtn{ .current=0, .processed=false, .duration=0};
+struct BtnHandler inputBtn
+{
+    .current = 0, .processed = false, .duration = 0
+};
 
-
-Entity* plr1;
+Entity *plr1;
 EntityListNode *assets;
-
 
 enum GameMode gameMode;
 int currentMap;
 
-
-
-void drawAssets(struct EntityListNode* head)
+void drawAssets(struct EntityListNode *head)
 {
-    while(head != NULL)
+    while (head != NULL)
     {
         // switch(e->type){
         //     case plr_t:
@@ -56,43 +54,41 @@ void drawAssets(struct EntityListNode* head)
         //         break;
         // }
         uint16_t color = 0x0;
-        switch(head->entity->type)
+        switch (head->entity->type)
         {
-            case plr_t:
-                color = COLOR_PLAYER;
-                break;
-            case crate_t:
-                color = COLOR_BOX;
-                break;
-            case crate_active_t:
-                color = COLOR_BOX_ACTIVE;
-                break;
-            case goal_t:
-                color = COLOR_FLOOR_TARGET;
-                break;
-            case wall_t:
-                color = COLOR_WALL;
-                break;
-            case floor_t:
-                color = COLOR_FLOOR;
-                break;
+        case plr_t:
+            color = COLOR_PLAYER;
+            break;
+        case crate_t:
+            color = COLOR_BOX;
+            break;
+        case crate_active_t:
+            color = COLOR_BOX_ACTIVE;
+            break;
+        case goal_t:
+            color = COLOR_FLOOR_TARGET;
+            break;
+        case wall_t:
+            color = COLOR_WALL;
+            break;
+        case floor_t:
+            color = COLOR_FLOOR;
+            break;
         }
-        tft.fillRect(head->entity->x*GRID_SIZE, head->entity->y*GRID_SIZE, GRID_SIZE, GRID_SIZE, color);
+        tft.fillRect(head->entity->x * GRID_SIZE, head->entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, color);
         head = head->next;
     }
 }
 
-
-void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1]){
-
-    assets = NULL;
+void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
+{
 
     // Output map to console
-    for(int row = 0; row < GRID_HEIGHT; row++)
+    for (int row = 0; row < GRID_HEIGHT; row++)
     {
-        for(int col = 0; col < GRID_WIDTH; col++)
-        { 
-            if(gameMap[row][col] == "."[0])
+        for (int col = 0; col < GRID_WIDTH; col++)
+        {
+            if (gameMap[row][col] == "."[0])
             {
                 Serial.print(" ");
             }
@@ -104,27 +100,28 @@ void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1]){
         Serial.print('\n');
     }
 
-    for(int row = 0; row < GRID_HEIGHT; row++)
+    for (int row = 0; row < GRID_HEIGHT; row++)
     {
-        for(int col = 0; col < GRID_WIDTH; col++)
+        for (int col = 0; col < GRID_WIDTH; col++)
         {
-            if(gameMap[row][col] == "B"[0])
+            if (gameMap[row][col] == "B"[0])
             {
                 createAsset(&assets, goal_t, col, row, COLOR_FLOOR_TARGET);
                 createAsset(&assets, crate_active_t, col, row, COLOR_BOX_ACTIVE);
             }
-            else if(gameMap[row][col] == "b"[0])
+            else if (gameMap[row][col] == "b"[0])
             {
                 createAsset(&assets, crate_t, col, row, COLOR_BOX);
             }
-            else if(gameMap[row][col] == "#"[0])
+            else if (gameMap[row][col] == "#"[0])
             {
                 createAsset(&assets, wall_t, col, row, COLOR_WALL);
             }
-            else if(gameMap[row][col] == "X"[0])
+            else if (gameMap[row][col] == "X"[0])
             {
                 createAsset(&assets, goal_t, col, row, COLOR_FLOOR_TARGET);
-            }else if(gameMap[row][col] == "@"[0])
+            }
+            else if (gameMap[row][col] == "@"[0])
             {
                 // Assign entity as plr1 for easy reference
                 plr1 = createAsset(&assets, plr_t, col, row, COLOR_PLAYER);
@@ -132,9 +129,12 @@ void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1]){
         }
     }
     Serial.println("assets build.");
+    Serial.println("free memory: ");
+    Serial.println(freeMemory());
 }
 
-void setup() {
+void setup()
+{
 
     Serial.begin(9600);
 
@@ -151,22 +151,23 @@ void setup() {
     currentMap = 0;
     buildAssets(maps_20x15[currentMap]);
     tft.drawIntro();
-
-
 }
 
-void loop() {
+void loop()
+{
     int userInput = readUserInput(&inputBtn);
 
-    if(gameMode != inGame){
-        if(userInput == 7 )
+    if (gameMode != inGame)
+    {
+        if (userInput == 7)
         {
             Serial.println("starting game mode.");
             gameMode = inGame;
             tft.fillScreen(COLOR_FLOOR);
             return;
         }
-        else{
+        else
+        {
             // Wait for start
             return;
         }
@@ -175,82 +176,87 @@ void loop() {
     drawAssets(assets);
 
     // Progress game
-    if (userInput >= 3 && userInput <= 6){
+    if (userInput >= 3 && userInput <= 6)
+    {
         int nextX, nextY;
         int dx = 0;
         int dy = 0;
-        switch(userInput){
-            case BTN_N:
-                dy = -1;
-                break;
-            case BTN_S:
-                dy = 1;
-                break;
-            case BTN_W:
-                dx = -1;
-                break;
-            case BTN_E:
-                dx = 1;
-                break;
+        switch (userInput)
+        {
+        case BTN_N:
+            dy = -1;
+            break;
+        case BTN_S:
+            dy = 1;
+            break;
+        case BTN_W:
+            dx = -1;
+            break;
+        case BTN_E:
+            dx = 1;
+            break;
         }
-
 
         nextX = plr1->x + dx;
         nextY = plr1->y + dy;
 
-        if(!inbounds(nextX, nextY)){
+        if (!inbounds(nextX, nextY))
+        {
             Serial.println("Out of bounds!");
             return;
         }
-        else if(entityBlocksMovement(assets, nextX, nextY))
+        else if (entityBlocksMovement(assets, nextX, nextY))
         {
             Serial.println("A wall blocks your way.");
             return;
         }
 
-        struct Entity* crate = crateAtLocation(assets, nextX, nextY);
-        if(crate)
+        struct Entity *crate = crateAtLocation(assets, nextX, nextY);
+        if (crate)
         {
-            if(
-                !inbounds(crate->x + dx, crate->y + dy) 
-                || entityBlocksMovement(assets, crate->x + dx, crate->y + dy) 
-                || crateAtLocation(assets, crate->x + dx, crate->y + dy)
-            )
+            if (
+                !inbounds(crate->x + dx, crate->y + dy) || entityBlocksMovement(assets, crate->x + dx, crate->y + dy) || crateAtLocation(assets, crate->x + dx, crate->y + dy))
             {
                 Serial.println("This crate isn't budging!");
                 return;
-            }else{
+            }
+            else
+            {
                 crate->x += dx;
                 crate->y += dy;
                 updateCrate(assets, crate);
             }
         }
-        tft.fillRect(plr1->x*GRID_SIZE, plr1->y*GRID_SIZE, GRID_SIZE, GRID_SIZE, COLOR_FLOOR);
+        tft.fillRect(plr1->x * GRID_SIZE, plr1->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, COLOR_FLOOR);
         plr1->x = nextX;
         plr1->y = nextY;
 
-        if(gameSolved(assets)){
+        if (gameSolved(assets))
+        {
             Serial.println("game solved!");
 
             delay(200);
             gameMode = success;
 
             // TODO: THis does not work properly I think!!!!
-            deleteAssets(assets);
+            deleteAssets(&assets);
 
-            if(assets == NULL){
+            if (assets == NULL)
+            {
                 Serial.println("assets are NULL.");
             }
             // Prepare assets for next level
             currentMap++;
-            if(currentMap > 1){
+            if (currentMap > 1)
+            {
                 currentMap = 0;
                 tft.drawSuccess();
-            }else{
+            }
+            else
+            {
                 tft.drawMapComplete(currentMap);
             }
             buildAssets(maps_20x15[currentMap]);
-
-        }  
+        }
     }
 }
