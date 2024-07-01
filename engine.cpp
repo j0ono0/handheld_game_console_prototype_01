@@ -18,47 +18,30 @@ void moveSprite(int dx, int dy, Entity *entity)
     entity->y += dy;
 }
 
-void updateCrate(struct EntityListNode *head, Entity *crate)
+void updateCrate(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], Entity *crate)
 {
-    crate->type = crate_t;
-    while (head != NULL)
+    if(terrain[crate->x][crate->y] == goal_material)
     {
-        if (head->entity->x == crate->x && head->entity->y == crate->y && head->entity->type == goal_t)
-        {
-            crate->type = crate_active_t;
-        }
-        head = head->next;
+        crate->type = crate_active_t;
+        return;
     }
+    crate->type = crate_t;
 }
 
-bool gameSolved(struct EntityListNode *head)
+bool gameSolved(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], struct Entity *assetLocation[GRID_WIDTH][GRID_HEIGHT])
 {
     // Test if every goal has a crate on the same location.
-    bool solved = true;
-    struct EntityListNode *current = head;
-    while (current != NULL)
+    for(int y = 0; y < GRID_HEIGHT; y++)
     {
-        if (current->entity->type == goal_t)
+        for(int x = 0; x < GRID_WIDTH; x++)
         {
-            solved = false;
-            struct EntityListNode *test = head;
-            while (test != NULL)
+            if(terrain[x][y] == goal_material && (assetLocation[x][y] == NULL || assetLocation[x][y]->type != crate_active_t))
             {
-                if ((test->entity->type == crate_active_t || test->entity->type == crate_t) && test->entity->x == current->entity->x && test->entity->y == current->entity->y)
-                {
-                    solved = true;
-                    break;
-                }
-                test = test->next;
+                return false;            
             }
         }
-        if (solved == false)
-        {
-            break;
-        }
-        current = current->next;
     }
-    return solved;
+    return true;
 }
 
 struct Entity *appendAsset(struct Entity **head, int col, int row, enum EntityType type, uint16_t color)
@@ -113,6 +96,15 @@ struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, i
     temp->next = node;
     return e;
 }
+
+bool terrainBlocksMovement(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], int x, int y)
+{
+    if(terrain[x][y] > blocking_material)
+        return true;
+    return false;
+}
+
+
 
 bool entityBlocksMovement(struct EntityListNode *head, int x, int y)
 {
@@ -172,6 +164,22 @@ bool coLocated(Entity *a, Entity *b)
     return false;
 }
 
+uint16_t materialColor(enum TerrainMaterial material)
+{
+    switch(material)
+    {
+        case floor_material:
+            return COLOR_FLOOR;
+        case goal_material:
+            return COLOR_FLOOR_TARGET;
+        case wall_material:
+            return COLOR_WALL;
+        case water_material:
+            return COLOR_FLOOR;
+        default:
+            return 0x07e0;
+    }
+}
 
 /////////////////////////////////////////////////////////
 #ifdef __arm__
