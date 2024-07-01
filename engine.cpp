@@ -44,37 +44,13 @@ bool gameSolved(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], struct En
     return true;
 }
 
-struct Entity *appendAsset(struct Entity **head, int col, int row, enum EntityType type, uint16_t color)
-{
-    struct Entity *newNode = (struct Entity *)malloc(sizeof(struct Entity));
-    newNode->x = col;
-    newNode->y = row;
-    newNode->type = type;
-    newNode->color = color;
-    newNode->next = NULL;
-
-    if (*head == NULL)
-    {
-        *head = newNode;
-        return newNode;
-    }
-    struct Entity *current = *head;
-    while (current->next != NULL)
-    {
-        current = current->next;
-    }
-    current->next = newNode;
-    return newNode;
-}
-
-struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, int x, int y, uint16_t color)
+struct Entity *createEntity(struct EntityListNode **head, enum EntityType type, int x, int y)
 {
     // // Create entity
     struct Entity *e = (struct Entity *)malloc(sizeof(struct Entity));
     e->type = type;
     e->x = x;
     e->y = y;
-    e->color = color;
     // Create linked-list node
     struct EntityListNode *node = (struct EntityListNode *)malloc(sizeof(struct EntityListNode));
     node->entity = e;

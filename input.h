@@ -11,11 +11,14 @@
 #define DEBOUNCE_THRESHOLD 50
 
 struct BtnHandler {
+    int input;
     int current;
     bool processed;
     unsigned long duration;
 };
 
-void updateButtonInput(BtnHandler *inputBtn);
-int readUserInput(BtnHandler *inputBtn);
+void setupButtonInputs();
+void updateButtonInput();
+int readUserInput();
+
 #endif

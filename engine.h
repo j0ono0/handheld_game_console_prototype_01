@@ -40,9 +40,7 @@ struct Entity
 {
     int x;
     int y;
-    uint16_t color;
     enum EntityType type;
-    struct Entity *next;
 };
 
 // Linked lists
@@ -55,8 +53,7 @@ struct EntityListNode
 bool inbounds(int x, int y);
 void moveSprite(int dx, int dy, Entity *entity);
 bool gameSolved(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], struct Entity *assetLocation[GRID_WIDTH][GRID_HEIGHT]);
-struct Entity *appendAsset(struct Entity **head, int col, int row, EntityType, uint16_t color);
-struct Entity *createAsset(struct EntityListNode **head, enum EntityType type, int x, int y, uint16_t color);
+struct Entity *createEntity(struct EntityListNode **head, enum EntityType type, int x, int y);
 
 void updateCrate(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], Entity *crate);
 bool terrainBlocksMovement(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], int x, int y);

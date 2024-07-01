@@ -20,6 +20,7 @@ public:
     void drawSuccess();
     void drawSprite(int x, int y, int w, int h, uint16_t *pcolors);
     void drawPlr(int x, int y);
+    void drawCrate(int x, int y, bool state);
 };
 
 #endif

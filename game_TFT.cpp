@@ -96,3 +96,19 @@ void Extended_Tft::drawPlr(int x, int y)
     uint16_t *pcolors = (uint16_t*)(sprite_16x24_plr.pixel_data);
     drawSprite(x, y, w, h, pcolors);
 }
+
+void Extended_Tft::drawCrate(int x, int y, bool state)
+{
+    
+    if(state == true){
+        int w = sprite_crate_active.width;
+        int h = sprite_crate_active.height;
+        uint16_t *pcolors = (uint16_t*)(sprite_crate_active.pixel_data);
+        drawSprite(x, y, w, h, pcolors);
+        return;
+    }
+    int w = sprite_crate.width;
+    int h = sprite_crate.height;
+    uint16_t *pcolors = (uint16_t*)(sprite_crate.pixel_data);
+    drawSprite(x, y, w, h, pcolors);
+}

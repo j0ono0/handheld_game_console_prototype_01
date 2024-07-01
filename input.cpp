@@ -2,46 +2,54 @@
 #include "Arduino.h"
 #include "input.h"
 
+// track button interactions
+BtnHandler bh = {.input=0, .current=0, .processed=false, .duration=0};
 
-int btnValue;
-int flag = 0;
+void setupButtonInputs()
+{
+    pinMode(BTN_N, INPUT_PULLUP);
+    pinMode(BTN_E, INPUT_PULLUP);
+    pinMode(BTN_S, INPUT_PULLUP);
+    pinMode(BTN_W, INPUT_PULLUP);
+    pinMode(BTN_SELECT, INPUT_PULLUP);
+}
 
-void updateButtonInput(BtnHandler *inputBtn){
-    btnValue = 0;
+void updateButtonInput(){
+    bh.input = 0;
     if( digitalRead(BTN_N) == LOW){
-        btnValue = BTN_N;
+        bh.input = BTN_N;
     }else if ( digitalRead(BTN_W) == LOW){
-        btnValue = BTN_W;
+        bh.input = BTN_W;
     }else if ( digitalRead(BTN_S) == LOW){
-        btnValue = BTN_S;
+        bh.input = BTN_S;
     }else if ( digitalRead(BTN_E) == LOW){
-        btnValue = BTN_E;
+        bh.input = BTN_E;
     }else if ( digitalRead(BTN_SELECT) == LOW){
-        btnValue = BTN_SELECT;
+        bh.input = BTN_SELECT;
     }
 
-    if(millis() - inputBtn->duration < DEBOUNCE_THRESHOLD)
+    if(millis() - bh.duration < DEBOUNCE_THRESHOLD)
     {
         // waiting for debounce to finish
     }
-    else if(inputBtn->current != btnValue)
+    else if(bh.current != bh.input)
     {
         // new btn pressed
-        inputBtn->current = btnValue;
-        inputBtn->processed = false;
-        inputBtn->duration = millis();
+        bh.current = bh.input;
+        bh.processed = false;
+        bh.duration = millis();
     }
 }
 
-int readUserInput(BtnHandler *inputBtn){
+int readUserInput(){
 
-    updateButtonInput(inputBtn);
+    updateButtonInput();
     
-    if (inputBtn->processed == true){
+    if (bh.processed == true){
         return 0;
     }
     else{
-        inputBtn->processed = true;
-        return inputBtn->current;
+        bh.processed = true;
+        return bh.current;
     }
 }
