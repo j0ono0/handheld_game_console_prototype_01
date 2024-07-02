@@ -19,6 +19,7 @@ public:
     void drawMapComplete(int mapNum);
     void drawSuccess();
     void drawSprite(int x, int y, int w, int h, uint16_t *pcolors);
+    void drawSpriteCell(int x, int y, uint16_t *pxColors, int offset);
     void drawPlr(int x, int y);
     void drawCrate(int x, int y, bool state);
 };

@@ -1,8 +1,8 @@
 #include "game_TFT.h"
 
 
-#include "sprite_plr.c"
 #include "sprite_16x24_plr.c"
+#include "sprite_plr_16x32.c"
 #include "sprite_crate.c"
 #include "sprite_crate_active.c"
 
@@ -88,13 +88,28 @@ void Extended_Tft::drawSprite(int x, int y, int w, int h, uint16_t *pcolors)
 	}
 }
 
+void Extended_Tft::drawSpriteCell(int x, int y, uint16_t *sprite, int offset)
+{
+    uint16_t *pixels = sprite + offset;
+    // Draw a GRID_SIZE cell from sprite data 
+    for(int sy=0; sy < GRID_SIZE; sy++) 
+    {
+		for(int sx=0; sx < GRID_SIZE; sx++) 
+        {
+            uint16_t color = *pixels++;
+            if(color != COLOR_TRANSPARENT){
+                drawPixel(x * GRID_SIZE + sx, y * GRID_SIZE + sy, color);
+            }
+        }
+	}
+}
+
 void Extended_Tft::drawPlr(int x, int y)
 {
-    // TODO: enable selecting different sprites ** will require standardising sprite sizes?
-    int w = sprite_16x24_plr.width;
-    int h = sprite_16x24_plr.height;
-    uint16_t *pcolors = (uint16_t*)(sprite_16x24_plr.pixel_data);
-    drawSprite(x, y, w, h, pcolors);
+    // Draw top half in cell above entity location
+    drawSpriteCell(x, y-1, (uint16_t *)sprite_plr_16x32.pixel_data, 0);
+    // Draw bottom half at location
+    drawSpriteCell(x, y, (uint16_t *)sprite_plr_16x32.pixel_data, 255);
 }
 
 void Extended_Tft::drawCrate(int x, int y, bool state)
