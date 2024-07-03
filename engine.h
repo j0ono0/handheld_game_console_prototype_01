@@ -4,12 +4,6 @@
 #include <cstdint>
 #include "config.h"
 
-struct Loc
-{
-    int x;
-    int y;
-};
-
 enum TerrainMaterial
 {
     floor_material,
@@ -52,11 +46,11 @@ struct EntityListNode
 
 bool inbounds(int x, int y);
 void moveSprite(int dx, int dy, Entity *entity);
-bool gameSolved(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], struct Entity *assetLocation[GRID_WIDTH][GRID_HEIGHT]);
-struct Entity *createEntity(struct EntityListNode **head, enum EntityType type, int x, int y);
-
-void updateCrate(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], Entity *crate);
-bool terrainBlocksMovement(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], int x, int y);
+bool gameSolved(int mapIndex, struct Entity *entity, int index);
+struct Entity *createEntity(struct Entity *entity, int *index, enum EntityType type, int x, int y);
+struct Entity *entityAtLocation(struct Entity *entity, int index, int x, int y);
+void updateCrate(int mapindex, Entity *crate);
+bool terrainBlocksMovement(int mapIndex, int x, int y);
 
 bool entityBlocksMovement(struct EntityListNode *head, int x, int y);
 struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y);

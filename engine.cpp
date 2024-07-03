@@ -1,12 +1,12 @@
 #include "Arduino.h"
 #include "engine.h"
+#include "game_maps.h"
 
 
 bool inbounds(int x, int y)
 {
     if (x < 0 || y < 0 || x > GRID_WIDTH || y > GRID_HEIGHT)
     {
-        Serial.print(x);
         return false;
     }
     return true;
@@ -18,64 +18,64 @@ void moveSprite(int dx, int dy, Entity *entity)
     entity->y += dy;
 }
 
-void updateCrate(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], Entity *crate)
+void updateCrate(int mapIndex, Entity *crate)
 {
-    if(terrain[crate->x][crate->y] == goal_material)
+    switch(maps_20x15[mapIndex][crate->y][crate->x])
     {
-        crate->type = crate_active_t;
-        return;
+        case 'X':
+        case 'B':
+            crate->type = crate_active_t;
+            return;
+        default:
+            crate->type = crate_t;
+            return;
     }
-    crate->type = crate_t;
 }
 
-bool gameSolved(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], struct Entity *assetLocation[GRID_WIDTH][GRID_HEIGHT])
+bool gameSolved(int mapIndex, struct Entity *entity, int index)
 {
     // Test if every goal has a crate on the same location.
     for(int y = 0; y < GRID_HEIGHT; y++)
     {
         for(int x = 0; x < GRID_WIDTH; x++)
         {
-            if(terrain[x][y] == goal_material && (assetLocation[x][y] == NULL || assetLocation[x][y]->type != crate_active_t))
+            if(maps_20x15[mapIndex][y][x] == 'X' || maps_20x15[mapIndex][y][x] == 'B')
             {
-                return false;            
+                Entity *e = entityAtLocation(entity, index, x, y);
+                if(e == NULL || e->type != crate_active_t)
+                    return false;
             }
         }
     }
     return true;
 }
 
-struct Entity *createEntity(struct EntityListNode **head, enum EntityType type, int x, int y)
+struct Entity *createEntity(struct Entity *entity, int *index, enum EntityType type, int x, int y)
 {
-    // // Create entity
-    struct Entity *e = (struct Entity *)malloc(sizeof(struct Entity));
-    e->type = type;
-    e->x = x;
-    e->y = y;
-    // Create linked-list node
-    struct EntityListNode *node = (struct EntityListNode *)malloc(sizeof(struct EntityListNode));
-    node->entity = e;
-    node->next = NULL;
-
-    // Add node into provided linked-list (head)
-    // List is empty
-    if (*head == NULL)
-    {
-        *head = node;
-        return e;
-    }
-    // find last list item
-    struct EntityListNode *temp = *head;
-    while (temp->next != NULL)
-    {
-        temp = temp->next;
-    }
-    temp->next = node;
-    return e;
+    if(*index + 1 >= MAX_ENTITIES)
+        return NULL;
+    // add new entity to repo
+    ++*index;
+    entity[*index].type = type;
+    entity[*index].x = x;
+    entity[*index].y = y;
+    return &entity[*index];
 }
 
-bool terrainBlocksMovement(enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT], int x, int y)
+struct Entity *entityAtLocation(struct Entity *entity, int index, int x, int y)
 {
-    if(terrain[x][y] > blocking_material)
+    for(int i = 0; i <= index; i++)
+    {
+        if(entity[i].x == x && entity[i].y == y)
+            return &entity[i];
+    }
+    return NULL;
+}
+
+
+bool terrainBlocksMovement(int mapIndex, int x, int y)
+{
+    if(maps_20x15[mapIndex][y][x] == '#')
         return true;
     return false;
 }

@@ -1,11 +1,16 @@
 #include "game_TFT.h"
 
 
-#include "sprite_16x24_plr.c"
-#include "sprite_plr_16x32.c"
 #include "sprite_crate.c"
-#include "sprite_crate_active.c"
-
+#include "sprite_crate_special.c"
+#include "sprite_floor.c"
+#include "sprite_platform.c"
+#include "sprite_plr.c"
+#include  "sprite_target.c"
+#include "sprite_wall_n.c"
+#include "sprite_wall_e.c"
+#include "sprite_wall_s.c"
+#include "sprite_wall_w.c"
 
 void Extended_Tft::drawSprite(int x, int y, uint16_t color){
 
@@ -107,23 +112,18 @@ void Extended_Tft::drawSpriteCell(int x, int y, uint16_t *sprite, int offset)
 void Extended_Tft::drawPlr(int x, int y)
 {
     // Draw top half in cell above entity location
-    drawSpriteCell(x, y-1, (uint16_t *)sprite_plr_16x32.pixel_data, 0);
+    drawSpriteCell(x, y-1, (uint16_t *)sprite_plr, 0);
     // Draw bottom half at location
-    drawSpriteCell(x, y, (uint16_t *)sprite_plr_16x32.pixel_data, 255);
+    drawSpriteCell(x, y, (uint16_t *)sprite_plr, 255);
 }
 
 void Extended_Tft::drawCrate(int x, int y, bool state)
 {
-    
     if(state == true){
-        int w = sprite_crate_active.width;
-        int h = sprite_crate_active.height;
-        uint16_t *pcolors = (uint16_t*)(sprite_crate_active.pixel_data);
-        drawSprite(x, y, w, h, pcolors);
+        drawSpriteCell(x, y-1, (uint16_t *)sprite_crate_special, 0);
+        // Draw bottom half at location
+        drawSpriteCell(x, y, (uint16_t *)sprite_crate_special, 255);
         return;
     }
-    int w = sprite_crate.width;
-    int h = sprite_crate.height;
-    uint16_t *pcolors = (uint16_t*)(sprite_crate.pixel_data);
-    drawSprite(x, y, w, h, pcolors);
+    drawSpriteCell(x, y, (uint16_t *)sprite_crate, 0);
 }

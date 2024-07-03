@@ -10,17 +10,16 @@ display is 320 x 240
 #include "game_maps.h"
 
 
+// SPI hardware pins
 #define TFT_DC 9
 #define TFT_CS 10
+
 Extended_Tft tft = Extended_Tft(TFT_CS, TFT_DC);
 
-// Store terrain by coordinates for fast and easy reference
-enum TerrainMaterial terrain[GRID_WIDTH][GRID_HEIGHT];
 
-// Store entities into linked list. 
-EntityListNode *entityStore;
-// Allow easy & fast referencing of entities by coordinates
-struct Entity *entityLocation[GRID_WIDTH][GRID_HEIGHT] = {NULL, };
+//Store all entities in a repository
+Entity entity_repo[MAX_ENTITIES];
+int er_length;
 
 Entity *plr1;
 
@@ -54,69 +53,58 @@ uint16_t colorOfType(enum EntityType type)
     return color;
 }
 
-void drawTerrain(int x, int y)
+void drawTerrain(int mapIndex, int x, int y)
 {
-    tft.fillRect(x*GRID_SIZE, y*GRID_SIZE, GRID_SIZE, GRID_SIZE, materialColor(terrain[x][y]));
+    uint16_t color = COLOR_FLOOR;
+    if (maps_20x15[currentMap][y][x] == '#')
+    {
+        color = COLOR_WALL;
+    }
+    else if (maps_20x15[currentMap][y][x] == 'B' || maps_20x15[currentMap][y][x] == 'X')
+    {
+        color = COLOR_FLOOR_TARGET;
+    }
+    tft.fillRect(x*GRID_SIZE, y*GRID_SIZE, GRID_SIZE, GRID_SIZE, color);
 }
 
-void drawEntity(int x, int y)
+void drawEntity(Entity *entity)
 {
-    Entity *entity = entityLocation[x][y];
-    if(entity != NULL)
-    {
-         switch(entity->type)
+    switch(entity->type)
     {
         case plr_t:
-            tft.drawPlr(x, y);
+            tft.drawPlr(entity->x, entity->y);
             break;
         case crate_t:
-            tft.drawCrate(x, y, false);
+            tft.drawCrate(entity->x, entity->y, false);
             break;
         case crate_active_t:
-            tft.drawCrate(x, y, true);
+            tft.drawCrate(entity->x, entity->y, true);
             break;
         default:
-             tft.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE, colorOfType(entityLocation[x][y]->type));
+             tft.fillRect(entity->x * GRID_SIZE, entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, colorOfType(entity->type));
     };
-
-    }
 }
 
-void drawAssets(struct EntityListNode *head)
+void drawAssets(Entity *entity_repo, int index)
 {
+    // Draw all terrain
     for(int y=0; y < GRID_HEIGHT; y++)
     {
         for(int x=0; x < GRID_WIDTH; x++)
         {
-            drawTerrain(x, y);
-            drawEntity(x, y);
+            drawTerrain(currentMap, x, y);
         }
     }
-}
-
-void drawAssetAtLocation(struct EntityListNode *head, int x, int y)
-{
-    uint16_t color = COLOR_FLOOR;
-    while (head != NULL)
+    // Draw all entities
+    for(int i = 0; i <= index; ++i)
     {
-        if (atLocation(head->entity, x, y))
-        {
-            if(head->entity->type == plr_t)
-            {
-                tft.drawPlr(x, y);
-            }
-            else{
-                color = colorOfType(head->entity->type);
-            }
-        }
-        head = head->next;
+        drawEntity(&entity_repo[i]);
     }
-    tft.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE, color);
 }
 
-void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
-{
 
+void buildAssets(const char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
+{
     // Output map to console
     for (int row = 0; row < GRID_HEIGHT; row++)
     {
@@ -134,37 +122,28 @@ void buildAssets(char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
         Serial.print('\n');
     }
 
-    // Populate entityStore and terrain
+    // Populate entityStore
     for (int row = 0; row < GRID_HEIGHT; row++)
     {
         for (int col = 0; col < GRID_WIDTH; col++)
         {
             if (gameMap[row][col] == "B"[0])
             {
-                entityLocation[col][row] = createEntity(&entityStore, crate_active_t, col, row);
-                terrain[col][row] = goal_material;
+                createEntity(entity_repo, &er_length, crate_active_t, col, row);
             }
             else if (gameMap[row][col] == "b"[0])
             {
-                entityLocation[col][row] = createEntity(&entityStore, crate_t, col, row);
-            }
-            else if (gameMap[row][col] == "#"[0])
-            {
-                terrain[col][row] = wall_material;
-            }
-            else if (gameMap[row][col] == "X"[0])
-            {
-                terrain[col][row] = goal_material;
+                createEntity(entity_repo, &er_length, crate_t, col, row);
             }
             else if (gameMap[row][col] == "@"[0])
             {
                 // Assign entity as plr1 for easy reference
-                plr1 = createEntity(&entityStore, plr_t, col, row);
-                entityLocation[col][row] = plr1;
+                plr1 = createEntity(entity_repo, &er_length, plr_t, col, row);
             }
         }
     }
-    Serial.println("entityStore populated.");
+    Serial.print("entityRepo populated, count: ");
+    Serial.println(er_length);
     Serial.println("free memory: ");
     Serial.println(availableMemory());
 }
@@ -175,13 +154,17 @@ void setup()
 
     setupButtonInputs();
 
+    er_length = -1;
     gameMode = intro;
+
     currentMap = 0;
+
     buildAssets(maps_20x15[currentMap]);
     
     tft.begin();
     tft.setRotation(1);
     tft.drawIntro();
+
 }
 
 void loop()
@@ -195,7 +178,7 @@ void loop()
             Serial.println("starting game mode.");
             gameMode = inGame;
             tft.fillScreen(COLOR_FLOOR);
-            drawAssets(entityStore);
+            drawAssets(entity_repo, er_length);
             return;
         }
         else
@@ -226,7 +209,6 @@ void loop()
             dx = 1;
             break;
         }
-
         nextX = plr1->x + dx;
         nextY = plr1->y + dy;
 
@@ -235,65 +217,57 @@ void loop()
             Serial.println("Out of bounds!");
             return;
         }
-        else if (terrainBlocksMovement(terrain, nextX, nextY))
+        else if (terrainBlocksMovement(currentMap, nextX, nextY))
         {
             Serial.println("There is no way through here.");
             return;
         }
-
-        struct Entity *crate = entityLocation[nextX][nextY];
-        if (crate)
+        struct Entity *crate = entityAtLocation(entity_repo, er_length, nextX, nextY);
+        if (crate != NULL)
         {
             if (
-                !inbounds(crate->x + dx, crate->y + dy) || terrain[crate->x + dx][crate->y + dy] > blocking_material || entityLocation[crate->x + dx][crate->y + dy] != NULL )
+                !inbounds(crate->x + dx, crate->y + dy) || terrainBlocksMovement(currentMap, crate->x + dx, crate->y + dy) || entityAtLocation(entity_repo, er_length, crate->x + dx, crate->y + dy) != NULL )
             {
                 Serial.println("This crate isn't budging!");
                 return;
             }
             else
             {
-                // Clear crate from location
-                entityLocation[crate->x][crate->y] = NULL;
-                drawTerrain(crate->x, crate->y);
+                Serial.println("moving crate.");
+                drawTerrain(currentMap, crate->x, crate->y);
                 // Update crate location
                 crate->x += dx;
                 crate->y += dy;
-                entityLocation[crate->x][crate->y] = crate;
                 // Update crate status
-                updateCrate(terrain, crate);
+                updateCrate(currentMap, crate);
                 // draw crate
-                drawEntity(crate->x, crate->y);
+                drawEntity(crate);
             }
         }
 
         // Clear plr from location (note plr is 2x sprites tall)
-        entityLocation[plr1->x][plr1->y] = NULL;
-        drawTerrain(plr1->x, plr1->y - 1);
-        drawEntity(plr1->x, plr1->y - 1);
-        drawTerrain(plr1->x, plr1->y);
+        drawTerrain(currentMap, plr1->x, plr1->y);
+        drawTerrain(currentMap, plr1->x, plr1->y - 1);
+        Entity *entity_behind = entityAtLocation(entity_repo, er_length, plr1->x, plr1->y - 1);
+        if(entity_behind)
+            drawEntity(entity_behind);
         // Update player location
         plr1->x = nextX;
         plr1->y = nextY;
-        entityLocation[plr1->x][plr1->y] = plr1;
-        drawEntity(plr1->x, plr1->y);
+        drawEntity(plr1);
 
 
-        if (gameSolved(terrain, entityLocation))
+    
+        if (gameSolved(currentMap, entity_repo, er_length))
         {
             Serial.println("game solved!");
 
             delay(200);
             gameMode = success;
 
-            // Clear arrays and delete entityStore
-            memset(terrain, 0, sizeof(terrain));
-            memset(entityLocation, 0, sizeof(entityLocation));
-            deleteAssets(&entityStore);
+            // Clear level data
+            er_length = -1;
 
-            if (entityStore == NULL)
-            {
-                Serial.println("entityStore are NULL.");
-            }
             // Prepare entityStore for next level
             currentMap++;
             if (currentMap > 1)
@@ -307,5 +281,6 @@ void loop()
             }
             buildAssets(maps_20x15[currentMap]);
         }
+    
     }
 }
