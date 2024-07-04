@@ -2,15 +2,21 @@
 
 
 #include "sprite_crate.c"
+#include "sprite_crate_active.c"
 #include "sprite_crate_special.c"
 #include "sprite_floor.c"
 #include "sprite_platform.c"
 #include "sprite_plr.c"
-#include  "sprite_target.c"
+#include "sprite_target.c"
 #include "sprite_wall_n.c"
 #include "sprite_wall_e.c"
 #include "sprite_wall_s.c"
 #include "sprite_wall_w.c"
+#include "sprite_wall_low.c"
+
+
+#include "game_maps.c"
+extern const char maps_20x15[2][15][21];
 
 void Extended_Tft::drawSprite(int x, int y, uint16_t color){
 
@@ -120,10 +126,66 @@ void Extended_Tft::drawPlr(int x, int y)
 void Extended_Tft::drawCrate(int x, int y, bool state)
 {
     if(state == true){
-        drawSpriteCell(x, y-1, (uint16_t *)sprite_crate_special, 0);
-        // Draw bottom half at location
-        drawSpriteCell(x, y, (uint16_t *)sprite_crate_special, 255);
+        drawSpriteCell(x, y, (uint16_t *)sprite_crate_active, 0);
         return;
     }
     drawSpriteCell(x, y, (uint16_t *)sprite_crate, 0);
+}
+
+void Extended_Tft::drawTarget(int x, int y)
+{
+        drawSpriteCell(x, y, (uint16_t *)sprite_target, 0);
+}
+
+void Extended_Tft::drawFloor(int x, int y)
+{
+        drawSpriteCell(x, y, (uint16_t *)sprite_floor, 0);
+}
+
+void Extended_Tft::drawWallLow(int x, int y)
+{
+        drawSpriteCell(x, y-1, (uint16_t *)sprite_wall_low, 0);
+        drawSpriteCell(x, y, (uint16_t *)sprite_wall_low, 256);
+}
+
+void Extended_Tft::drawTerrain(int mapIndex, int x, int y, bool overlap)
+{
+    switch(maps_20x15[mapIndex][y][x])
+    {
+        case '#':
+        case 'N':
+            drawSpriteCell(x, y, (uint16_t *)sprite_wall_low, 256);
+            if(overlap)
+                drawSpriteCell(x, y-1, (uint16_t *)sprite_wall_low, 0);
+            return;
+        case 'X':
+        case 'B':
+            drawSpriteCell(x, y, (uint16_t *)sprite_target, 0);
+            return;
+        default:
+            drawSpriteCell(x, y, (uint16_t *)sprite_floor, 0);
+            return;
+    }
+}
+
+void Extended_Tft::drawTerrainOverlap(int mapIndex, int x, int y)
+{
+    // Out of map boundaries
+    if(y >= GRID_HEIGHT)
+        return;
+    // Draw the overlapping section of the sprite in front into this location
+    switch(maps_20x15[mapIndex][y+1][x])
+    {
+        case '#':
+        case 'N':
+            drawSpriteCell(x, y, (uint16_t *)sprite_wall_low, 0);
+            return;
+        case 'X':
+        case 'B':
+        case '.':
+            // Sprite does not overlap
+            return;
+        default:
+            break;
+    }
 }

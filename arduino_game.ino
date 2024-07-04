@@ -7,8 +7,10 @@ display is 320 x 240
 #include "game_TFT.h"
 #include "input.h"
 #include "engine.h"
-#include "game_maps.h"
 
+
+
+extern const char maps_20x15[2][15][21];
 
 // SPI hardware pins
 #define TFT_DC 9
@@ -53,20 +55,6 @@ uint16_t colorOfType(enum EntityType type)
     return color;
 }
 
-void drawTerrain(int mapIndex, int x, int y)
-{
-    uint16_t color = COLOR_FLOOR;
-    if (maps_20x15[currentMap][y][x] == '#')
-    {
-        color = COLOR_WALL;
-    }
-    else if (maps_20x15[currentMap][y][x] == 'B' || maps_20x15[currentMap][y][x] == 'X')
-    {
-        color = COLOR_FLOOR_TARGET;
-    }
-    tft.fillRect(x*GRID_SIZE, y*GRID_SIZE, GRID_SIZE, GRID_SIZE, color);
-}
-
 void drawEntity(Entity *entity)
 {
     switch(entity->type)
@@ -92,7 +80,7 @@ void drawAssets(Entity *entity_repo, int index)
     {
         for(int x=0; x < GRID_WIDTH; x++)
         {
-            drawTerrain(currentMap, x, y);
+            tft.drawTerrain(currentMap, x, y, true);
         }
     }
     // Draw all entities
@@ -233,8 +221,10 @@ void loop()
             }
             else
             {
-                Serial.println("moving crate.");
-                drawTerrain(currentMap, crate->x, crate->y);
+                // remove crate from display
+                tft.drawTerrain(currentMap, crate->x, crate->y-1, false);
+                tft.drawTerrain(currentMap, crate->x, crate->y, true);
+                tft.drawTerrainOverlap(currentMap, crate->x, crate->y);
                 // Update crate location
                 crate->x += dx;
                 crate->y += dy;
@@ -242,20 +232,27 @@ void loop()
                 updateCrate(currentMap, crate);
                 // draw crate
                 drawEntity(crate);
+                tft.drawTerrainOverlap(currentMap, crate->x, crate->y);
             }
         }
+        
+        // Move plr
 
-        // Clear plr from location (note plr is 2x sprites tall)
-        drawTerrain(currentMap, plr1->x, plr1->y);
-        drawTerrain(currentMap, plr1->x, plr1->y - 1);
+        // Clear plr from location 
+        // NOTE: plr is 2x sprites tall and terrain in front may overlap into plr location
+        tft.drawTerrain(currentMap, plr1->x, plr1->y - 1, false);
+        tft.drawTerrain(currentMap, plr1->x, plr1->y, true);
+        tft.drawTerrainOverlap(currentMap, plr1->x, plr1->y);
+
         Entity *entity_behind = entityAtLocation(entity_repo, er_length, plr1->x, plr1->y - 1);
         if(entity_behind)
             drawEntity(entity_behind);
         // Update player location
         plr1->x = nextX;
         plr1->y = nextY;
+        // Draw plr and terrain that map overlap
         drawEntity(plr1);
-
+        tft.drawTerrainOverlap(currentMap, plr1->x, plr1->y);
 
     
         if (gameSolved(currentMap, entity_repo, er_length))

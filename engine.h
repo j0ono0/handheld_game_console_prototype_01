@@ -2,7 +2,11 @@
 #define game_engine_h
 
 #include <cstdint>
+#include "Arduino.h"
 #include "config.h"
+
+// Not sure if this is the right place to include maps const?
+#include "game_maps.c"
 
 enum TerrainMaterial
 {

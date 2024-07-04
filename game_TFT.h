@@ -22,6 +22,12 @@ public:
     void drawSpriteCell(int x, int y, uint16_t *pxColors, int offset);
     void drawPlr(int x, int y);
     void drawCrate(int x, int y, bool state);
+    void drawTarget(int x, int y);
+    void drawFloor(int x, int y);
+    void drawWallLow(int x, int y);
+    void drawTerrain(int mapIndex, int x, int y, bool overlap);
+    void drawTerrainOverlap(int mapIndex, int x, int y);
+    
 };
 
 #endif

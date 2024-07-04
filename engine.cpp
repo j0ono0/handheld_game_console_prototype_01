@@ -1,7 +1,8 @@
-#include "Arduino.h"
 #include "engine.h"
-#include "game_maps.h"
 
+
+
+extern const char maps_20x15[2][15][21];
 
 bool inbounds(int x, int y)
 {
