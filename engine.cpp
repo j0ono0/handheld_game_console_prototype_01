@@ -148,23 +148,6 @@ bool coLocated(Entity *a, Entity *b)
     return false;
 }
 
-uint16_t materialColor(enum TerrainMaterial material)
-{
-    switch(material)
-    {
-        case floor_material:
-            return COLOR_FLOOR;
-        case goal_material:
-            return COLOR_FLOOR_TARGET;
-        case wall_material:
-            return COLOR_WALL;
-        case water_material:
-            return COLOR_FLOOR;
-        default:
-            return 0x07e0;
-    }
-}
-
 
 void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
 {
@@ -184,10 +167,16 @@ void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
             source = sprite_target;
             break;
         case wall_t:
+        case stone_top_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            source = sprite_wall_e;
+            source = sprite_stone_top;
             break;
+        case stone_front_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+                source = sprite_stone_front;
+                break;
 
         case bench_overhang_t:
             if(offsetX != 0 || offsetY != 0)
@@ -254,7 +243,11 @@ enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
         // Bench front
             return bench_front_t;
         case '#':
-            return wall_t;
+            if(mapLocationAsTerrainType(mapIndex, x, y+1) == floor_t)
+                return stone_front_t;
+            return stone_top_t;
+        case 'N':
+            return stone_front_t;
         case 'X':
         case 'B':
             return goal_t;

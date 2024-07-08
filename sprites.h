@@ -15,5 +15,7 @@
 #include "sprite/sprite_wall_w.c"
 #include "sprite/sprite_wall_low.c"
 #include "sprite/sprite_bench.c"
+#include "sprite/sprite_stone_top.c"
+#include "sprite/sprite_stone_front.c"
 
 #endif

@@ -22,6 +22,8 @@ enum EntityType
 {
     floor_t,
     water_t,
+    stone_top_t,
+    stone_front_t,
     bench_front_t,
     bench_top_t,
     bench_overhang_t,
@@ -71,7 +73,6 @@ struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y);
 void deleteAssets(struct EntityListNode **assets);
 bool atLocation(Entity *entity, int x, int y);
 bool coLocated(Entity *a, Entity *b);
-uint16_t materialColor(enum TerrainMaterial);
 void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY);
 enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y);
 bool terrainOverlays(EntityType type);
