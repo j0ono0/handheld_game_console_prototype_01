@@ -51,24 +51,25 @@ bool gameSolved(int mapIndex, struct Entity *entity, int index)
     return true;
 }
 
-struct Entity *createEntity(struct Entity *entity, int *index, enum EntityType type, int x, int y)
+struct Entity *createEntity(struct Entity *repo, int *repo_len, enum EntityType type, int x, int y)
 {
-    if(*index + 1 >= MAX_ENTITIES)
+    if(*repo_len  > MAX_ENTITIES)
         return NULL;
     // add new entity to repo
-    ++*index;
-    entity[*index].type = type;
-    entity[*index].x = x;
-    entity[*index].y = y;
-    return &entity[*index];
+    int i = *repo_len;
+    *repo_len = *repo_len + 1;
+    repo[i].type = type;
+    repo[i].x = x;
+    repo[i].y = y;
+    return &repo[i];
 }
 
-struct Entity *entityAtLocation(struct Entity *entity, int index, int x, int y)
+struct Entity *entityAtLocation(struct Entity *repo, int repo_len, int x, int y)
 {
-    for(int i = 0; i <= index; i++)
+    for(int i = 0; i < repo_len; i++)
     {
-        if(entity[i].x == x && entity[i].y == y)
-            return &entity[i];
+        if(repo[i].x == x && repo[i].y == y)
+            return &repo[i];
     }
     return NULL;
 }
@@ -76,9 +77,15 @@ struct Entity *entityAtLocation(struct Entity *entity, int index, int x, int y)
 
 bool terrainBlocksMovement(int mapIndex, int x, int y)
 {
-    if(maps_20x15[mapIndex][y][x] == '#')
-        return true;
-    return false;
+    switch(maps_20x15[mapIndex][y][x])
+    {
+        case '#':
+        case 'w':
+        case 'e':
+            return true;
+        default:
+            return false;
+    }
 }
 
 
@@ -156,6 +163,115 @@ uint16_t materialColor(enum TerrainMaterial material)
         default:
             return 0x07e0;
     }
+}
+
+
+void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
+{
+    int offset = 0;
+    const uint16_t *source = sprite_floor;
+    switch(type)
+    {
+        case floor_t:
+        case water_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            source = sprite_floor;
+            break;
+        case goal_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            source = sprite_target;
+            break;
+        case wall_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            source = sprite_wall_e;
+            break;
+
+        case bench_overhang_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            source = sprite_bench;
+            break;
+
+        case bench_top_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            source = sprite_bench + 256;
+            break;
+
+        case bench_front_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            source = sprite_bench + 512;
+            break;
+
+        case plr_t:
+            // Do nothing if no part of plr falls inside buffer
+            if(offsetX != 0 || offsetY < 0 || offsetY > 1)
+                return;
+            offset = (GRID_SIZE * GRID_SIZE) - (offsetY * GRID_SIZE * GRID_SIZE);
+            source = sprite_plr + offset;
+            break;
+
+        case crate_t:
+            if(offsetX != 0 || offsetY < 0 || offsetY > 1)
+                return;
+            offset = (GRID_SIZE * GRID_SIZE) - (offsetY * GRID_SIZE * GRID_SIZE);
+            source = sprite_crate + offset;
+            break;
+
+        case crate_active_t:
+            if(offsetX != 0 || offsetY < 0 || offsetY > 1)
+                return;
+            offset = (GRID_SIZE * GRID_SIZE) - (offsetY * GRID_SIZE * GRID_SIZE) ;
+            source = sprite_crate_active + offset;
+            break;
+
+    };
+    for(int i=0; i < GRID_SIZE*GRID_SIZE; i++)
+    {
+        if(source[i] != COLOR_TRANSPARENT)
+            buf[i] = source[i];
+    }
+}
+
+enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
+{
+    switch(maps_20x15[mapIndex][y][x])
+    {
+        case '.':
+        // Floor
+            return floor_t;
+        case 'q':
+        // Bench top end
+            return bench_overhang_t;
+        case 'w':
+        // Bench top
+            return bench_top_t;
+        case 'e':
+        // Bench front
+            return bench_front_t;
+        case '#':
+            return wall_t;
+        case 'X':
+        case 'B':
+            return goal_t;
+        default:
+            // TODO: make a 'busted' sprite to show when missing sprites are returned
+            return floor_t;
+    }
+}
+
+bool terrainOverlays(EntityType type)
+{
+    for (int i=0; i < OVERLAYTERRAINTYPE_LENGTH; i++)
+    {
+        if(overlayTerrainType[i] == type)
+            return true;
+    }
+    return false;
 }
 
 /////////////////////////////////////////////////////////

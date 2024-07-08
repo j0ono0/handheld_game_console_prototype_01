@@ -21,79 +21,67 @@ Extended_Tft tft = Extended_Tft(TFT_CS, TFT_DC);
 
 //Store all entities in a repository
 Entity entity_repo[MAX_ENTITIES];
-int er_length;
+
+// Number of entities in repo. 
+// NOTE, index of entities starts at 0, so last entity is repo_len - 1.
+int repo_len;
 
 Entity *plr1;
 
 enum GameMode gameMode;
 int currentMap;
 
-uint16_t colorOfType(enum EntityType type)
+
+void drawLocation(Entity *repo, int mapIndex, int x, int y)
 {
-    uint16_t color = COLOR_FLOOR;
-    switch (type)
+    uint16_t buf[GRID_SIZE * GRID_SIZE];
+
+    EntityType terrainType = mapLocationAsTerrainType(currentMap, x, y);
+
+    // This draw grid cell in order of:
+    // 1) Terrain floor  2) Entity  3) Terrain feature
+    
+    drawToBuff(buf, floor_t, 0, 0);
+
+    drawToBuff(buf, terrainType, 0, 0);
+
+
+    if(Entity *e = entityAtLocation(repo, repo_len, x, y))
     {
-    case plr_t:
-        color = COLOR_PLAYER;
-        break;
-    case crate_t:
-        color = COLOR_BOX;
-        break;
-    case crate_active_t:
-        color = COLOR_BOX_ACTIVE;
-        break;
-    case goal_t:
-        color = COLOR_FLOOR_TARGET;
-        break;
-    case wall_t:
-        color = COLOR_WALL;
-        break;
-    case floor_t:
-        color = COLOR_FLOOR;
-        break;
+        drawToBuff(buf, e->type, 0, 0);
     }
-    return color;
-}
 
-void drawEntity(Entity *entity)
-{
-    switch(entity->type)
+    if(terrainOverlays(terrainType))
     {
-        case plr_t:
-            tft.drawPlr(entity->x, entity->y);
-            break;
-        case crate_t:
-            tft.drawCrate(entity->x, entity->y, false);
-            break;
-        case crate_active_t:
-            tft.drawCrate(entity->x, entity->y, true);
-            break;
-        default:
-             tft.fillRect(entity->x * GRID_SIZE, entity->y * GRID_SIZE, GRID_SIZE, GRID_SIZE, colorOfType(entity->type));
-    };
+        drawToBuff(buf, terrainType, 0, 0);
+    }
+
+    // It is possible another entity is overlapping this cell from in front of it
+    if(Entity *e = entityAtLocation(repo, repo_len, x, y+1))
+    {
+        drawToBuff(buf, e->type, 0, 1);
+    }
+
+    tft.drawCellBuffer(buf, x, y);
 }
 
-void drawAssets(Entity *entity_repo, int index)
+
+
+void drawAssets(Entity *entity_repo, int repo_len)
 {
-    // Draw all terrain
     for(int y=0; y < GRID_HEIGHT; y++)
     {
         for(int x=0; x < GRID_WIDTH; x++)
         {
-            tft.drawTerrain(currentMap, x, y, true);
+            drawLocation(entity_repo, currentMap, x, y);
         }
-    }
-    // Draw all entities
-    for(int i = 0; i <= index; ++i)
-    {
-        drawEntity(&entity_repo[i]);
     }
 }
 
 
 void buildAssets(const char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
 {
-    // Output map to console
+    // Output map to console (for fun?)
     for (int row = 0; row < GRID_HEIGHT; row++)
     {
         for (int col = 0; col < GRID_WIDTH; col++)
@@ -117,21 +105,21 @@ void buildAssets(const char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
         {
             if (gameMap[row][col] == "B"[0])
             {
-                createEntity(entity_repo, &er_length, crate_active_t, col, row);
+                createEntity(entity_repo, &repo_len, crate_active_t, col, row);
             }
             else if (gameMap[row][col] == "b"[0])
             {
-                createEntity(entity_repo, &er_length, crate_t, col, row);
+                createEntity(entity_repo, &repo_len, crate_t, col, row);
             }
             else if (gameMap[row][col] == "@"[0])
             {
                 // Assign entity as plr1 for easy reference
-                plr1 = createEntity(entity_repo, &er_length, plr_t, col, row);
+                plr1 = createEntity(entity_repo, &repo_len, plr_t, col, row);
             }
         }
     }
     Serial.print("entityRepo populated, count: ");
-    Serial.println(er_length);
+    Serial.println(repo_len);
     Serial.println("free memory: ");
     Serial.println(availableMemory());
 }
@@ -142,7 +130,7 @@ void setup()
 
     setupButtonInputs();
 
-    er_length = -1;
+    repo_len = 0;
     gameMode = intro;
 
     currentMap = 0;
@@ -166,7 +154,7 @@ void loop()
             Serial.println("starting game mode.");
             gameMode = inGame;
             tft.fillScreen(COLOR_FLOOR);
-            drawAssets(entity_repo, er_length);
+            drawAssets(entity_repo, repo_len);
             return;
         }
         else
@@ -210,52 +198,49 @@ void loop()
             Serial.println("There is no way through here.");
             return;
         }
-        struct Entity *crate = entityAtLocation(entity_repo, er_length, nextX, nextY);
+        struct Entity *crate = entityAtLocation(entity_repo, repo_len, nextX, nextY);
         if (crate != NULL)
         {
             if (
-                !inbounds(crate->x + dx, crate->y + dy) || terrainBlocksMovement(currentMap, crate->x + dx, crate->y + dy) || entityAtLocation(entity_repo, er_length, crate->x + dx, crate->y + dy) != NULL )
+                !inbounds(crate->x + dx, crate->y + dy) || terrainBlocksMovement(currentMap, crate->x + dx, crate->y + dy) || entityAtLocation(entity_repo, repo_len, crate->x + dx, crate->y + dy) != NULL )
             {
                 Serial.println("This crate isn't budging!");
                 return;
             }
             else
             {
-                // remove crate from display
-                tft.drawTerrain(currentMap, crate->x, crate->y-1, false);
-                tft.drawTerrain(currentMap, crate->x, crate->y, true);
-                tft.drawTerrainOverlap(currentMap, crate->x, crate->y);
+
                 // Update crate location
                 crate->x += dx;
                 crate->y += dy;
+
                 // Update crate status
                 updateCrate(currentMap, crate);
-                // draw crate
-                drawEntity(crate);
-                tft.drawTerrainOverlap(currentMap, crate->x, crate->y);
+                // Plr has moved into old location - no need to redraw it to remove crate
+                // Draw into new location
+                drawLocation(entity_repo, currentMap, crate->x, crate->y);
+                drawLocation(entity_repo, currentMap, crate->x, crate->y-1);
+
             }
         }
         
-        // Move plr
+        // // Move plr
 
-        // Clear plr from location 
-        // NOTE: plr is 2x sprites tall and terrain in front may overlap into plr location
-        tft.drawTerrain(currentMap, plr1->x, plr1->y - 1, false);
-        tft.drawTerrain(currentMap, plr1->x, plr1->y, true);
-        tft.drawTerrainOverlap(currentMap, plr1->x, plr1->y);
-
-        Entity *entity_behind = entityAtLocation(entity_repo, er_length, plr1->x, plr1->y - 1);
-        if(entity_behind)
-            drawEntity(entity_behind);
         // Update player location
         plr1->x = nextX;
         plr1->y = nextY;
-        // Draw plr and terrain that map overlap
-        drawEntity(plr1);
-        tft.drawTerrainOverlap(currentMap, plr1->x, plr1->y);
+
+        // Plr encroaches into x2 cells - both cell need redrawing
+
+        // Remove old location
+        drawLocation(entity_repo, currentMap, plr1->x - dx, plr1->y - dy);
+        drawLocation(entity_repo, currentMap, plr1->x - dx, plr1->y - dy-1);
+        // Add new location
+        drawLocation(entity_repo, currentMap, plr1->x, plr1->y);
+        drawLocation(entity_repo, currentMap, plr1->x, plr1->y-1);
 
     
-        if (gameSolved(currentMap, entity_repo, er_length))
+        if (gameSolved(currentMap, entity_repo, repo_len))
         {
             Serial.println("game solved!");
 
@@ -263,7 +248,7 @@ void loop()
             gameMode = success;
 
             // Clear level data
-            er_length = -1;
+            repo_len = 0;
 
             // Prepare entityStore for next level
             currentMap++;
