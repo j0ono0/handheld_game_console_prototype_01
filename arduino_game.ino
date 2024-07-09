@@ -23,7 +23,7 @@ Extended_Tft tft = Extended_Tft(TFT_CS, TFT_DC);
 Entity entity_repo[MAX_ENTITIES];
 
 // Number of entities in repo. 
-// NOTE, index of entities starts at 0, so last entity is repo_len - 1.
+// TODO: consider changing this to a pointer to last entity
 int repo_len;
 
 Entity *plr1;
@@ -38,7 +38,7 @@ void drawLocation(Entity *repo, int mapIndex, int x, int y)
 
     EntityType terrainType = mapLocationAsTerrainType(currentMap, x, y);
 
-    // This draw grid cell in order of:
+    // Draw grid cell in order of:
     // 1) Terrain floor  2) Entity  3) Terrain feature
     
     drawToBuff(buf, floor_t, 0, 0);

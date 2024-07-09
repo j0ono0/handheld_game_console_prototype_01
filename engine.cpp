@@ -74,21 +74,35 @@ struct Entity *entityAtLocation(struct Entity *repo, int repo_len, int x, int y)
     return NULL;
 }
 
-
 bool terrainBlocksMovement(int mapIndex, int x, int y)
 {
-    switch(maps_20x15[mapIndex][y][x])
+    return typeBlocksMovement(mapLocationAsTerrainType(mapIndex, x, y));
+}
+
+bool typeBlocksMovement(enum EntityType type)
+{
+    switch(type)
     {
-        case '#':
-        case 'w':
-        case 'e':
+        case stone_top_t:
+        case stone_front_t:
+        case bench_front_t:
+        case bench_top_t:
+        case crate_t:
+        case crate_active_t:
+        case plr_t:
+        case wall_t:
             return true;
+
+        case bench_overhang_t:
+        case floor_t:
+        case goal_t:
+        case water_t:
+            return false;
+
         default:
             return false;
     }
 }
-
-
 
 bool entityBlocksMovement(struct EntityListNode *head, int x, int y)
 {
@@ -148,82 +162,97 @@ bool coLocated(Entity *a, Entity *b)
     return false;
 }
 
+void spriteToBuf(uint16_t *buf, int offset)
+{
+    const uint16_t *pixelPtr = &sprite_sheet_01[offset];
+    for(int y = 0; y < GRID_SIZE; y++)
+    {
+        for(int x=0; x < GRID_SIZE; x++)
+        {
+            if(*pixelPtr != COLOR_TRANSPARENT)
+                buf[y * GRID_SIZE + x] = *pixelPtr;
+            ++pixelPtr;
+        }
+        pixelPtr += SPRITESHEET_WIDTH - GRID_SIZE ;
+    }
+}
 
 void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
 {
-    int offset = 0;
-    const uint16_t *source = sprite_floor;
     switch(type)
     {
         case floor_t:
         case water_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            source = sprite_floor;
+            offsetX = FLOOR_X - offsetX;
+            offsetY = FLOOR_Y - offsetY;
             break;
         case goal_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            source = sprite_target;
+            offsetX = STONE_TOP_X - offsetX;
+            offsetY = STONE_TOP_Y - offsetY;
             break;
         case wall_t:
         case stone_top_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            source = sprite_stone_top;
+            offsetX = STONE_TOP_X - offsetX;
+            offsetY = STONE_TOP_Y - offsetY;
             break;
         case stone_front_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-                source = sprite_stone_front;
+            offsetX = STONE_FRONT_X - offsetX;
+            offsetY = STONE_FRONT_Y - offsetY;
                 break;
 
         case bench_overhang_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            source = sprite_bench;
+            offsetX = STONE_OVERHANG_X - offsetX;
+            offsetY = STONE_OVERHANG_Y - offsetY;
             break;
 
         case bench_top_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            source = sprite_bench + 256;
+            offsetX = STONE_TOP_X - offsetX;
+            offsetY = STONE_TOP_Y - offsetY;
             break;
 
         case bench_front_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            source = sprite_bench + 512;
+            offsetX = STONE_FRONT_X - offsetX;
+            offsetY = STONE_FRONT_Y - offsetY;
             break;
 
         case plr_t:
-            // Do nothing if no part of plr falls inside buffer
+            // Do nothing if no part of plr sprite falls inside buffer
             if(offsetX != 0 || offsetY < 0 || offsetY > 1)
                 return;
-            offset = (GRID_SIZE * GRID_SIZE) - (offsetY * GRID_SIZE * GRID_SIZE);
-            source = sprite_plr + offset;
+            offsetX = PLR_X - offsetX;
+            offsetY = PLR_Y - offsetY;
             break;
 
         case crate_t:
             if(offsetX != 0 || offsetY < 0 || offsetY > 1)
                 return;
-            offset = (GRID_SIZE * GRID_SIZE) - (offsetY * GRID_SIZE * GRID_SIZE);
-            source = sprite_crate + offset;
+            offsetX = CRATE_X - offsetX;
+            offsetY = CRATE_Y - offsetY;
             break;
 
         case crate_active_t:
             if(offsetX != 0 || offsetY < 0 || offsetY > 1)
                 return;
-            offset = (GRID_SIZE * GRID_SIZE) - (offsetY * GRID_SIZE * GRID_SIZE) ;
-            source = sprite_crate_active + offset;
+            offsetX = CRATE_ACTIVE_X - offsetX;
+            offsetY = CRATE_ACTIVE_Y - offsetY;
             break;
 
     };
-    for(int i=0; i < GRID_SIZE*GRID_SIZE; i++)
-    {
-        if(source[i] != COLOR_TRANSPARENT)
-            buf[i] = source[i];
-    }
+    spriteToBuf(buf, (offsetY) * GRID_SIZE * SPRITESHEET_WIDTH + offsetX * GRID_SIZE);
 }
 
 enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
@@ -243,7 +272,7 @@ enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
         // Bench front
             return bench_front_t;
         case '#':
-            if(mapLocationAsTerrainType(mapIndex, x, y+1) == floor_t)
+            if(!terrainBlocksMovement(mapIndex, x, y+1))
                 return stone_front_t;
             return stone_top_t;
         case 'N':
@@ -259,12 +288,28 @@ enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
 
 bool terrainOverlays(EntityType type)
 {
-    for (int i=0; i < OVERLAYTERRAINTYPE_LENGTH; i++)
+    switch(type)
     {
-        if(overlayTerrainType[i] == type)
+
+        case bench_overhang_t:
             return true;
+
+        case stone_top_t:
+        case stone_front_t:
+        case bench_front_t:
+        case bench_top_t:
+        case crate_t:
+        case crate_active_t:
+        case plr_t:
+        case wall_t:
+        case floor_t:
+        case goal_t:
+        case water_t:
+            return false;
+            
+        default:
+            return false;
     }
-    return false;
 }
 
 /////////////////////////////////////////////////////////

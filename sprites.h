@@ -1,21 +1,27 @@
 #ifndef game_sprite_data_h
 #define game_sprite_data_h
 
+#include "sprite_sheet_01.c"
 
-#include "sprite/sprite_crate.c"
-#include "sprite/sprite_crate_active.c"
-#include "sprite/sprite_crate_special.c"
-#include "sprite/sprite_floor.c"
-#include "sprite/sprite_platform.c"
-#include "sprite/sprite_plr.c"
-#include "sprite/sprite_target.c"
-#include "sprite/sprite_wall_n.c"
-#include "sprite/sprite_wall_e.c"
-#include "sprite/sprite_wall_s.c"
-#include "sprite/sprite_wall_w.c"
-#include "sprite/sprite_wall_low.c"
-#include "sprite/sprite_bench.c"
-#include "sprite/sprite_stone_top.c"
-#include "sprite/sprite_stone_front.c"
+// Sheet sizes in px
+#define SPRITESHEET_WIDTH 64
+#define SPRITESHEET_HEIGHT 80
+
+// sprite location units as GRID_SIZE
+#define PLR_X 0
+#define PLR_Y 1
+#define CRATE_X 1
+#define CRATE_Y 1
+#define CRATE_ACTIVE_X 2
+#define CRATE_ACTIVE_Y 1
+#define STONE_TOP_X 3
+#define STONE_TOP_Y 4
+#define STONE_FRONT_X 1
+#define STONE_FRONT_Y 2
+#define STONE_OVERHANG_X 1
+#define STONE_OVERHANG_Y 4
+#define FLOOR_X 3
+#define FLOOR_Y 3
+
 
 #endif

@@ -34,11 +34,6 @@ enum EntityType
     crate_active_t,
 };
 
-#define OVERLAYTERRAINTYPE_LENGTH 1
-const EntityType overlayTerrainType[] = {
-    bench_overhang_t,
-};
-
 enum GameMode
 {
     intro,
@@ -67,12 +62,14 @@ struct Entity *createEntity(struct Entity *entity, int *index, enum EntityType t
 struct Entity *entityAtLocation(struct Entity *repo, int repo_len, int x, int y);
 void updateCrate(int mapindex, Entity *crate);
 bool terrainBlocksMovement(int mapIndex, int x, int y);
+bool typeBlocksMovement(enum EntityType);
 
 bool entityBlocksMovement(struct EntityListNode *head, int x, int y);
 struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y);
 void deleteAssets(struct EntityListNode **assets);
 bool atLocation(Entity *entity, int x, int y);
 bool coLocated(Entity *a, Entity *b);
+void spriteToBuf(const uint16_t *src, uint16_t *buf, int x, int y);
 void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY);
 enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y);
 bool terrainOverlays(EntityType type);
