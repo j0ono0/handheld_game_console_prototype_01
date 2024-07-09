@@ -67,7 +67,7 @@ void drawLocation(Entity *repo, int mapIndex, int x, int y)
 
 
 
-void drawAssets(Entity *entity_repo, int repo_len)
+void drawAllLocations(Entity *entity_repo, int mapIndex, int repo_len)
 {
     for(int y=0; y < GRID_HEIGHT; y++)
     {
@@ -118,8 +118,6 @@ void buildAssets(const char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
             }
         }
     }
-    Serial.print("entityRepo populated, count: ");
-    Serial.println(repo_len);
     Serial.println("free memory: ");
     Serial.println(availableMemory());
 }
@@ -153,8 +151,7 @@ void loop()
         {
             Serial.println("starting game mode.");
             gameMode = inGame;
-            tft.fillScreen(COLOR_FLOOR);
-            drawAssets(entity_repo, repo_len);
+            drawAllLocations(entity_repo, currentMap, repo_len);
             return;
         }
         else

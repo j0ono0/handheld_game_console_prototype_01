@@ -18,10 +18,15 @@
 #define STONE_TOP_Y 4
 #define STONE_FRONT_X 1
 #define STONE_FRONT_Y 2
+#define STONE_SIDE_EAST_X 2
+#define STONE_SIDE_EAST_Y 3
+#define STONE_SIDE_WEST_X 0
+#define STONE_SIDE_WEST_Y 3
 #define STONE_OVERHANG_X 1
 #define STONE_OVERHANG_Y 4
 #define FLOOR_X 3
 #define FLOOR_Y 3
-
+#define GOAL_X 3
+#define GOAL_Y 2
 
 #endif

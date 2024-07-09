@@ -85,6 +85,8 @@ bool typeBlocksMovement(enum EntityType type)
     {
         case stone_top_t:
         case stone_front_t:
+        case stone_side_east_t:
+        case stone_side_west_t:
         case bench_front_t:
         case bench_top_t:
         case crate_t:
@@ -191,9 +193,10 @@ void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
         case goal_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            offsetX = STONE_TOP_X - offsetX;
-            offsetY = STONE_TOP_Y - offsetY;
+            offsetX = GOAL_X - offsetX;
+            offsetY = GOAL_Y - offsetY;
             break;
+
         case wall_t:
         case stone_top_t:
             if(offsetX != 0 || offsetY != 0)
@@ -201,12 +204,34 @@ void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
             offsetX = STONE_TOP_X - offsetX;
             offsetY = STONE_TOP_Y - offsetY;
             break;
+
+        case stone_side_east_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            offsetX = STONE_SIDE_EAST_X - offsetX;
+            offsetY = STONE_SIDE_EAST_Y - offsetY;
+                break;
+            
+        case stone_side_west_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            offsetX = STONE_SIDE_WEST_X - offsetX;
+            offsetY = STONE_SIDE_WEST_Y - offsetY;
+                break;
+            
         case stone_front_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
             offsetX = STONE_FRONT_X - offsetX;
             offsetY = STONE_FRONT_Y - offsetY;
                 break;
+
+        case stone_overhang_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            offsetX = STONE_OVERHANG_X - offsetX;
+            offsetY = STONE_OVERHANG_Y - offsetY;
+            break;
 
         case bench_overhang_t:
             if(offsetX != 0 || offsetY != 0)
@@ -261,7 +286,10 @@ enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
     {
         case '.':
         // Floor
-            return floor_t;
+        if(maps_20x15[mapIndex][y+1][x] == '#')
+            return stone_overhang_t;
+        return floor_t;
+        
         case 'q':
         // Bench top end
             return bench_overhang_t;
@@ -271,12 +299,16 @@ enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
         case 'e':
         // Bench front
             return bench_front_t;
-        case '#':
-            if(!terrainBlocksMovement(mapIndex, x, y+1))
-                return stone_front_t;
+        case '#':           
             return stone_top_t;
         case 'N':
             return stone_front_t;
+        case 'W':
+            return stone_side_west_t;
+        case 'S':
+            return stone_overhang_t;
+        case 'E':
+            return stone_side_east_t;
         case 'X':
         case 'B':
             return goal_t;
@@ -291,11 +323,15 @@ bool terrainOverlays(EntityType type)
     switch(type)
     {
 
+        case stone_overhang_t:
         case bench_overhang_t:
             return true;
 
         case stone_top_t:
         case stone_front_t:
+        case stone_side_east_t:
+        case stone_side_west_t:
+
         case bench_front_t:
         case bench_top_t:
         case crate_t:
