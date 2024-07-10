@@ -1,7 +1,8 @@
 #include "engine.h"
 
 
-
+// Not sure if this is the right place to include maps const?
+#include "game_maps.c"
 extern const char maps_20x15[2][15][21];
 
 bool inbounds(int x, int y)
@@ -51,7 +52,7 @@ bool gameSolved(int mapIndex, struct Entity *entity, int index)
     return true;
 }
 
-struct Entity *createEntity(struct Entity *repo, int *repo_len, enum EntityType type, int x, int y)
+struct Entity *createEntity(struct Entity *repo, int *repo_len, EntityType type, int x, int y)
 {
     if(*repo_len  > MAX_ENTITIES)
         return NULL;
@@ -79,7 +80,7 @@ bool terrainBlocksMovement(int mapIndex, int x, int y)
     return typeBlocksMovement(mapLocationAsTerrainType(mapIndex, x, y));
 }
 
-bool typeBlocksMovement(enum EntityType type)
+bool typeBlocksMovement(EntityType type)
 {
     switch(type)
     {
@@ -136,46 +137,6 @@ bool terrainOverlays(EntityType type)
     }
 }
 
-bool entityBlocksMovement(struct EntityListNode *head, int x, int y)
-{
-    while (head != NULL)
-    {
-        if (head->entity->x == x && head->entity->y == y && head->entity->type == wall_t)
-        {
-            return true;
-        }
-        head = head->next;
-    }
-    return false;
-}
-
-struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y)
-{
-    while (head != NULL)
-    {
-        if (head->entity->x == x && head->entity->y == y && (head->entity->type == crate_t || head->entity->type == crate_active_t))
-        {
-            return head->entity;
-        }
-        head = head->next;
-    }
-    return NULL;
-}
-
-void deleteAssets(struct EntityListNode **assets)
-{
-    // struct EntityListNode *current = *assets;
-    struct EntityListNode *prev = NULL;
-    while (*assets != NULL)
-    {
-        prev = *assets;
-        *assets = prev->next;
-        free(prev->entity);
-        free(prev);
-    }
-    Serial.println("finished removing assets");
-}
-
 bool atLocation(Entity *entity, int x, int y)
 {
     if (entity->x == x && entity->y == y)
@@ -194,7 +155,7 @@ bool coLocated(Entity *a, Entity *b)
     return false;
 }
 
-enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
+EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
 {
     switch(maps_20x15[mapIndex][y][x])
     {
@@ -243,7 +204,7 @@ void spriteToBuf(uint16_t *buf, int offset)
 
 void tileToBuf(uint16_t *buf, enum TileRef tile)
 {
-    enum EntityType type = floor_t;
+    EntityType type = floor_t;
     switch(tile)
     {
         case floor_tr:

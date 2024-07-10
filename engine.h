@@ -1,13 +1,13 @@
 #ifndef game_engine_h
 #define game_engine_h
 
-#include <cstdint>
+// #include <cstdint>
 #include "Arduino.h"
 #include "config.h"
 #include "sprites.h"
 
-// Not sure if this is the right place to include maps const?
-#include "game_maps.c"
+
+
 
 // *IMPORTANT* The order of these must match the order of tile_ref file
 enum TileRef
@@ -33,7 +33,7 @@ enum TileRef
 
 };
 
-enum EntityType
+typedef enum 
 {
     floor_t,
     water_t,
@@ -50,7 +50,7 @@ enum EntityType
     plr_t,
     crate_t,
     crate_active_t,
-};
+} EntityType;
 
 enum GameMode
 {
@@ -59,36 +59,27 @@ enum GameMode
     success
 };
 
-struct Entity
+typedef struct Entity
 {
     int x;
     int y;
-    enum EntityType type;
-};
+    EntityType type;
+} Entity;
 
-// Linked lists
-struct EntityListNode
-{
-    struct Entity *entity;
-    struct EntityListNode *next;
-};
 
 bool inbounds(int x, int y);
 void moveSprite(int dx, int dy, Entity *entity);
 bool gameSolved(int mapIndex, struct Entity *entity, int index);
-struct Entity *createEntity(struct Entity *entity, int *index, enum EntityType type, int x, int y);
+struct Entity *createEntity(struct Entity *entity, int *index, EntityType type, int x, int y);
 struct Entity *entityAtLocation(struct Entity *repo, int repo_len, int x, int y);
 void updateCrate(int mapindex, Entity *crate);
 bool terrainBlocksMovement(int mapIndex, int x, int y);
 bool terrainOverlays(EntityType type);
-bool typeBlocksMovement(enum EntityType);
+bool typeBlocksMovement(EntityType);
 
-bool entityBlocksMovement(struct EntityListNode *head, int x, int y);
-struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y);
-void deleteAssets(struct EntityListNode **assets);
 bool atLocation(Entity *entity, int x, int y);
 bool coLocated(Entity *a, Entity *b);
-enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y);
+EntityType mapLocationAsTerrainType(int mapIndex, int x, int y);
 void spriteToBuf(const uint16_t *src, uint16_t *buf, int x, int y);
 
 void tileToBuf(uint16_t *buf, enum TileRef tile);

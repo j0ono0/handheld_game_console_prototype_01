@@ -1,4 +1,5 @@
 #include <inttypes.h>
+#include "engine.h"
 
 const uint8_t terrain_00[] = {
 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -17,3 +18,10 @@ const uint8_t terrain_00[] = {
 	2, 9, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 2,
 	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 	};
+
+const struct Entity population_00[] = {
+	{3,3,plr_t},
+	{3,7,crate_t},
+	{3,9,crate_t},
+	{5,9,crate_t},
+};

@@ -10,6 +10,8 @@ display is 320 x 240
 
 #include "terrain_00.c"
 
+// Not sure if this is the right place to include maps const?
+#include "game_maps.c"
 extern const char maps_20x15[2][15][21];
 
 // SPI hardware pins
@@ -39,12 +41,9 @@ void drawLocation(Entity *repo, int mapIndex, int x, int y)
     EntityType terrainType = mapLocationAsTerrainType(currentMap, x, y);
 
     // Draw grid cell in order of:
-    // 1) Terrain floor  2) Entity  3) Terrain feature
+    // 1) Terrain floor  2) Entity  3) Terrain overlay
     
     tileToBuf(buf, (TileRef) terrain_00[y * GRID_WIDTH + x]);
-
-    // drawToBuff(buf, floor_t, 0, 0);
-    // drawToBuff(buf, terrainType, 0, 0);
 
 
     if(Entity *e = entityAtLocation(repo, repo_len, x, y))
@@ -52,10 +51,10 @@ void drawLocation(Entity *repo, int mapIndex, int x, int y)
         drawToBuff(buf, e->type, 0, 0);
     }
 
-    if(terrainOverlays(terrainType))
-    {
-        drawToBuff(buf, terrainType, 0, 0);
-    }
+    // if(terrainOverlays(terrainType))
+    // {
+    //     drawToBuff(buf, terrainType, 0, 0);
+    // }
 
     // It is possible another entity is overlapping this cell from in front of it
     if(Entity *e = entityAtLocation(repo, repo_len, x, y+1))
@@ -82,43 +81,20 @@ void drawAllLocations(Entity *entity_repo, int mapIndex, int repo_len)
 
 void buildAssets(const char gameMap[GRID_HEIGHT][GRID_WIDTH + 1])
 {
-    // Output map to console (for fun?)
-    for (int row = 0; row < GRID_HEIGHT; row++)
+
+    repo_len = sizeof(population_00) / sizeof(population_00[0]);
+    for(int i = 0; i < repo_len; ++i)
     {
-        for (int col = 0; col < GRID_WIDTH; col++)
-        {
-            if (gameMap[row][col] == "."[0])
-            {
-                Serial.print(" ");
-            }
-            else
-            {
-                Serial.print(gameMap[row][col]);
-            }
-        }
-        Serial.print('\n');
+        Serial.print("repo slot: ");
+        Serial.println(i);
+        Serial.print("entity type: ");
+        Serial.println(population_00[i].type);
+        entity_repo[i] = population_00[i];
+
+        if(population_00[i].type == plr_t)
+            plr1 = &entity_repo[i];
     }
 
-    // Populate entityStore
-    for (int row = 0; row < GRID_HEIGHT; row++)
-    {
-        for (int col = 0; col < GRID_WIDTH; col++)
-        {
-            if (gameMap[row][col] == "B"[0])
-            {
-                createEntity(entity_repo, &repo_len, crate_active_t, col, row);
-            }
-            else if (gameMap[row][col] == "b"[0])
-            {
-                createEntity(entity_repo, &repo_len, crate_t, col, row);
-            }
-            else if (gameMap[row][col] == "@"[0])
-            {
-                // Assign entity as plr1 for easy reference
-                plr1 = createEntity(entity_repo, &repo_len, plr_t, col, row);
-            }
-        }
-    }
     Serial.println("free memory: ");
     Serial.println(availableMemory());
 }
