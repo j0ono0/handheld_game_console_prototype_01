@@ -1,17 +1,9 @@
 
 
     // NOT#: Array width allows for string array terminator
-    const char gameMap_8x6_01[6][9] = {
-        ".b.X#X##", 
-        "..###@##", 
-        ".B.#.b.#", 
-        "XbXbb..#", 
-        ".b..X..#", 
-        ".X######", 
-    };
-    
+   
     const char maps_20x15[2][15][21] = {
-       {
+        {
             "####################",
             "#...........q......#",
             "#..@Bb.X..B.w......#", 

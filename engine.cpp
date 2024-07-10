@@ -106,6 +106,36 @@ bool typeBlocksMovement(enum EntityType type)
     }
 }
 
+bool terrainOverlays(EntityType type)
+{
+    switch(type)
+    {
+
+        case stone_overhang_t:
+        case bench_overhang_t:
+            return true;
+
+        case stone_top_t:
+        case stone_front_t:
+        case stone_side_east_t:
+        case stone_side_west_t:
+
+        case bench_front_t:
+        case bench_top_t:
+        case crate_t:
+        case crate_active_t:
+        case plr_t:
+        case wall_t:
+        case floor_t:
+        case goal_t:
+        case water_t:
+            return false;
+            
+        default:
+            return false;
+    }
+}
+
 bool entityBlocksMovement(struct EntityListNode *head, int x, int y)
 {
     while (head != NULL)
@@ -164,6 +194,38 @@ bool coLocated(Entity *a, Entity *b)
     return false;
 }
 
+enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
+{
+    switch(maps_20x15[mapIndex][y][x])
+    {
+        case '.':
+        case '@':
+            return floor_t;
+        case 'q':
+            return bench_overhang_t;
+        case 'w':
+            return bench_top_t;
+        case 'e':
+            return bench_front_t;
+        case '#':           
+            return stone_top_t;
+        case 'N':
+            return stone_front_t;
+        case 'W':
+            return stone_side_west_t;
+        case 'S':
+            return stone_overhang_t;
+        case 'E':
+            return stone_side_east_t;
+        case 'X':
+        case 'B':
+            return goal_t;
+        default:
+            // TODO: make a 'busted' sprite to show when missing sprites are returned
+            return floor_t;
+    }
+}
+
 void spriteToBuf(uint16_t *buf, int offset)
 {
     const uint16_t *pixelPtr = &sprite_sheet_01[offset];
@@ -177,6 +239,64 @@ void spriteToBuf(uint16_t *buf, int offset)
         }
         pixelPtr += SPRITESHEET_WIDTH - GRID_SIZE ;
     }
+}
+
+void tileToBuf(uint16_t *buf, enum TileRef tile)
+{
+    enum EntityType type = floor_t;
+    switch(tile)
+    {
+        case floor_tr:
+            type = floor_t;
+            break;
+        case stone_tr:
+            type = stone_top_t;
+            break;
+        // case water_tr:
+        //     type = floor_t;
+        //     break;
+        // Features
+        case stone_front_tr:
+            type = stone_front_t;
+            break;
+        case stone_w_tr:
+            type = stone_side_west_t;
+            break;
+        case stone_e_tr:
+            type = stone_side_east_t;
+            break;
+        // case stone_nw_tr:
+        //     type = floor_t;
+        //     break;
+        // case stone_ne_tr:
+        //     type = floor_t;
+        //     break;
+        // case stone_sw_tr:
+        //     type = floor_t;
+        //     break;
+        // case stone_se_tr:
+        //     type = floor_t;
+        //     break;
+        // Compound 
+        case floor_stone_overhang_tr:
+            drawToBuff(buf, floor_t, 0, 0);
+            type = stone_overhang_t;
+            break;
+        case floor_target_tr:
+            drawToBuff(buf, floor_t, 0, 0);
+            type = goal_t;
+            break;
+        // case water_stone_overhang_tr:
+        //     type = floor_t;
+        //     break;
+        // case water_target_tr:
+        //     type = floor_t;
+        //     break;
+        default: 
+            type = floor_t;
+            break;
+    }
+    drawToBuff(buf, type, 0, 0);
 }
 
 void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
@@ -280,73 +400,8 @@ void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
     spriteToBuf(buf, (offsetY) * GRID_SIZE * SPRITESHEET_WIDTH + offsetX * GRID_SIZE);
 }
 
-enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
-{
-    switch(maps_20x15[mapIndex][y][x])
-    {
-        case '.':
-        // Floor
-        if(maps_20x15[mapIndex][y+1][x] == '#')
-            return stone_overhang_t;
-        return floor_t;
-        
-        case 'q':
-        // Bench top end
-            return bench_overhang_t;
-        case 'w':
-        // Bench top
-            return bench_top_t;
-        case 'e':
-        // Bench front
-            return bench_front_t;
-        case '#':           
-            return stone_top_t;
-        case 'N':
-            return stone_front_t;
-        case 'W':
-            return stone_side_west_t;
-        case 'S':
-            return stone_overhang_t;
-        case 'E':
-            return stone_side_east_t;
-        case 'X':
-        case 'B':
-            return goal_t;
-        default:
-            // TODO: make a 'busted' sprite to show when missing sprites are returned
-            return floor_t;
-    }
-}
 
-bool terrainOverlays(EntityType type)
-{
-    switch(type)
-    {
 
-        case stone_overhang_t:
-        case bench_overhang_t:
-            return true;
-
-        case stone_top_t:
-        case stone_front_t:
-        case stone_side_east_t:
-        case stone_side_west_t:
-
-        case bench_front_t:
-        case bench_top_t:
-        case crate_t:
-        case crate_active_t:
-        case plr_t:
-        case wall_t:
-        case floor_t:
-        case goal_t:
-        case water_t:
-            return false;
-            
-        default:
-            return false;
-    }
-}
 
 /////////////////////////////////////////////////////////
 #ifdef __arm__

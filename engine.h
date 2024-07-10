@@ -9,13 +9,28 @@
 // Not sure if this is the right place to include maps const?
 #include "game_maps.c"
 
-enum TerrainMaterial
+// *IMPORTANT* The order of these must match the order of tile_ref file
+enum TileRef
 {
-    floor_material,
-    goal_material,
-    blocking_material, //Everything past here blocks motion
-    wall_material,
-    water_material
+    // Bases
+    missing_tr,
+    floor_tr,
+    stone_tr,
+    water_tr,
+    // Features
+    stone_front_tr,
+    stone_w_tr,
+    stone_e_tr,
+    stone_nw_tr,
+    stone_ne_tr,
+    stone_sw_tr,
+    stone_se_tr,
+    // Compound 
+    floor_stone_overhang_tr,
+    floor_target_tr,
+    water_stone_overhang_tr,
+    water_target_tr,
+
 };
 
 enum EntityType
@@ -65,6 +80,7 @@ struct Entity *createEntity(struct Entity *entity, int *index, enum EntityType t
 struct Entity *entityAtLocation(struct Entity *repo, int repo_len, int x, int y);
 void updateCrate(int mapindex, Entity *crate);
 bool terrainBlocksMovement(int mapIndex, int x, int y);
+bool terrainOverlays(EntityType type);
 bool typeBlocksMovement(enum EntityType);
 
 bool entityBlocksMovement(struct EntityListNode *head, int x, int y);
@@ -72,9 +88,13 @@ struct Entity *crateAtLocation(struct EntityListNode *head, int x, int y);
 void deleteAssets(struct EntityListNode **assets);
 bool atLocation(Entity *entity, int x, int y);
 bool coLocated(Entity *a, Entity *b);
-void spriteToBuf(const uint16_t *src, uint16_t *buf, int x, int y);
-void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY);
 enum EntityType mapLocationAsTerrainType(int mapIndex, int x, int y);
-bool terrainOverlays(EntityType type);
+void spriteToBuf(const uint16_t *src, uint16_t *buf, int x, int y);
+
+void tileToBuf(uint16_t *buf, enum TileRef tile);
+
+void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY);
+
+
 int availableMemory();
 #endif

@@ -8,7 +8,7 @@ display is 320 x 240
 #include "input.h"
 #include "engine.h"
 
-
+#include "terrain_00.c"
 
 extern const char maps_20x15[2][15][21];
 
@@ -22,8 +22,8 @@ Extended_Tft tft = Extended_Tft(TFT_CS, TFT_DC);
 //Store all entities in a repository
 Entity entity_repo[MAX_ENTITIES];
 
-// Number of entities in repo. 
 // TODO: consider changing this to a pointer to last entity
+// Number of entities in repo. 
 int repo_len;
 
 Entity *plr1;
@@ -41,9 +41,10 @@ void drawLocation(Entity *repo, int mapIndex, int x, int y)
     // Draw grid cell in order of:
     // 1) Terrain floor  2) Entity  3) Terrain feature
     
-    drawToBuff(buf, floor_t, 0, 0);
+    tileToBuf(buf, (TileRef) terrain_00[y * GRID_WIDTH + x]);
 
-    drawToBuff(buf, terrainType, 0, 0);
+    // drawToBuff(buf, floor_t, 0, 0);
+    // drawToBuff(buf, terrainType, 0, 0);
 
 
     if(Entity *e = entityAtLocation(repo, repo_len, x, y))
