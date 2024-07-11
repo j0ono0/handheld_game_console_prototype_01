@@ -103,14 +103,17 @@ void drawAllLocs()
 void drawLoc(int x, int y)
 {
     uint16_t buf[GRID_SIZE * GRID_SIZE];
-    tileToBuf(buf, (TileRef) tileAtLoc(x, y));
-
+    // Draw tile
+    tileToBuf(buf, (TileRef) tileAtLoc(x, y), all_layers);
+    // Draw entity
     if(Entity *e = entityAtLocation(x, y))
     {
         drawToBuff(buf, e->type, 0, 0);
     }
+    // Draw tile overlay
+    tileToBuf(buf, (TileRef) tileAtLoc(x, y), overlay_layer);
 
-    // Draw in entity overlap
+    // Draw entity overlay (from tile in front)
     if(Entity *e = entityAtLocation(x, y+1))
     {
         drawToBuff(buf, e->type, 0, 1);
@@ -179,105 +182,34 @@ struct Entity *entityAtLocation(int x, int y)
     return NULL;
 }
 
+
+// *IMPORTANT* The order of these must match TileRef enum for indexed lookup
+const TileSpec tileLUT[] = {
+    //{ <TileRef> , <base material> , <overlay material> , <blocks_motion> }
+    // Bases
+    {missing_tr, null_t, null_t, false},
+    {floor_tr, floor_t, null_t, false},
+    {stone_tr, stone_t, null_t, true},
+    {water_tr, water_t, null_t, true},
+    // Features
+    {stone_front_tr, stone_front_t, null_t, true},
+    {stone_w_tr, stone_w_t, null_t, true},
+    {stone_e_tr, stone_e_t, null_t, true},
+    {stone_nw_tr, stone_nw_t, null_t, true},
+    {stone_ne_tr, stone_ne_t, null_t, true},
+    {stone_sw_tr, stone_sw_t, null_t, true},
+    {stone_se_tr, stone_se_t, null_t, true},
+    // Compound 
+    {floor_stone_overhang_tr, floor_t, stone_overhang_t, false},
+    {floor_target_tr, floor_t, goal_t, false},
+    {water_stone_overhang_tr, water_t, stone_overhang_t, true},
+    {water_target_tr, water_t, goal_t, true},
+};
+
 bool terrainBlocksMovement(int x, int y)
 {
     TileRef tile = (TileRef) tileAtLoc(x,y);
-    EntityType et = tileToEntityType(tile);
-    return typeBlocksMovement(et);
-}
-
-EntityType tileToEntityType(TileRef tile)
-{
-    switch(tile)
-    {
-		case missing_tr:
-            return floor_t;
-		case floor_tr:
-            return floor_t;
-        case stone_tr:
-            return stone_t;
-        case water_tr:
-		    return water_t;
-
-        // Features
-		
-        case stone_front_tr:
-        case stone_w_tr:
-        case stone_e_tr:
-        case stone_nw_tr:
-        case stone_ne_tr:
-        case stone_sw_tr:
-        case stone_se_tr:
-            return stone_t;
-		
-        // Compound 
-		
-        case floor_stone_overhang_tr:
-        case floor_target_tr:
-           return  floor_t;
-		
-        case water_stone_overhang_tr:
-        case water_target_tr:
-		    return water_t;
-    }
-    return floor_t;
-}
-
-bool typeBlocksMovement(EntityType type)
-{
-    switch(type)
-    {
-        case stone_t:
-        case stone_front_t:
-        case stone_e_t:
-        case stone_w_t:
-        case bench_front_t:
-        case bench_top_t:
-        case crate_t:
-        case crate_active_t:
-        case plr_t:
-        case wall_t:
-            return true;
-
-        case bench_overhang_t:
-        case floor_t:
-        case goal_t:
-        case water_t:
-            return false;
-
-        default:
-            return false;
-    }
-}
-
-bool terrainOverlays(EntityType type)
-{
-    switch(type)
-    {
-
-        case stone_overhang_t:
-        case bench_overhang_t:
-            return true;
-
-        case stone_t:
-        case stone_front_t:
-        case stone_e_t:
-        case stone_w_t:
-
-        case bench_front_t:
-        case bench_top_t:
-        case crate_t:
-        case crate_active_t:
-        case plr_t:
-        case wall_t:
-        case floor_t:
-        case goal_t:
-        case water_t:
-            return false;
-            
-        default:
-            return false;
-    }
+    return tileLUT[tile].blocks_motion;
 }
 
 bool atLocation(Entity *entity, int x, int y)
@@ -315,68 +247,32 @@ void spriteToBuf(uint16_t *buf, int x, int y)
     }
 }
 
-void tileToBuf(uint16_t *buf, TileRef tile)
+void tileToBuf(uint16_t *buf, TileRef tile, TileLayer layer)
 {
-    EntityType type = floor_t;
-    switch(tile)
+    if(layer == base_layer)
     {
-        case floor_tr:
-            type = floor_t;
-            break;
-        case stone_tr:
-            type = stone_t;
-            break;
-        // case water_tr:
-        //     type = floor_t;
-        //     break;
-        // Features
-        case stone_front_tr:
-            type = stone_front_t;
-            break;
-        case stone_w_tr:
-            type = stone_w_t;
-            break;
-        case stone_e_tr:
-            type = stone_e_t;
-            break;
-        case stone_nw_tr:
-            type = stone_nw_t;
-            break;
-        case stone_ne_tr:
-            type = stone_ne_t;
-            break;
-        case stone_sw_tr:
-            type = stone_sw_t;
-            break;
-        case stone_se_tr:
-            type = stone_se_t;
-            break;
-        // Compound 
-        case floor_stone_overhang_tr:
-            drawToBuff(buf, floor_t, 0, 0);
-            type = stone_overhang_t;
-            break;
-        case floor_target_tr:
-            drawToBuff(buf, floor_t, 0, 0);
-            type = goal_t;
-            break;
-        // case water_stone_overhang_tr:
-        //     type = floor_t;
-        //     break;
-        // case water_target_tr:
-        //     type = floor_t;
-        //     break;
-        default: 
-            type = floor_t;
-            break;
+        drawToBuff(buf, tileLUT[tile].base, 0, 0);
     }
-    drawToBuff(buf, type, 0, 0);
+    else if (layer == overlay_layer && tileLUT[tile].overlay != null_t)
+    {
+        drawToBuff(buf, tileLUT[tile].overlay, 0, 0);
+    }
+    else if (layer == all_layers)
+    {
+        drawToBuff(buf, tileLUT[tile].base, 0, 0);
+        if(tileLUT[tile].overlay != null_t)
+            drawToBuff(buf, tileLUT[tile].overlay, 0, 0);
+    }
 }
 
-void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
+void drawToBuff(uint16_t *buf, MaterialType type, int offsetX, int offsetY)
 {
     switch(type)
     {
+        case null_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+                break;
         case floor_t:
         case water_t:
             if(offsetX != 0 || offsetY != 0)

@@ -9,7 +9,7 @@
 
 
 // *IMPORTANT* The order of these must match the order of tile_ref file
-typedef enum
+typedef enum TileRef
 {
     // Bases
     missing_tr,
@@ -32,8 +32,9 @@ typedef enum
 
 } TileRef;
 
-typedef enum 
+typedef enum MaterialType
 {
+    null_t,
     floor_t,
     water_t,
     stone_t,
@@ -53,7 +54,22 @@ typedef enum
     plr_t,
     crate_t,
     crate_active_t,
-} EntityType;
+} MaterialType;
+
+typedef enum TileLayer
+{
+    all_layers,
+    base_layer,
+    overlay_layer
+} TileLayer;
+
+typedef struct TileSpec
+{
+    TileRef tile;
+    MaterialType base;
+    MaterialType overlay;
+    bool blocks_motion;
+} TileSpec;
 
 enum GameMode
 {
@@ -66,7 +82,7 @@ typedef struct Entity
 {
     int x;
     int y;
-    EntityType type;
+    MaterialType type;
 } Entity;
 
 //////////////////////////////////////////////////////////////////
@@ -100,16 +116,16 @@ void moveSprite(int dx, int dy, Entity *entity);
 bool gameSolved();
 struct Entity *entityAtLocation(int x, int y);
 void updateCrate(Entity *crate);
-EntityType tileToEntityType(TileRef tile);
+MaterialType tileToMaterialType(TileRef tile);
 bool terrainBlocksMovement(int x, int y);
-bool terrainOverlays(EntityType type);
-bool typeBlocksMovement(EntityType);
+bool terrainOverlays(MaterialType type);
+bool typeBlocksMovement(MaterialType);
 
 bool atLocation(Entity *entity, int x, int y);
 bool coLocated(Entity *a, Entity *b);
 
-void tileToBuf(uint16_t *buf, TileRef tile);
-void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY);
+void tileToBuf(uint16_t *buf, TileRef tile, TileLayer layer);
+void drawToBuff(uint16_t *buf, MaterialType type, int offsetX, int offsetY);
 
 void spriteToBuf(uint16_t *buf, int x, int y);
 
