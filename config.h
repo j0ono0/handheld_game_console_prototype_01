@@ -2,9 +2,10 @@
 #define game_config_h
 
 
-// # define GRID_WIDTH 8
-// # define GRID_HEIGHT 6
-// # define GRID_SIZE 40
+// SPI hardware pins
+#define TFT_DC 9
+#define TFT_CS 10
+
 
 # define GRID_WIDTH 20
 # define GRID_HEIGHT 15

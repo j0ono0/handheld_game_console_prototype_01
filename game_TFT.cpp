@@ -1,12 +1,6 @@
 #include "game_TFT.h"
 
 
-
-#include "game_maps.c"
-extern const char maps_20x15[2][15][21];
-
-
-
 void Extended_Tft::drawIntro()
 {   
     fillScreen(ILI9341_YELLOW);
@@ -19,7 +13,7 @@ void Extended_Tft::drawIntro()
     println("Press start");
 }
 
-void Extended_Tft::drawMapComplete(int mapNum)
+void Extended_Tft::drawMapComplete()
 {
     fillScreen(ILI9341_RED);
     setTextColor(ILI9341_WHITE);

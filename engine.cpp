@@ -1,9 +1,131 @@
 #include "engine.h"
 
+Extended_Tft screen = Extended_Tft(TFT_CS, TFT_DC);
 
-// Not sure if this is the right place to include maps const?
-#include "game_maps.c"
-extern const char maps_20x15[2][15][21];
+/////////////////////////////////////////////
+// Preconfigured entities per environment ///
+
+const Entity envEntities_0[] = {
+	{5,7,plr_t},
+	{5,6,crate_t},
+	{3,7,crate_t},
+	{7,6,crate_t},
+};
+const Entity envEntities_1[] = {
+	{7,7,plr_t},
+	{8,7,crate_t},
+};
+
+// TODO: can these be combined?
+
+const uint8_t *terrainList[] = {
+    terrain_0,
+    terrain_1
+};
+
+const Entity *envEntitiesList[] = {
+    envEntities_0,
+    envEntities_1
+};
+////////////////////////////////////////////
+
+// Current environment
+int envId = 0;
+
+// Entities currently in game.
+Entity currentEntities[MAX_ENTITIES];
+int currentEntityLength = 0;
+
+/////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
+
+
+
+int currentEntitiesLength(void)
+{
+    return 4;
+    // return sizeof(envEntitiesList[envId]) / sizeof(envEntitiesList[envId][0]);
+}
+
+void populateCurrentEntities()
+{
+    currentEntityLength = 0;
+    int len = 4;
+    // size_t len = sizeof(envEntitiesList[envId]) / sizeof(envEntitiesList[envId][0]);
+    for(int i = 0; i < len; ++i)
+    {
+        currentEntities[currentEntityLength] = envEntitiesList[envId][i];
+        ++currentEntityLength;
+    }
+}
+
+Entity *assignPlayer()
+{
+    for(int i = 0; i < currentEntityLength; ++i)
+    {
+        if(currentEntities[i].type == plr_t)
+            return &currentEntities[i];
+    }
+    return NULL;
+}
+
+/////////////////////////////////////////////////////
+// Env controls /////////////////////////////////////
+
+int nextEnvironment()
+{
+    return setEnvironment(++envId);
+}
+int setEnvironment(int envIndex)
+{
+    // TODO: ensure index cannot be outside terrainList
+    if(envIndex > 1)
+        envIndex = 0;
+    envId = envIndex;
+    populateCurrentEntities();
+    return envId;
+}
+/////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
+
+void drawAllLocs()
+{
+     for(int y=0; y < GRID_HEIGHT; y++)
+    {
+        for(int x=0; x < GRID_WIDTH; x++)
+        {
+            drawLoc(x, y);
+        }
+    }
+}
+
+void drawLoc(int x, int y)
+{
+    uint16_t buf[GRID_SIZE * GRID_SIZE];
+    tileToBuf(buf, (TileRef) tileAtLoc(x, y));
+
+    if(Entity *e = entityAtLocation(x, y))
+    {
+        drawToBuff(buf, e->type, 0, 0);
+    }
+
+    // Draw in entity overlap
+    if(Entity *e = entityAtLocation(x, y+1))
+    {
+        drawToBuff(buf, e->type, 0, 1);
+    }
+
+    screen.drawCellBuffer(buf, x, y);
+}
+
+/////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
+
+int tileAtLoc(int x, int y)
+{
+    return terrainList[envId][y * GRID_WIDTH + x];
+}
 
 bool inbounds(int x, int y)
 {
@@ -20,30 +142,24 @@ void moveSprite(int dx, int dy, Entity *entity)
     entity->y += dy;
 }
 
-void updateCrate(int mapIndex, Entity *crate)
+void updateCrate(Entity *crate)
 {
-    switch(maps_20x15[mapIndex][crate->y][crate->x])
-    {
-        case 'X':
-        case 'B':
-            crate->type = crate_active_t;
-            return;
-        default:
-            crate->type = crate_t;
-            return;
-    }
+    if(tileAtLoc(crate->x, crate->y) == floor_target_tr || tileAtLoc(crate->x, crate->y) == water_target_tr)
+        crate->type = crate_active_t;
+    else
+        crate->type = crate_t;
 }
 
-bool gameSolved(int mapIndex, struct Entity *entity, int index)
+bool gameSolved()
 {
     // Test if every goal has a crate on the same location.
     for(int y = 0; y < GRID_HEIGHT; y++)
     {
         for(int x = 0; x < GRID_WIDTH; x++)
         {
-            if(maps_20x15[mapIndex][y][x] == 'X' || maps_20x15[mapIndex][y][x] == 'B')
+            if(tileAtLoc(x, y) == floor_target_tr || tileAtLoc(x, y) == water_target_tr)
             {
-                Entity *e = entityAtLocation(entity, index, x, y);
+                Entity *e = entityAtLocation(x, y);
                 if(e == NULL || e->type != crate_active_t)
                     return false;
             }
@@ -52,42 +168,69 @@ bool gameSolved(int mapIndex, struct Entity *entity, int index)
     return true;
 }
 
-struct Entity *createEntity(struct Entity *repo, int *repo_len, EntityType type, int x, int y)
-{
-    if(*repo_len  > MAX_ENTITIES)
-        return NULL;
-    // add new entity to repo
-    int i = *repo_len;
-    *repo_len = *repo_len + 1;
-    repo[i].type = type;
-    repo[i].x = x;
-    repo[i].y = y;
-    return &repo[i];
-}
 
-struct Entity *entityAtLocation(struct Entity *repo, int repo_len, int x, int y)
+struct Entity *entityAtLocation(int x, int y)
 {
-    for(int i = 0; i < repo_len; i++)
+    for(int i = 0; i < currentEntityLength; i++)
     {
-        if(repo[i].x == x && repo[i].y == y)
-            return &repo[i];
+        if(currentEntities[i].x == x && currentEntities[i].y == y)
+            return &currentEntities[i];
     }
     return NULL;
 }
 
-bool terrainBlocksMovement(int mapIndex, int x, int y)
+bool terrainBlocksMovement(int x, int y)
 {
-    return typeBlocksMovement(mapLocationAsTerrainType(mapIndex, x, y));
+    TileRef tile = (TileRef) tileAtLoc(x,y);
+    EntityType et = tileToEntityType(tile);
+    return typeBlocksMovement(et);
+}
+
+EntityType tileToEntityType(TileRef tile)
+{
+    switch(tile)
+    {
+		case missing_tr:
+            return floor_t;
+		case floor_tr:
+            return floor_t;
+        case stone_tr:
+            return stone_t;
+        case water_tr:
+		    return water_t;
+
+        // Features
+		
+        case stone_front_tr:
+        case stone_w_tr:
+        case stone_e_tr:
+        case stone_nw_tr:
+        case stone_ne_tr:
+        case stone_sw_tr:
+        case stone_se_tr:
+            return stone_t;
+		
+        // Compound 
+		
+        case floor_stone_overhang_tr:
+        case floor_target_tr:
+           return  floor_t;
+		
+        case water_stone_overhang_tr:
+        case water_target_tr:
+		    return water_t;
+    }
+    return floor_t;
 }
 
 bool typeBlocksMovement(EntityType type)
 {
     switch(type)
     {
-        case stone_top_t:
+        case stone_t:
         case stone_front_t:
-        case stone_side_east_t:
-        case stone_side_west_t:
+        case stone_e_t:
+        case stone_w_t:
         case bench_front_t:
         case bench_top_t:
         case crate_t:
@@ -116,10 +259,10 @@ bool terrainOverlays(EntityType type)
         case bench_overhang_t:
             return true;
 
-        case stone_top_t:
+        case stone_t:
         case stone_front_t:
-        case stone_side_east_t:
-        case stone_side_west_t:
+        case stone_e_t:
+        case stone_w_t:
 
         case bench_front_t:
         case bench_top_t:
@@ -155,40 +298,10 @@ bool coLocated(Entity *a, Entity *b)
     return false;
 }
 
-EntityType mapLocationAsTerrainType(int mapIndex, int x, int y)
-{
-    switch(maps_20x15[mapIndex][y][x])
-    {
-        case '.':
-        case '@':
-            return floor_t;
-        case 'q':
-            return bench_overhang_t;
-        case 'w':
-            return bench_top_t;
-        case 'e':
-            return bench_front_t;
-        case '#':           
-            return stone_top_t;
-        case 'N':
-            return stone_front_t;
-        case 'W':
-            return stone_side_west_t;
-        case 'S':
-            return stone_overhang_t;
-        case 'E':
-            return stone_side_east_t;
-        case 'X':
-        case 'B':
-            return goal_t;
-        default:
-            // TODO: make a 'busted' sprite to show when missing sprites are returned
-            return floor_t;
-    }
-}
 
-void spriteToBuf(uint16_t *buf, int offset)
+void spriteToBuf(uint16_t *buf, int x, int y)
 {
+    int offset =  y * GRID_SIZE * SPRITESHEET_WIDTH + x * GRID_SIZE;
     const uint16_t *pixelPtr = &sprite_sheet_01[offset];
     for(int y = 0; y < GRID_SIZE; y++)
     {
@@ -202,7 +315,7 @@ void spriteToBuf(uint16_t *buf, int offset)
     }
 }
 
-void tileToBuf(uint16_t *buf, enum TileRef tile)
+void tileToBuf(uint16_t *buf, TileRef tile)
 {
     EntityType type = floor_t;
     switch(tile)
@@ -211,7 +324,7 @@ void tileToBuf(uint16_t *buf, enum TileRef tile)
             type = floor_t;
             break;
         case stone_tr:
-            type = stone_top_t;
+            type = stone_t;
             break;
         // case water_tr:
         //     type = floor_t;
@@ -221,23 +334,23 @@ void tileToBuf(uint16_t *buf, enum TileRef tile)
             type = stone_front_t;
             break;
         case stone_w_tr:
-            type = stone_side_west_t;
+            type = stone_w_t;
             break;
         case stone_e_tr:
-            type = stone_side_east_t;
+            type = stone_e_t;
             break;
-        // case stone_nw_tr:
-        //     type = floor_t;
-        //     break;
-        // case stone_ne_tr:
-        //     type = floor_t;
-        //     break;
-        // case stone_sw_tr:
-        //     type = floor_t;
-        //     break;
-        // case stone_se_tr:
-        //     type = floor_t;
-        //     break;
+        case stone_nw_tr:
+            type = stone_nw_t;
+            break;
+        case stone_ne_tr:
+            type = stone_ne_t;
+            break;
+        case stone_sw_tr:
+            type = stone_sw_t;
+            break;
+        case stone_se_tr:
+            type = stone_se_t;
+            break;
         // Compound 
         case floor_stone_overhang_tr:
             drawToBuff(buf, floor_t, 0, 0);
@@ -279,25 +392,53 @@ void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
             break;
 
         case wall_t:
-        case stone_top_t:
+        case stone_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            offsetX = STONE_TOP_X - offsetX;
-            offsetY = STONE_TOP_Y - offsetY;
+            offsetX = STONE_X - offsetX;
+            offsetY = STONE_Y - offsetY;
             break;
 
-        case stone_side_east_t:
+        case stone_e_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            offsetX = STONE_SIDE_EAST_X - offsetX;
-            offsetY = STONE_SIDE_EAST_Y - offsetY;
+            offsetX = STONE_E_X - offsetX;
+            offsetY = STONE_E_Y - offsetY;
                 break;
             
-        case stone_side_west_t:
+        case stone_w_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            offsetX = STONE_SIDE_WEST_X - offsetX;
-            offsetY = STONE_SIDE_WEST_Y - offsetY;
+            offsetX = STONE_W_X - offsetX;
+            offsetY = STONE_W_Y - offsetY;
+                break;
+            
+        case stone_nw_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            offsetX = STONE_NW_X - offsetX;
+            offsetY = STONE_NW_Y - offsetY;
+                break;
+            
+        case stone_sw_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            offsetX = STONE_SW_X - offsetX;
+            offsetY = STONE_SW_Y - offsetY;
+                break;
+            
+        case stone_se_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            offsetX = STONE_SE_X - offsetX;
+            offsetY = STONE_SE_Y - offsetY;
+                break;
+            
+        case stone_ne_t:
+            if(offsetX != 0 || offsetY != 0)
+                return;
+            offsetX = STONE_NE_X - offsetX;
+            offsetY = STONE_NE_Y - offsetY;
                 break;
             
         case stone_front_t:
@@ -324,8 +465,8 @@ void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
         case bench_top_t:
             if(offsetX != 0 || offsetY != 0)
                 return;
-            offsetX = STONE_TOP_X - offsetX;
-            offsetY = STONE_TOP_Y - offsetY;
+            offsetX = STONE_X - offsetX;
+            offsetY = STONE_Y - offsetY;
             break;
 
         case bench_front_t:
@@ -358,11 +499,18 @@ void drawToBuff(uint16_t *buf, EntityType type, int offsetX, int offsetY)
             break;
 
     };
-    spriteToBuf(buf, (offsetY) * GRID_SIZE * SPRITESHEET_WIDTH + offsetX * GRID_SIZE);
+    spriteToBuf(buf, offsetX, offsetY);
 }
 
-
-
+void screenSetup()
+{
+    screen.begin();
+    screen.setRotation(1);
+    screen.drawIntro();
+}
+void screenDrawBuf(uint16_t *buf, int x, int y){screen.drawCellBuffer(buf, x, y);}
+void screenSuccess(){ screen.drawSuccess(); }
+void screenEnvComplete(){ screen.drawMapComplete(); }
 
 /////////////////////////////////////////////////////////
 #ifdef __arm__
