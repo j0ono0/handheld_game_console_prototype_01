@@ -8,7 +8,6 @@ display is 320 x 240
 #include "engine.h"
 
 
-
 Entity *plr1;
 
 enum GameMode gameMode;

@@ -2,33 +2,6 @@
 
 Extended_Tft screen = Extended_Tft(TFT_CS, TFT_DC);
 
-/////////////////////////////////////////////
-// Preconfigured entities per environment ///
-
-const Entity envEntities_0[] = {
-	{5,7,plr_t},
-	{5,6,crate_t},
-	{3,7,crate_t},
-	{7,6,crate_t},
-};
-const Entity envEntities_1[] = {
-	{7,7,plr_t},
-	{8,7,crate_t},
-};
-
-// TODO: can these be combined?
-
-const uint8_t *terrainList[] = {
-    terrain_0,
-    terrain_1
-};
-
-const Entity *envEntitiesList[] = {
-    envEntities_0,
-    envEntities_1
-};
-////////////////////////////////////////////
-
 // Current environment
 int envId = 0;
 
@@ -37,26 +10,15 @@ Entity currentEntities[MAX_ENTITIES];
 int currentEntityLength = 0;
 
 /////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
 
-
-
-int currentEntitiesLength(void)
-{
-    return 4;
-    // return sizeof(envEntitiesList[envId]) / sizeof(envEntitiesList[envId][0]);
-}
+int TEMP_ENTITY_COUNT = 8;
 
 void populateCurrentEntities()
 {
     currentEntityLength = 0;
-    int len = 4;
-    // size_t len = sizeof(envEntitiesList[envId]) / sizeof(envEntitiesList[envId][0]);
-    for(int i = 0; i < len; ++i)
+    for(int i = 0; i < TEMP_ENTITY_COUNT; ++i)
     {
-        currentEntities[currentEntityLength] = envEntitiesList[envId][i];
-        ++currentEntityLength;
+        currentEntities[currentEntityLength++] = environmentList[envId].entities[i];
     }
 }
 
@@ -87,7 +49,7 @@ int setEnvironment(int envIndex)
     return envId;
 }
 /////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
+
 
 void drawAllLocs()
 {
@@ -104,14 +66,32 @@ void drawLoc(int x, int y)
 {
     uint16_t buf[GRID_SIZE * GRID_SIZE];
     // Draw tile
-    tileToBuf(buf, (TileRef) tileAtLoc(x, y), all_layers);
+
+    //////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////
+    // trying out replacement tiles       ////////////////////////
+    uint16_t tileId = environmentList[envId].terrain[y * GRID_WIDTH + x];
+    const uint16_t *pixelPtr = &sprite_tile_ref_01[GRID_SIZE * GRID_SIZE * tileId];
+    uint16_t *bufPtr = buf;
+
+    for(int i = 0; i < GRID_SIZE * GRID_SIZE; ++i)
+    {
+        *bufPtr++ = *pixelPtr++;
+    }
+
+    //////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////
+
+    // tileToBuf(buf, (TileRef) tileAtLoc(x, y), all_layers);
     // Draw entity
     if(Entity *e = entityAtLocation(x, y))
     {
         drawToBuff(buf, e->type, 0, 0);
     }
     // Draw tile overlay
-    tileToBuf(buf, (TileRef) tileAtLoc(x, y), overlay_layer);
+    // tileToBuf(buf, (TileRef) tileAtLoc(x, y), overlay_layer);
 
     // Draw entity overlay (from tile in front)
     if(Entity *e = entityAtLocation(x, y+1))
@@ -123,11 +103,11 @@ void drawLoc(int x, int y)
 }
 
 /////////////////////////////////////////////////////
-/////////////////////////////////////////////////////
+
 
 int tileAtLoc(int x, int y)
 {
-    return terrainList[envId][y * GRID_WIDTH + x];
+    return environmentList[envId].terrain[y * GRID_WIDTH + x];
 }
 
 bool inbounds(int x, int y)
@@ -147,7 +127,8 @@ void moveSprite(int dx, int dy, Entity *entity)
 
 void updateCrate(Entity *crate)
 {
-    if(tileAtLoc(crate->x, crate->y) == floor_target_tr || tileAtLoc(crate->x, crate->y) == water_target_tr)
+    // Numbers are tile indexes from 'tile_ref_01.png'
+    if(tileAtLoc(crate->x, crate->y) == 9 || tileAtLoc(crate->x, crate->y) == 12)
         crate->type = crate_active_t;
     else
         crate->type = crate_t;
@@ -160,7 +141,8 @@ bool gameSolved()
     {
         for(int x = 0; x < GRID_WIDTH; x++)
         {
-            if(tileAtLoc(x, y) == floor_target_tr || tileAtLoc(x, y) == water_target_tr)
+            // Numbers are tile indexes from 'tile_ref_01.png'
+            if(tileAtLoc(x, y) == 9 || tileAtLoc(x, y) == 12)
             {
                 Entity *e = entityAtLocation(x, y);
                 if(e == NULL || e->type != crate_active_t)
@@ -206,10 +188,34 @@ const TileSpec tileLUT[] = {
     {water_target_tr, water_t, goal_t, true},
 };
 
+// Indexed against tile_ref_01.png
+const bool tile_blocks_motion[] = {
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    false, //floor
+    true,
+    true,
+    false, //goal + overhang
+    false, // wall_cnr_cv_sw
+    true,
+    false, //goal
+    true,
+    true,
+    true,
+    true,
+    false, // wall_s
+    true,
+};
+
 bool terrainBlocksMovement(int x, int y)
 {
     TileRef tile = (TileRef) tileAtLoc(x,y);
-    return tileLUT[tile].blocks_motion;
+    return tile_blocks_motion[tile];
+    // return tileLUT[tile].blocks_motion;
 }
 
 bool atLocation(Entity *entity, int x, int y)

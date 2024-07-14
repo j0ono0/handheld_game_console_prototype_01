@@ -2,100 +2,25 @@
 #define game_engine_h
 
 #include <inttypes.h>
-#include "Arduino.h"
 #include "game_TFT.h"
+#include "Arduino.h"
 #include "config.h"
+#include "customtypes.h"
 #include "sprites.h"
 
 
-// *IMPORTANT* The order of these must match the order of tile_ref file
-typedef enum TileRef
-{
-    // Bases
-    missing_tr,
-    floor_tr,
-    stone_tr,
-    water_tr,
-    // Features
-    stone_front_tr,
-    stone_w_tr,
-    stone_e_tr,
-    stone_nw_tr,
-    stone_ne_tr,
-    stone_sw_tr,
-    stone_se_tr,
-    // Compound 
-    floor_stone_overhang_tr,
-    floor_target_tr,
-    water_stone_overhang_tr,
-    water_target_tr,
 
-} TileRef;
-
-typedef enum MaterialType
-{
-    null_t,
-    floor_t,
-    water_t,
-    stone_t,
-    stone_front_t,
-    stone_w_t,
-    stone_e_t,
-    stone_ne_t,
-    stone_nw_t,
-    stone_sw_t,
-    stone_se_t,
-    stone_overhang_t,
-    bench_front_t,
-    bench_top_t,
-    bench_overhang_t,
-    goal_t,
-    wall_t,
-    plr_t,
-    crate_t,
-    crate_active_t,
-} MaterialType;
-
-typedef enum TileLayer
-{
-    all_layers,
-    base_layer,
-    overlay_layer
-} TileLayer;
-
-typedef struct TileSpec
-{
-    TileRef tile;
-    MaterialType base;
-    MaterialType overlay;
-    bool blocks_motion;
-} TileSpec;
-
-enum GameMode
-{
-    intro,
-    inGame,
-    success
-};
-
-typedef struct Entity
-{
-    int x;
-    int y;
-    MaterialType type;
-} Entity;
 
 //////////////////////////////////////////////////////////////////
-////// External resources for reference in engine               //
+/// External graphics and environment data in resources.h       //
 
 extern const uint16_t sprite_sheet_01[];
-extern const uint8_t terrain_0[];
-extern const uint8_t terrain_1[];
+extern const uint16_t sprite_tile_ref_01[];
+
+extern const EnvSpec environmentList[];
 
 //////////////////////////////////////////////////////////////////
 
-
-int currentEntitiesLength(void);
 
 int nextEnvironment();
 int setEnvironment(int envIndex);
