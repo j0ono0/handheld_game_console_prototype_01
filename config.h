@@ -7,9 +7,13 @@
 #define TFT_CS 10
 
 
-# define GRID_WIDTH 20
-# define GRID_HEIGHT 15
-# define GRID_SIZE 16
+# define GRID_WIDTH 40
+# define GRID_HEIGHT 30
+# define GRID_SIZE 8
+
+// # define GRID_WIDTH 20
+// # define GRID_HEIGHT 15
+// # define GRID_SIZE 16
 
 
 #define COLOR_FLOOR 0xbe5c

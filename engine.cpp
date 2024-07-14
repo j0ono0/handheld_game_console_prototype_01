@@ -53,53 +53,100 @@ int setEnvironment(int envIndex)
 
 void drawAllLocs()
 {
-     for(int y=0; y < GRID_HEIGHT; y++)
+    uint16_t buf[GRID_SIZE * GRID_SIZE];
+    for(int y=0; y < GRID_HEIGHT; y++)
     {
         for(int x=0; x < GRID_WIDTH; x++)
         {
-            drawLoc(x, y);
+            blitTile(buf, x, y);
+            screen.drawCellBuffer(buf, x, y);
         }
+    }
+
+    // Draw entities (just plr for now)
+    for(int i = 0; i < currentEntityLength; ++i)
+    {
+        if(currentEntities[i].type == plr_t)
+            drawPlr(currentEntities[i].x, currentEntities[i].y);
     }
 }
 
-void drawLoc(int x, int y)
+void blitTile(uint16_t *buf, int x, int y)
 {
-    uint16_t buf[GRID_SIZE * GRID_SIZE];
-    // Draw tile
+    // Draw terrain tile to supplied buffer
 
-    //////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////
-    // trying out replacement tiles       ////////////////////////
     uint16_t tileId = environmentList[envId].terrain[y * GRID_WIDTH + x];
-    const uint16_t *pixelPtr = &sprite_tile_ref_01[GRID_SIZE * GRID_SIZE * tileId];
-    uint16_t *bufPtr = buf;
+    const uint16_t *pixelPtr = &sprite_tile_ref_8x8[GRID_SIZE * GRID_SIZE * tileId];
 
     for(int i = 0; i < GRID_SIZE * GRID_SIZE; ++i)
     {
-        *bufPtr++ = *pixelPtr++;
+        *buf++ = *pixelPtr++;
     }
+}
 
-    //////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////
+void blitTerrain(uint16_t *buf, int x, int y, int w, int h)
+{
+    uint16_t *cellbuf = &buf[0];
 
-    // tileToBuf(buf, (TileRef) tileAtLoc(x, y), all_layers);
-    // Draw entity
-    if(Entity *e = entityAtLocation(x, y))
+    // TEMP: clear cellbuf
+    for(int i = 0; i < w * GRID_SIZE * h * GRID_SIZE; ++i)
     {
-        drawToBuff(buf, e->type, 0, 0);
+        *cellbuf++ = COLOR_TRANSPARENT;
     }
-    // Draw tile overlay
-    // tileToBuf(buf, (TileRef) tileAtLoc(x, y), overlay_layer);
 
-    // Draw entity overlay (from tile in front)
-    if(Entity *e = entityAtLocation(x, y+1))
+    for(int i = 0; i < h; ++i)
     {
-        drawToBuff(buf, e->type, 0, 1);
+        for(int j = 0; j < w; ++j)
+        {
+            
+            uint16_t tileId = environmentList[envId].terrain[(y + i) * GRID_WIDTH + (x + j)];
+            const uint16_t *spritePtr = &sprite_tile_ref_8x8[GRID_SIZE * GRID_SIZE * tileId];
+
+            // Set cellbuf to start of tile section
+            cellbuf = &buf[i*w*GRID_SIZE*GRID_SIZE + j*GRID_SIZE];
+
+            for(int row = 0; row < GRID_SIZE; ++row)
+            {
+                for(int col = 0; col < GRID_SIZE; ++col)
+                {
+                    // Transfer line to buf
+                    *cellbuf++ = *spritePtr++;
+                }
+                // Move cellbuf to start of next line
+                cellbuf += w*GRID_SIZE - GRID_SIZE;
+            }
+        }
     }
 
-    screen.drawCellBuffer(buf, x, y);
+
+}
+
+void drawPlr(int x, int y)
+{
+    // Offset to position plr sprite at correct terrain location
+    y -= 4;
+    // plr sprite takes up x8 grid cells 
+    // 16px wide, 32px high, 512pixels, starting at offset of 0.
+    uint16_t buf[GRID_SIZE * GRID_SIZE * 8];
+
+    // draw background terrain
+    blitTerrain(buf, x, y, 2, 4);
+
+    // Draw plr sprite
+    const uint16_t *spritePtr = &entity_sprites[0];
+    uint16_t *bufPtr = &buf[0];
+    // copy sprite into buf
+    for(int i = 0; i < 512; ++i)
+    {
+        if(*spritePtr != COLOR_TRANSPARENT)
+            *bufPtr = *spritePtr;
+        ++bufPtr;
+        ++spritePtr;
+    }
+    
+    screen.writeRect(x * GRID_SIZE, y * GRID_SIZE, 16, 32, buf);
+
+
 }
 
 /////////////////////////////////////////////////////
@@ -119,11 +166,7 @@ bool inbounds(int x, int y)
     return true;
 }
 
-void moveSprite(int dx, int dy, Entity *entity)
-{
-    entity->x += dx;
-    entity->y += dy;
-}
+
 
 void updateCrate(Entity *crate)
 {
@@ -166,27 +209,27 @@ struct Entity *entityAtLocation(int x, int y)
 
 
 // *IMPORTANT* The order of these must match TileRef enum for indexed lookup
-const TileSpec tileLUT[] = {
-    //{ <TileRef> , <base material> , <overlay material> , <blocks_motion> }
-    // Bases
-    {missing_tr, null_t, null_t, false},
-    {floor_tr, floor_t, null_t, false},
-    {stone_tr, stone_t, null_t, true},
-    {water_tr, water_t, null_t, true},
-    // Features
-    {stone_front_tr, stone_front_t, null_t, true},
-    {stone_w_tr, stone_w_t, null_t, true},
-    {stone_e_tr, stone_e_t, null_t, true},
-    {stone_nw_tr, stone_nw_t, null_t, true},
-    {stone_ne_tr, stone_ne_t, null_t, true},
-    {stone_sw_tr, stone_sw_t, null_t, true},
-    {stone_se_tr, stone_se_t, null_t, true},
-    // Compound 
-    {floor_stone_overhang_tr, floor_t, stone_overhang_t, false},
-    {floor_target_tr, floor_t, goal_t, false},
-    {water_stone_overhang_tr, water_t, stone_overhang_t, true},
-    {water_target_tr, water_t, goal_t, true},
-};
+// const TileSpec tileLUT[] = {
+//     //{ <TileRef> , <base material> , <overlay material> , <blocks_motion> }
+//     // Bases
+//     {missing_tr, null_t, null_t, false},
+//     {floor_tr, floor_t, null_t, false},
+//     {stone_tr, stone_t, null_t, true},
+//     {water_tr, water_t, null_t, true},
+//     // Features
+//     {stone_front_tr, stone_front_t, null_t, true},
+//     {stone_w_tr, stone_w_t, null_t, true},
+//     {stone_e_tr, stone_e_t, null_t, true},
+//     {stone_nw_tr, stone_nw_t, null_t, true},
+//     {stone_ne_tr, stone_ne_t, null_t, true},
+//     {stone_sw_tr, stone_sw_t, null_t, true},
+//     {stone_se_tr, stone_se_t, null_t, true},
+//     // Compound 
+//     {floor_stone_overhang_tr, floor_t, stone_overhang_t, false},
+//     {floor_target_tr, floor_t, goal_t, false},
+//     {water_stone_overhang_tr, water_t, stone_overhang_t, true},
+//     {water_target_tr, water_t, goal_t, true},
+// };
 
 // Indexed against tile_ref_01.png
 const bool tile_blocks_motion[] = {
@@ -210,6 +253,7 @@ const bool tile_blocks_motion[] = {
     false, // wall_s
     true,
 };
+
 
 bool terrainBlocksMovement(int x, int y)
 {
@@ -237,172 +281,41 @@ bool coLocated(Entity *a, Entity *b)
 }
 
 
-void spriteToBuf(uint16_t *buf, int x, int y)
-{
-    int offset =  y * GRID_SIZE * SPRITESHEET_WIDTH + x * GRID_SIZE;
-    const uint16_t *pixelPtr = &sprite_sheet_01[offset];
-    for(int y = 0; y < GRID_SIZE; y++)
-    {
-        for(int x=0; x < GRID_SIZE; x++)
-        {
-            if(*pixelPtr != COLOR_TRANSPARENT)
-                buf[y * GRID_SIZE + x] = *pixelPtr;
-            ++pixelPtr;
-        }
-        pixelPtr += SPRITESHEET_WIDTH - GRID_SIZE ;
-    }
-}
+// void spriteToBuf(uint16_t *buf, int x, int y)
+// {
+//     int offset =  y * GRID_SIZE * SPRITESHEET_WIDTH + x * GRID_SIZE;
+//     const uint16_t *pixelPtr = &sprite_sheet_01[offset];
+//     for(int y = 0; y < GRID_SIZE; y++)
+//     {
+//         for(int x=0; x < GRID_SIZE; x++)
+//         {
+//             if(*pixelPtr != COLOR_TRANSPARENT)
+//                 buf[y * GRID_SIZE + x] = *pixelPtr;
+//             ++pixelPtr;
+//         }
+//         pixelPtr += SPRITESHEET_WIDTH - GRID_SIZE ;
+//     }
+// }
 
-void tileToBuf(uint16_t *buf, TileRef tile, TileLayer layer)
-{
-    if(layer == base_layer)
-    {
-        drawToBuff(buf, tileLUT[tile].base, 0, 0);
-    }
-    else if (layer == overlay_layer && tileLUT[tile].overlay != null_t)
-    {
-        drawToBuff(buf, tileLUT[tile].overlay, 0, 0);
-    }
-    else if (layer == all_layers)
-    {
-        drawToBuff(buf, tileLUT[tile].base, 0, 0);
-        if(tileLUT[tile].overlay != null_t)
-            drawToBuff(buf, tileLUT[tile].overlay, 0, 0);
-    }
-}
+// void tileToBuf(uint16_t *buf, TileRef tile, TileLayer layer)
+// {
+//     if(layer == base_layer)
+//     {
+//         drawToBuff(buf, tileLUT[tile].base, 0, 0);
+//     }
+//     else if (layer == overlay_layer && tileLUT[tile].overlay != null_t)
+//     {
+//         drawToBuff(buf, tileLUT[tile].overlay, 0, 0);
+//     }
+//     else if (layer == all_layers)
+//     {
+//         drawToBuff(buf, tileLUT[tile].base, 0, 0);
+//         if(tileLUT[tile].overlay != null_t)
+//             drawToBuff(buf, tileLUT[tile].overlay, 0, 0);
+//     }
+// }
 
-void drawToBuff(uint16_t *buf, MaterialType type, int offsetX, int offsetY)
-{
-    switch(type)
-    {
-        case null_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-                break;
-        case floor_t:
-        case water_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = FLOOR_X - offsetX;
-            offsetY = FLOOR_Y - offsetY;
-            break;
-        case goal_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = GOAL_X - offsetX;
-            offsetY = GOAL_Y - offsetY;
-            break;
 
-        case wall_t:
-        case stone_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_X - offsetX;
-            offsetY = STONE_Y - offsetY;
-            break;
-
-        case stone_e_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_E_X - offsetX;
-            offsetY = STONE_E_Y - offsetY;
-                break;
-            
-        case stone_w_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_W_X - offsetX;
-            offsetY = STONE_W_Y - offsetY;
-                break;
-            
-        case stone_nw_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_NW_X - offsetX;
-            offsetY = STONE_NW_Y - offsetY;
-                break;
-            
-        case stone_sw_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_SW_X - offsetX;
-            offsetY = STONE_SW_Y - offsetY;
-                break;
-            
-        case stone_se_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_SE_X - offsetX;
-            offsetY = STONE_SE_Y - offsetY;
-                break;
-            
-        case stone_ne_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_NE_X - offsetX;
-            offsetY = STONE_NE_Y - offsetY;
-                break;
-            
-        case stone_front_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_FRONT_X - offsetX;
-            offsetY = STONE_FRONT_Y - offsetY;
-                break;
-
-        case stone_overhang_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_OVERHANG_X - offsetX;
-            offsetY = STONE_OVERHANG_Y - offsetY;
-            break;
-
-        case bench_overhang_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_OVERHANG_X - offsetX;
-            offsetY = STONE_OVERHANG_Y - offsetY;
-            break;
-
-        case bench_top_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_X - offsetX;
-            offsetY = STONE_Y - offsetY;
-            break;
-
-        case bench_front_t:
-            if(offsetX != 0 || offsetY != 0)
-                return;
-            offsetX = STONE_FRONT_X - offsetX;
-            offsetY = STONE_FRONT_Y - offsetY;
-            break;
-
-        case plr_t:
-            // Do nothing if no part of plr sprite falls inside buffer
-            if(offsetX != 0 || offsetY < 0 || offsetY > 1)
-                return;
-            offsetX = PLR_X - offsetX;
-            offsetY = PLR_Y - offsetY;
-            break;
-
-        case crate_t:
-            if(offsetX != 0 || offsetY < 0 || offsetY > 1)
-                return;
-            offsetX = CRATE_X - offsetX;
-            offsetY = CRATE_Y - offsetY;
-            break;
-
-        case crate_active_t:
-            if(offsetX != 0 || offsetY < 0 || offsetY > 1)
-                return;
-            offsetX = CRATE_ACTIVE_X - offsetX;
-            offsetY = CRATE_ACTIVE_Y - offsetY;
-            break;
-
-    };
-    spriteToBuf(buf, offsetX, offsetY);
-}
 
 void screenSetup()
 {

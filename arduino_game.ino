@@ -104,8 +104,8 @@ void loop()
                 updateCrate(crate);
                 // Plr has moved into old location - no need to redraw it to remove crate
                 // Draw into new location
-                drawLoc(crate->x, crate->y);
-                drawLoc(crate->x, crate->y-1);
+                // drawLoc(crate->x, crate->y);
+                // drawLoc(crate->x, crate->y-1);
 
             }
         }
@@ -119,11 +119,12 @@ void loop()
         // Plr encroaches into x2 cells - both cell need redrawing
 
         // Remove old location
-        drawLoc(plr1->x - dx, plr1->y - dy-1);
-        drawLoc(plr1->x - dx, plr1->y - dy);
-        // Add new location
-        drawLoc(plr1->x, plr1->y);
-        drawLoc(plr1->x, plr1->y-1);
+        // drawLoc(plr1->x - dx, plr1->y - dy-1);
+        // drawLoc(plr1->x - dx, plr1->y - dy);
+        
+        // // Add new location
+        // drawLoc(plr1->x, plr1->y);
+        // drawLoc(plr1->x, plr1->y-1);
 
     
         if (gameSolved())

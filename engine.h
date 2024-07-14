@@ -14,8 +14,10 @@
 //////////////////////////////////////////////////////////////////
 /// External graphics and environment data in resources.h       //
 
-extern const uint16_t sprite_sheet_01[];
-extern const uint16_t sprite_tile_ref_01[];
+
+
+extern const uint16_t sprite_tile_ref_8x8[];
+extern const uint16_t entity_sprites[];
 
 extern const EnvSpec environmentList[];
 
@@ -30,14 +32,16 @@ Entity *assignPlayer();
 
 //////////////////////////////////////////////////////////////////
 void drawAllLocs();
-void drawLoc(int x, int y);
+void blitTile(uint16_t *buf, int x, int y);
+void blitTerrain(uint16_t *buf, int x, int y, int w, int h);
 
+void drawPlr(int x, int y);
 //////////////////////////////////////////////////////////////////
 int tileAtLoc(int x, int y);
 
 
 bool inbounds(int x, int y);
-void moveSprite(int dx, int dy, Entity *entity);
+
 bool gameSolved();
 struct Entity *entityAtLocation(int x, int y);
 void updateCrate(Entity *crate);
@@ -49,10 +53,9 @@ bool typeBlocksMovement(MaterialType);
 bool atLocation(Entity *entity, int x, int y);
 bool coLocated(Entity *a, Entity *b);
 
-void tileToBuf(uint16_t *buf, TileRef tile, TileLayer layer);
-void drawToBuff(uint16_t *buf, MaterialType type, int offsetX, int offsetY);
+// void tileToBuf(uint16_t *buf, TileRef tile, TileLayer layer);
+// void spriteToBuf(uint16_t *buf, int x, int y);
 
-void spriteToBuf(uint16_t *buf, int x, int y);
 
 void screenSetup();
 void screenDrawBuf(uint16_t *buf, int x, int y);
