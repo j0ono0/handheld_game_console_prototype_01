@@ -32,10 +32,11 @@ Entity *assignPlayer();
 
 //////////////////////////////////////////////////////////////////
 void drawAllLocs();
-void blitTile(uint16_t *buf, int x, int y);
-void blitTerrain(uint16_t *buf, int x, int y, int w, int h);
-
+void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
+void drawTerrain(int x, int y, int w, int h);
+void blitPlr(int x, int y, int bufW, int bufH, uint16_t *buf);
 void drawPlr(int x, int y);
+void walkPlr(Entity *plr, int x, int y);
 //////////////////////////////////////////////////////////////////
 int tileAtLoc(int x, int y);
 
@@ -52,9 +53,6 @@ bool typeBlocksMovement(MaterialType);
 
 bool atLocation(Entity *entity, int x, int y);
 bool coLocated(Entity *a, Entity *b);
-
-// void tileToBuf(uint16_t *buf, TileRef tile, TileLayer layer);
-// void spriteToBuf(uint16_t *buf, int x, int y);
 
 
 void screenSetup();

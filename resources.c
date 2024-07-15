@@ -138,7 +138,7 @@ const uint8_t terrain_8x8[] = {
 };
 
 const Entity entities_8x8[]={
-		{30,10,plr_t},
+		{32,10,plr_t},
 		{20,22,crate_t},
 };
 

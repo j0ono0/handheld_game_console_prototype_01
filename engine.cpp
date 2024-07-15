@@ -53,15 +53,7 @@ int setEnvironment(int envIndex)
 
 void drawAllLocs()
 {
-    uint16_t buf[GRID_SIZE * GRID_SIZE];
-    for(int y=0; y < GRID_HEIGHT; y++)
-    {
-        for(int x=0; x < GRID_WIDTH; x++)
-        {
-            blitTile(buf, x, y);
-            screen.drawCellBuffer(buf, x, y);
-        }
-    }
+    drawTerrain(0, 0, GRID_WIDTH, GRID_HEIGHT);
 
     // Draw entities (just plr for now)
     for(int i = 0; i < currentEntityLength; ++i)
@@ -71,28 +63,11 @@ void drawAllLocs()
     }
 }
 
-void blitTile(uint16_t *buf, int x, int y)
-{
-    // Draw terrain tile to supplied buffer
 
-    uint16_t tileId = environmentList[envId].terrain[y * GRID_WIDTH + x];
-    const uint16_t *pixelPtr = &sprite_tile_ref_8x8[GRID_SIZE * GRID_SIZE * tileId];
 
-    for(int i = 0; i < GRID_SIZE * GRID_SIZE; ++i)
-    {
-        *buf++ = *pixelPtr++;
-    }
-}
-
-void blitTerrain(uint16_t *buf, int x, int y, int w, int h)
+void blitTerrain(int x, int y, int w, int h, uint16_t *buf)
 {
     uint16_t *cellbuf = &buf[0];
-
-    // TEMP: clear cellbuf
-    for(int i = 0; i < w * GRID_SIZE * h * GRID_SIZE; ++i)
-    {
-        *cellbuf++ = COLOR_TRANSPARENT;
-    }
 
     for(int i = 0; i < h; ++i)
     {
@@ -109,7 +84,7 @@ void blitTerrain(uint16_t *buf, int x, int y, int w, int h)
             {
                 for(int col = 0; col < GRID_SIZE; ++col)
                 {
-                    // Transfer line to buf
+                    // Transfer row to buf
                     *cellbuf++ = *spritePtr++;
                 }
                 // Move cellbuf to start of next line
@@ -117,36 +92,99 @@ void blitTerrain(uint16_t *buf, int x, int y, int w, int h)
             }
         }
     }
+}
 
-
+void drawTerrain(int x, int y, int w, int h)
+{
+    uint16_t buf[w * GRID_SIZE * h * GRID_SIZE];
+    blitTerrain(x, y, w, h, buf);
+    screen.writeRect(x * GRID_SIZE, y * GRID_SIZE, w * GRID_SIZE , h * GRID_SIZE , buf);
 }
 
 void drawPlr(int x, int y)
 {
     // Offset to position plr sprite at correct terrain location
-    y -= 4;
+    y -= 3;
     // plr sprite takes up x8 grid cells 
     // 16px wide, 32px high, 512pixels, starting at offset of 0.
-    uint16_t buf[GRID_SIZE * GRID_SIZE * 8];
 
-    // draw background terrain
-    blitTerrain(buf, x, y, 2, 4);
+    uint16_t buf[3 * 4 * GRID_SIZE * GRID_SIZE];
+    blitTerrain(x, y, 2, 4, buf);
+    blitPlr(0, 0, 3, 4, buf);
+    screen.writeRect(x * GRID_SIZE, y * GRID_SIZE, 16, 32, buf);
+}
+
+
+void blitPlr(int x, int y, int bufW, int bufH, uint16_t *buf)
+{
+    // *** NOTE: w and h are dimensions of buf ***
+    bufW *= GRID_SIZE;
+    bufH *= GRID_SIZE;
+
+    //********** */
+    // NOTE: x and y are **PIXEL** OFFSET in buf
+    //********** */
 
     // Draw plr sprite
     const uint16_t *spritePtr = &entity_sprites[0];
-    uint16_t *bufPtr = &buf[0];
-    // copy sprite into buf
-    for(int i = 0; i < 512; ++i)
-    {
-        if(*spritePtr != COLOR_TRANSPARENT)
-            *bufPtr = *spritePtr;
-        ++bufPtr;
-        ++spritePtr;
-    }
+    uint16_t *bufPtr = &buf[y*bufW + x];
     
-    screen.writeRect(x * GRID_SIZE, y * GRID_SIZE, 16, 32, buf);
+    // copy sprite into buf. Plr is 2x4 tiles (512 pixels) big
+    for(int row = 0; row < 4*GRID_SIZE; ++row)
+    {
+        for(int col = 0; col < 2*GRID_SIZE; ++col)
+        {
+            // Transfer row to buf
+            if(*spritePtr != COLOR_TRANSPARENT)
+                *bufPtr = *spritePtr;
+            ++bufPtr;
+            ++spritePtr;
+        }
+        bufPtr += bufW - 2*GRID_SIZE;
+    }
+}
 
+void walkPlr(Entity *plr, int x, int y)
+{
+    // buffer covers plr sprite and possible movement locations in x and y directions.
+    int bufW = 3;
+    int bufH = 5;
+    uint16_t buf[bufW*GRID_SIZE * bufH*GRID_SIZE];
 
+    // Buffer placement in terrain (tile values)
+    int tx = plr->x;
+    int ty = plr->y;
+    
+    // Sprite offset in buf (px values)
+    int sx = 0;
+    int sy = 0;
+
+    if(x < 0)
+    {
+        tx += x;
+        sx = GRID_SIZE;
+    }
+    if (y < 0){
+        ty += y;
+        sy = GRID_SIZE;
+    }
+  
+    for(int i = 0; i < GRID_SIZE; ++i)
+    {
+        sx += x;
+        sy += y;
+
+        blitTerrain(tx, ty - 3, bufW, bufH, buf);
+        blitPlr(sx, sy, bufW, bufH, buf);
+        screen.writeRect(tx*GRID_SIZE, (ty-3)*GRID_SIZE, bufW*GRID_SIZE, bufH*GRID_SIZE, buf);
+        delay(20);
+    }
+
+    // update plr location
+    plr->x += x;
+    plr->y += y;  
+
+    
 }
 
 /////////////////////////////////////////////////////
@@ -233,33 +271,33 @@ struct Entity *entityAtLocation(int x, int y)
 
 // Indexed against tile_ref_01.png
 const bool tile_blocks_motion[] = {
+    false,  // void
     true,
     true,
     true,
     true,
     true,
-    true,
-    false, //floor
-    true,
-    true,
-    false, //goal + overhang
-    false, // wall_cnr_cv_sw
-    true,
-    false, //goal
+    true, 
     true,
     true,
+    true, 
+    true, 
+    false,  // floor
+    true,   // wall_cnr_nw
+    true,   // wall_cnr wsw
+    false,  // wall_cnr_sw
+    false,  // wall_s
+    false,  // wall_cnr_sw
+    true,   // wall_cnr_ne
     true,
-    true,
-    false, // wall_s
-    true,
+    false,  // wall_cnr_ssw
+    true,   // wall_cnr_sw
 };
 
 
 bool terrainBlocksMovement(int x, int y)
 {
-    TileRef tile = (TileRef) tileAtLoc(x,y);
-    return tile_blocks_motion[tile];
-    // return tileLUT[tile].blocks_motion;
+    return tile_blocks_motion[(TileRef) tileAtLoc(x,y)] && tile_blocks_motion[(TileRef) tileAtLoc(x+1,y)];
 }
 
 bool atLocation(Entity *entity, int x, int y)
@@ -281,39 +319,7 @@ bool coLocated(Entity *a, Entity *b)
 }
 
 
-// void spriteToBuf(uint16_t *buf, int x, int y)
-// {
-//     int offset =  y * GRID_SIZE * SPRITESHEET_WIDTH + x * GRID_SIZE;
-//     const uint16_t *pixelPtr = &sprite_sheet_01[offset];
-//     for(int y = 0; y < GRID_SIZE; y++)
-//     {
-//         for(int x=0; x < GRID_SIZE; x++)
-//         {
-//             if(*pixelPtr != COLOR_TRANSPARENT)
-//                 buf[y * GRID_SIZE + x] = *pixelPtr;
-//             ++pixelPtr;
-//         }
-//         pixelPtr += SPRITESHEET_WIDTH - GRID_SIZE ;
-//     }
-// }
 
-// void tileToBuf(uint16_t *buf, TileRef tile, TileLayer layer)
-// {
-//     if(layer == base_layer)
-//     {
-//         drawToBuff(buf, tileLUT[tile].base, 0, 0);
-//     }
-//     else if (layer == overlay_layer && tileLUT[tile].overlay != null_t)
-//     {
-//         drawToBuff(buf, tileLUT[tile].overlay, 0, 0);
-//     }
-//     else if (layer == all_layers)
-//     {
-//         drawToBuff(buf, tileLUT[tile].base, 0, 0);
-//         if(tileLUT[tile].overlay != null_t)
-//             drawToBuff(buf, tileLUT[tile].overlay, 0, 0);
-//     }
-// }
 
 
 

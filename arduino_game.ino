@@ -8,7 +8,7 @@ display is 320 x 240
 #include "engine.h"
 
 
-Entity *plr1;
+Entity *plr;
 
 enum GameMode gameMode;
 
@@ -22,7 +22,7 @@ void setup()
 
     setEnvironment(0);
     populateCurrentEntities();
-    plr1 = assignPlayer();
+    plr = assignPlayer();
     gameMode = intro;
 
     Serial.println("free memory: ");
@@ -71,8 +71,8 @@ void loop()
             dx = 1;
             break;
         }
-        nextX = plr1->x + dx;
-        nextY = plr1->y + dy;
+        nextX = plr->x + dx;
+        nextY = plr->y + dy;
 
         if (!inbounds(nextX, nextY))
         {
@@ -110,21 +110,9 @@ void loop()
             }
         }
         
-        // // Move plr
-
-        // Update player location
-        plr1->x = nextX;
-        plr1->y = nextY;
-
-        // Plr encroaches into x2 cells - both cell need redrawing
-
-        // Remove old location
-        // drawLoc(plr1->x - dx, plr1->y - dy-1);
-        // drawLoc(plr1->x - dx, plr1->y - dy);
+        // Move plr
+        walkPlr(plr, dx, dy);
         
-        // // Add new location
-        // drawLoc(plr1->x, plr1->y);
-        // drawLoc(plr1->x, plr1->y-1);
 
     
         if (gameSolved())
