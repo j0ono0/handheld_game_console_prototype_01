@@ -110,12 +110,12 @@ void drawPlr(int x, int y)
 
     uint16_t buf[3 * 4 * GRID_SIZE * GRID_SIZE];
     blitTerrain(x, y, 2, 4, buf);
-    blitPlr(0, 0, 3, 4, buf);
+    blitPlr(0, 0, 3, 4, buf, plr_sprite);
     screen.writeRect(x * GRID_SIZE, y * GRID_SIZE, 16, 32, buf);
 }
 
 
-void blitPlr(int x, int y, int bufW, int bufH, uint16_t *buf)
+void blitPlr(int x, int y, int bufW, int bufH, uint16_t *buf, const uint16_t *spriteSrc)
 {
     // *** NOTE: w and h are dimensions of buf ***
     bufW *= GRID_SIZE;
@@ -125,8 +125,6 @@ void blitPlr(int x, int y, int bufW, int bufH, uint16_t *buf)
     // NOTE: x and y are **PIXEL** OFFSET in buf
     //********** */
 
-    // Draw plr sprite
-    const uint16_t *spritePtr = &entity_sprites[0];
     uint16_t *bufPtr = &buf[y*bufW + x];
     
     // copy sprite into buf. Plr is 2x4 tiles (512 pixels) big
@@ -135,10 +133,10 @@ void blitPlr(int x, int y, int bufW, int bufH, uint16_t *buf)
         for(int col = 0; col < 2*GRID_SIZE; ++col)
         {
             // Transfer row to buf
-            if(*spritePtr != COLOR_TRANSPARENT)
-                *bufPtr = *spritePtr;
+            if(*spriteSrc != COLOR_TRANSPARENT)
+                *bufPtr = *spriteSrc;
             ++bufPtr;
-            ++spritePtr;
+            ++spriteSrc;
         }
         bufPtr += bufW - 2*GRID_SIZE;
     }
@@ -169,16 +167,27 @@ void walkPlr(Entity *plr, int x, int y)
         sy = GRID_SIZE;
     }
   
+    int sprite_offset = 0;
+
     for(int i = 0; i < GRID_SIZE; ++i)
     {
         sx += x;
         sy += y;
 
+        sprite_offset += 512;
+        if(sprite_offset >=2048)
+            sprite_offset = 512;
+
         blitTerrain(tx, ty - 3, bufW, bufH, buf);
-        blitPlr(sx, sy, bufW, bufH, buf);
+        blitPlr(sx, sy, bufW, bufH, buf, &plr_sprite[sprite_offset]);
         screen.writeRect(tx*GRID_SIZE, (ty-3)*GRID_SIZE, bufW*GRID_SIZE, bufH*GRID_SIZE, buf);
-        delay(20);
+        delay(60);
     }
+
+    // Finish in standing position
+    blitTerrain(tx, ty - 3, bufW, bufH, buf);
+    blitPlr(sx, sy, bufW, bufH, buf, &plr_sprite[0]);
+    screen.writeRect(tx*GRID_SIZE, (ty-3)*GRID_SIZE, bufW*GRID_SIZE, bufH*GRID_SIZE, buf);
 
     // update plr location
     plr->x += x;
@@ -295,9 +304,19 @@ const bool tile_blocks_motion[] = {
 };
 
 
-bool terrainBlocksMovement(int x, int y)
+bool terrainBlocksMovement(int x, int y, int w, int h)
 {
-    return tile_blocks_motion[(TileRef) tileAtLoc(x,y)] && tile_blocks_motion[(TileRef) tileAtLoc(x+1,y)];
+    // Width and height are size of entity
+    // Note: tile map is 8x8 whilst entities are normally 16x16 in size.
+    for(int i = 0; i < h; ++i)
+    {
+        for(int j = 0; j < w; ++j)
+        {
+            if(tile_blocks_motion[(TileRef) tileAtLoc(x+i,y+j)])
+                return true;
+        }
+    }
+    return false;
 }
 
 bool atLocation(Entity *entity, int x, int y)

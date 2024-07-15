@@ -79,7 +79,7 @@ void loop()
             Serial.println("Out of bounds!");
             return;
         }
-        else if (terrainBlocksMovement(nextX, nextY))
+        else if (terrainBlocksMovement(nextX, nextY, 2, 2))
         {
             Serial.println("There is no way through here.");
             return;
@@ -88,7 +88,7 @@ void loop()
         if (crate != NULL)
         {
             if (
-                !inbounds(crate->x + dx, crate->y + dy) || terrainBlocksMovement(crate->x + dx, crate->y + dy) || entityAtLocation(crate->x + dx, crate->y + dy) != NULL )
+                !inbounds(crate->x + dx, crate->y + dy) || terrainBlocksMovement(crate->x + dx, crate->y + dy, 2, 2) || entityAtLocation(crate->x + dx, crate->y + dy) != NULL )
             {
                 Serial.println("This crate isn't budging!");
                 return;
@@ -111,8 +111,7 @@ void loop()
         }
         
         // Move plr
-        walkPlr(plr, dx, dy);
-        
+        walkPlr(plr, dx, dy);     
 
     
         if (gameSolved())
