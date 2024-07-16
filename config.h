@@ -7,12 +7,12 @@
 #define TFT_CS 10
 
 
-# define GRID_WIDTH 40
-# define GRID_HEIGHT 30
+# define TERRAIN_WIDTH 40
+# define TERRAIN_HEIGHT 30
 # define GRID_SIZE 8
 
-// # define GRID_WIDTH 20
-// # define GRID_HEIGHT 15
+// # define TERRAIN_WIDTH 20
+// # define TERRAIN_HEIGHT 15
 // # define GRID_SIZE 16
 
 

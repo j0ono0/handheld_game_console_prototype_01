@@ -4,50 +4,54 @@
 // I had these in engine.h but some issue was causing compile 
 // to fail when including engine.h in resources.c!
 
-
-// *IMPORTANT* The order of these must match the order of tile_ref file
-typedef enum TileRef
+// Document index of all tiles in any map
+// *IMPORTANT* The order of these  match order of tile_ref file (tile_ref_8x8.png)
+// cv - convex
+// cc - concave
+// ol - overlay
+typedef enum TileName
 {
-    // Bases
-    missing_tr,
-    floor_tr,
-    stone_tr,
-    water_tr,
-    // Features
-    stone_front_tr,
-    stone_w_tr,
-    stone_e_tr,
-    stone_nw_tr,
-    stone_ne_tr,
-    stone_sw_tr,
-    stone_se_tr,
-    // Compound 
-    floor_stone_overhang_tr,
-    floor_target_tr,
-    water_stone_overhang_tr,
-    water_target_tr,
+    void_tn,
+    floor_tn,
+    stone_tn,
+    wall_cv_ne_tn,
+    wall_n_tn,
+    wall_cv_nw_tn,
+    stoneedge_cv_se_tn,
+    stoneedge_s_tn,
+    stoneedge_sw_tn,
+    stoneedge_e_tn,
+    stoneedge_w_tn,
+    stoneedge_cv_ne_tn,
+    stoneedge_n_tn,
+    stoneedge_cv_nw_tn,
+    stoneedge_cc_wnw_tn,
+    stoneedge_cc_nw_tn,
+    stoneedge_cc_ne_tn,
+    stoneedge_cc_ene_tn,
+    stoneedge_cc_wsw_tn,
+    stoneedge_cc_sw_tn,
+    stoneedge_cc_se_tn,
+    stoneedge_cc_ese_tn,
+} TileName;
 
-} TileRef;
+typedef enum TileOverlay
+{
+    null_to,
+    stone_edge_s_to,
+    stoneedge_cv_se_to,
+    stoneedge_cv_sw_to,
+    stoneedge_cc_sw_to,
+    stoneedge_cc_se_to,
+} TileOverlay;
 
 typedef enum MaterialType
 {
     null_t,
     floor_t,
     water_t,
-    stone_t,
-    stone_front_t,
-    stone_w_t,
-    stone_e_t,
-    stone_ne_t,
-    stone_nw_t,
-    stone_sw_t,
-    stone_se_t,
-    stone_overhang_t,
-    bench_front_t,
-    bench_top_t,
-    bench_overhang_t,
-    goal_t,
     wall_t,
+    goal_t,
     plr_t,
     crate_t,
     crate_active_t,
@@ -60,18 +64,11 @@ typedef struct Entity
     MaterialType type;
 } Entity;
 
-typedef enum TileLayer
-{
-    all_layers,
-    base_layer,
-    overlay_layer
-} TileLayer;
 
 typedef struct TileSpec
 {
-    TileRef tile;
-    MaterialType base;
-    MaterialType overlay;
+    TileName name;
+    TileOverlay overlay;
     bool blocks_motion;
 } TileSpec;
 

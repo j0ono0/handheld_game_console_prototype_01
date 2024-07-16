@@ -15,6 +15,7 @@
 /// External graphics and environment data in resources.h       //
 
 extern const uint16_t sprite_tile_ref_8x8[];
+extern const uint16_t sprite_8x8_overlays[];
 extern const uint16_t plr_sprite[];
 
 extern const EnvSpec environmentList[];
@@ -30,10 +31,12 @@ Entity *assignPlayer();
 
 //////////////////////////////////////////////////////////////////
 void drawAllLocs();
+void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
 void drawTerrain(int x, int y, int w, int h);
-void blitPlr(int x, int y, int bufW, int bufH, uint16_t *buf, const uint16_t *spriteSrc);
+void blitPlr(int w, int h, uint16_t *buf, const uint16_t *spriteSrc);
 void drawPlr(int x, int y);
+void walkPlr_doublestep(Entity *plr, int x, int y);
 void walkPlr(Entity *plr, int x, int y);
 //////////////////////////////////////////////////////////////////
 int tileAtLoc(int x, int y);
@@ -44,7 +47,6 @@ bool inbounds(int x, int y);
 bool gameSolved();
 struct Entity *entityAtLocation(int x, int y);
 void updateCrate(Entity *crate);
-MaterialType tileToMaterialType(TileRef tile);
 bool terrainBlocksMovement(int x, int y, int w, int h);
 bool terrainOverlays(MaterialType type);
 bool typeBlocksMovement(MaterialType);

@@ -71,8 +71,8 @@ void loop()
             dx = 1;
             break;
         }
-        nextX = plr->x + dx;
-        nextY = plr->y + dy;
+        nextX = plr->x + dx*2;
+        nextY = plr->y + dy*2;
 
         if (!inbounds(nextX, nextY))
         {
@@ -82,36 +82,43 @@ void loop()
         else if (terrainBlocksMovement(nextX, nextY, 2, 2))
         {
             Serial.println("There is no way through here.");
+            Serial.print(tileAtLoc(nextX, nextY));
+            Serial.print(", ");
+            Serial.print(tileAtLoc(nextX+1, nextY));
+            Serial.print(", ");
+            Serial.print(tileAtLoc(nextX, nextY+1));
+            Serial.print(", ");
+            Serial.println(tileAtLoc(nextX+1, nextY+1));
             return;
         }
-        struct Entity *crate = entityAtLocation(nextX, nextY);
-        if (crate != NULL)
-        {
-            if (
-                !inbounds(crate->x + dx, crate->y + dy) || terrainBlocksMovement(crate->x + dx, crate->y + dy, 2, 2) || entityAtLocation(crate->x + dx, crate->y + dy) != NULL )
-            {
-                Serial.println("This crate isn't budging!");
-                return;
-            }
-            else
-            {
+        // struct Entity *crate = entityAtLocation(nextX, nextY);
+        // if (crate != NULL)
+        // {
+        //     if (
+        //         !inbounds(crate->x + dx, crate->y + dy) || terrainBlocksMovement(crate->x + dx, crate->y + dy, 2, 2) || entityAtLocation(crate->x + dx, crate->y + dy) != NULL )
+        //     {
+        //         Serial.println("This crate isn't budging!");
+        //         return;
+        //     }
+        //     else
+        //     {
 
-                // Update crate location
-                crate->x += dx;
-                crate->y += dy;
+        //         // Update crate location
+        //         crate->x += dx;
+        //         crate->y += dy;
 
-                // Update crate status
-                updateCrate(crate);
-                // Plr has moved into old location - no need to redraw it to remove crate
-                // Draw into new location
-                // drawLoc(crate->x, crate->y);
-                // drawLoc(crate->x, crate->y-1);
+        //         // Update crate status
+        //         updateCrate(crate);
+        //         // Plr has moved into old location - no need to redraw it to remove crate
+        //         // Draw into new location
+        //         // drawLoc(crate->x, crate->y);
+        //         // drawLoc(crate->x, crate->y-1);
 
-            }
-        }
+        //     }
+        // }
         
         // Move plr
-        walkPlr(plr, dx, dy);     
+        walkPlr_doublestep(plr, dx, dy);     
 
     
         if (gameSolved())
