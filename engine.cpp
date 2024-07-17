@@ -81,14 +81,19 @@ void drawAllLocs()
 {
     drawTerrain(0, 0, TERRAIN_WIDTH, TERRAIN_HEIGHT);
 
+    uint16_t buf[512];
+    Entity *plr = currentEntities;
+
     // Draw entities (just plr for now)
     for(int i = 0; i < currentEntityLength; ++i)
     {
         if(currentEntities[i].type == plr_t)
-            drawPlr(currentEntities[i].x, currentEntities[i].y);
+            plr = &currentEntities[i];
+            blitTerrain(plr->x, plr->y-2, 2, 4, buf);
+            blitPlr(0, 0, 2, 4, buf, &plr_sprite[0]); 
+            screen.writeRect(plr->x*GRID_SIZE, (plr->y-2)*GRID_SIZE, 2*GRID_SIZE, 4*GRID_SIZE, buf);
     }
 }
-
 
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf)
 {
@@ -106,10 +111,7 @@ void blitOverlay(int x, int y, int w, int h, uint16_t *buf)
             if( overlayId == null_to)
                 continue;
 
-            // overlayId decrimented by -1 as no null_to sprite exists - sprites are offset by 1 tile
-            // compared to TileOverlay enum.
-
-            const uint16_t *spritePtr = &sprite_8x8_overlays[GRID_SIZE * GRID_SIZE * (overlayId-1)];
+            const uint16_t *spritePtr = &sprite_8x8_overlays[GRID_SIZE * GRID_SIZE * (overlayId)];
 
             // Set cellbuf to start of tile section
             cellbuf = &buf[i*w*GRID_SIZE*GRID_SIZE + j*GRID_SIZE];
@@ -169,32 +171,19 @@ void drawTerrain(int x, int y, int w, int h)
     screen.writeRect(x * GRID_SIZE, y * GRID_SIZE, w * GRID_SIZE , h * GRID_SIZE , buf);
 }
 
-void drawPlr(int x, int y)
+void blitPlr(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSrc)
 {
-    // Offset to position plr sprite at correct terrain location
-    y -= 2;
-    // plr sprite takes up x8 grid cells 
-    // 16px wide, 32px high, 512pixels, starting at offset of 0.
+    // x, y are in PIXEL units <------- IMPORTANT! ---- 
+    // w, h in tiles
+    // w and h are dimensions of buf
 
-    uint16_t buf[2 * 4 * GRID_SIZE * GRID_SIZE];
-    blitTerrain(x, y, 2, 4, buf);
-    blitPlr(2, 4, buf, plr_sprite);
-
-
-    screen.writeRect(x * GRID_SIZE, y * GRID_SIZE, 16, 32, buf);
-}
-
-
-void blitPlr(int w, int h, uint16_t *buf, const uint16_t *spriteSrc)
-{
-    // *** NOTE: w and h are dimensions of buf ***
-
-    uint16_t *bufPtr = buf;
+    uint16_t *bufPtr = &buf[y * w * GRID_SIZE + x];
     
-    // copy sprite into buf. Plr is 2x4 tiles (512 pixels) big
-    for(int row = 0; row < h * GRID_SIZE; ++row)
+    // copy sprite into buf. 
+    //Plr is 2x4 tiles (512 pixels) big so row = 2 and col = 4
+    for(int row = 0; row < 4 * GRID_SIZE ; ++row)
     {
-        for(int col = 0; col < w * GRID_SIZE; ++col)
+        for(int col = 0; col < 2 * GRID_SIZE ; ++col)
         {
             // Transfer row to buf
             if(*spriteSrc != COLOR_TRANSPARENT)
@@ -207,132 +196,84 @@ void blitPlr(int w, int h, uint16_t *buf, const uint16_t *spriteSrc)
     }
 }
 
-void walkPlr_doublestep(Entity *plr, int x, int y)
-{
-    // buffer is 2x4 tiles in size
-    uint16_t buf[512];
-    // delete old plr sprite
-    blitTerrain(plr->x, plr->y-2, 2, 4, buf);
-    screen.writeRect(plr->x*GRID_SIZE, (plr->y-2)*GRID_SIZE, 2*GRID_SIZE, 4*GRID_SIZE, buf);
 
-    // update plr location
+
+void walkPlr_animated(Entity *plr, int x, int y)
+{
+    // tiles used areeither 4x4 (horizontal move) or 2x6 (vertical move)
+    // Use larger of the two.
+    uint16_t buf[4096];
+
+    int buf_w = 2;
+    int buf_h = 4;
+    int terrain_x = plr->x;
+    int terrain_y = (plr->y - 2); // offset to allow sprite overlay
+    // sprite locations are relative to terrain
+    int start_x = 0;
+    int start_y = 0;
+    int end_x = 0;
+    int end_y = 0;
+
+    // update plr location,
     plr->x += x * 2;
-    plr->y += y * 2; 
+    plr->y += y * 2;
 
-    blitTerrain(plr->x, plr->y-2, 2, 4, buf);
-    blitPlr(2, 4, buf, &plr_sprite[0]);    
 
-    // Draw overlaying terrain
-    blitOverlay(plr->x, plr->y-2, 2, 4, buf);
+
+
+    // buffer shape and screen-location depend on moving up/down or left/right
+    // NOTE: all movements are x2 tile regardless of direction!
+    if(x < 0){
+        // move west
+        buf_w = 4;
+        terrain_x -= 2;
+        start_x = 2 * GRID_SIZE;
+    }
+    else if(x > 0){
+        // move east
+        buf_w = 4;
+        end_x = 2 * GRID_SIZE;
+    }
+    else if(y < 0){
+        // move north
+        buf_h = 6;
+        terrain_y -= 2;
+        start_y = 2 * GRID_SIZE;
+    }
+    else if (y > 0){
+        // move south
+        buf_h = 6;
+        end_y = 2 * GRID_SIZE;
+    }
     
-    screen.writeRect(plr->x*GRID_SIZE, (plr->y-2)*GRID_SIZE, 2*GRID_SIZE, 4*GRID_SIZE, buf);
+    for(int i = 0; i < 4; ++i)
+    {
+        static int sOffset = 512;
+        sOffset = sOffset >= 3*512 ? 512 : sOffset + 512;
+
+        blitTerrain(terrain_x, terrain_y, buf_w, buf_h, buf); 
+        blitPlr(start_x, start_y, buf_w, buf_h, buf, &plr_sprite[sOffset]);  
+        blitOverlay(terrain_x, terrain_y, buf_w, buf_h, buf); 
+
+        screen.writeRect(terrain_x*GRID_SIZE, terrain_y*GRID_SIZE, buf_w*GRID_SIZE, buf_h*GRID_SIZE, buf);
+
+        delay(100);
+
+        start_x += 4 * x;
+        start_y += 4 * y;
+
+    }
+
+    blitTerrain(terrain_x, terrain_y, buf_w, buf_h, buf); 
+    blitPlr(end_x, end_y, buf_w, buf_h, buf, &plr_sprite[0]);  
+    blitOverlay(terrain_x, terrain_y, buf_w, buf_h, buf); 
+
+    screen.writeRect(terrain_x*GRID_SIZE, terrain_y*GRID_SIZE, buf_w*GRID_SIZE, buf_h*GRID_SIZE, buf);
 
 
-    // // buffer covers plr sprite and possible movement locations in x and y directions.
-    // int bufW = 4;
-    // int bufH = 6;
-    // uint16_t buf[bufW*GRID_SIZE * bufH*GRID_SIZE];
-
-    // // Buffer placement in terrain (tile values)
-    // // tx, and ty are tile locations
-    // int tx = plr->x;
-    // int ty = plr->y;
-    
-    // // Sprite offset in buf (px values)
-    // int sx = 0;
-    // int sy = 0;
-
-    // if(x < 0)
-    // {
-    //     tx += x * 2;
-    //     sx = GRID_SIZE * 2;
-    // }
-    // if (y < 0){
-    //     ty += y * 2;
-    //     sy = GRID_SIZE * 2;
-    // }
-  
-    // blitTerrain(tx, ty - 3, bufW, bufH, buf);
-    // blitPlr(sx, sy, bufW, bufH, buf, &plr_sprite[0]);
-    // screen.writeRect(tx*GRID_SIZE, (ty-3)*GRID_SIZE, bufW*GRID_SIZE, bufH*GRID_SIZE, buf);
-
-
-    // int sprite_offset = 0;
-    // for(int i = 0; i < GRID_SIZE; ++i)
-    // {
-    //     sx += x;
-    //     sy += y;
-
-    //     sprite_offset += 512;
-    //     if(sprite_offset >=2048)
-    //         sprite_offset = 512;
-
-    //     blitTerrain(tx, ty - 3, bufW, bufH, buf);
-    //     blitPlr(sx, sy, bufW, bufH, buf, &plr_sprite[sprite_offset]);
-    //     screen.writeRect(tx*GRID_SIZE, (ty-3)*GRID_SIZE, bufW*GRID_SIZE, bufH*GRID_SIZE, buf);
-    //     delay(40);
-    // }
-
-    // // Finish in standing position
-    // blitTerrain(tx, ty - 3, bufW, bufH, buf);
-    // blitPlr(sx, sy, bufW, bufH, buf, &plr_sprite[0]);
-    // screen.writeRect(tx*GRID_SIZE, (ty-3)*GRID_SIZE, bufW*GRID_SIZE, bufH*GRID_SIZE, buf);
-
- 
 }
 
-void walkPlr(Entity *plr, int x, int y)
-{
-    
-    // buffer covers plr sprite and possible movement locations in x and y directions.
-    int bufW = 3;
-    int bufH = 5;
-    uint16_t buf[bufW*GRID_SIZE * bufH*GRID_SIZE];
 
-    // Buffer placement in terrain (tile values)
-    int tx = plr->x;
-    int ty = plr->y;
-    
-    // Sprite offset in buf (px values)
-    int sx = 0;
-    int sy = 0;
-
-    if(x < 0)
-    {
-        tx += x;
-        sx = GRID_SIZE;
-    }
-    if (y < 0){
-        ty += y;
-        sy = GRID_SIZE;
-    }
-  
-    int sprite_offset = 0;
-
-    for(int i = 0; i < GRID_SIZE; ++i)
-    {
-        sx += x;
-        sy += y;
-
-        sprite_offset += 512;
-        if(sprite_offset >=2048)
-            sprite_offset = 512;
-
-        blitTerrain(tx, ty - 3, bufW, bufH, buf);
-        blitPlr(bufW, bufH, buf, &plr_sprite[sprite_offset]);
-        screen.writeRect(tx*GRID_SIZE, (ty-3)*GRID_SIZE, bufW*GRID_SIZE, bufH*GRID_SIZE, buf);
-        delay(40);
-    }
-
-    // Finish in standing position
-    blitTerrain(tx, ty - 3, bufW, bufH, buf);
-    blitPlr(bufW, bufH, buf, &plr_sprite[0]);
-    screen.writeRect(tx*GRID_SIZE, (ty-3)*GRID_SIZE, bufW*GRID_SIZE, bufH*GRID_SIZE, buf);
-
-    // update plr location
-    plr->x += x;
-    plr->y += y;  
-}
 
 /////////////////////////////////////////////////////
 
@@ -341,6 +282,7 @@ int tileAtLoc(int x, int y)
 {
     return environmentList[envId].terrain[y * TERRAIN_WIDTH + x];
 }
+
 
 bool inbounds(int x, int y)
 {
@@ -352,7 +294,6 @@ bool inbounds(int x, int y)
 }
 
 
-
 void updateCrate(Entity *crate)
 {
     // Numbers are tile indexes from 'tile_ref_01.png'
@@ -361,6 +302,7 @@ void updateCrate(Entity *crate)
     else
         crate->type = crate_t;
 }
+
 
 bool gameSolved()
 {

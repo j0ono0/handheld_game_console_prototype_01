@@ -37,12 +37,12 @@ typedef enum TileName
 
 typedef enum TileOverlay
 {
-    null_to,
     stone_edge_s_to,
     stoneedge_cv_se_to,
     stoneedge_cv_sw_to,
     stoneedge_cc_sw_to,
     stoneedge_cc_se_to,
+    null_to,
 } TileOverlay;
 
 typedef enum MaterialType

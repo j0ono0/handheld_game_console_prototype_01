@@ -118,7 +118,7 @@ void loop()
         // }
         
         // Move plr
-        walkPlr_doublestep(plr, dx, dy);     
+        walkPlr_animated(plr, dx, dy);     
 
     
         if (gameSolved())

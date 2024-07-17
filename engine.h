@@ -34,10 +34,8 @@ void drawAllLocs();
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
 void drawTerrain(int x, int y, int w, int h);
-void blitPlr(int w, int h, uint16_t *buf, const uint16_t *spriteSrc);
-void drawPlr(int x, int y);
-void walkPlr_doublestep(Entity *plr, int x, int y);
-void walkPlr(Entity *plr, int x, int y);
+void blitPlr(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSrc);
+void walkPlr_animated(Entity *plr, int x, int y);
 //////////////////////////////////////////////////////////////////
 int tileAtLoc(int x, int y);
 
