@@ -16,8 +16,7 @@
 
 extern const uint16_t sprite_tile_ref_8x8[];
 extern const uint16_t sprite_8x8_overlays[];
-extern const uint16_t plr_sprite[];
-
+extern const uint16_t entity_sprites[];
 extern const EnvSpec environmentList[];
 
 //////////////////////////////////////////////////////////////////
@@ -35,7 +34,10 @@ void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
 void drawTerrain(int x, int y, int w, int h);
 void blitPlr(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSrc);
-void walkPlr_animated(Entity *plr, int x, int y);
+
+void moveEntity(Entity *e, int mx, int my);
+void updateSpriteLocation(Entity *e);
+void updateSprites();
 //////////////////////////////////////////////////////////////////
 int tileAtLoc(int x, int y);
 
@@ -46,8 +48,8 @@ bool gameSolved();
 struct Entity *entityAtLocation(int x, int y);
 void updateCrate(Entity *crate);
 bool terrainBlocksMovement(int x, int y, int w, int h);
-bool terrainOverlays(MaterialType type);
-bool typeBlocksMovement(MaterialType);
+bool terrainOverlays(EntityType type);
+bool typeBlocksMovement(EntityType type);
 
 bool atLocation(Entity *entity, int x, int y);
 bool coLocated(Entity *a, Entity *b);
@@ -57,6 +59,11 @@ void screenSetup();
 void screenDrawBuf(uint16_t *buf, int x, int y);
 void screenSuccess();
 void screenEnvComplete();
+
+///////////////////////////////////////////////////////////////
+
+void act_test();
+
 
 int availableMemory();
 #endif

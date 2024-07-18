@@ -5,6 +5,9 @@ Extended_Tft screen = Extended_Tft(TFT_CS, TFT_DC);
 // Current environment
 int envId = 0;
 
+// throttle animation cycles
+unsigned long ani_clock = 0;
+
 // Entities currently in game.
 Entity currentEntities[MAX_ENTITIES];
 int currentEntityLength = 0;
@@ -35,14 +38,24 @@ const TileSpec tile_attr[] = {
     {stoneedge_cc_ese_tn, null_to, true},
 };
 
-/////////////////////////////////////////////////////
+// Sprite locations 
+const Rect spriteSrc[] = {
+    {0, 0, 16, 32},   // Plr standing
+    {0, 32, 16, 32},  // Plr walking 1
+    {0, 64, 16, 32},  // Plr walking 2
+    {0, 96, 16, 32},  // Plr walking 3
+    {0, 128, 16, 32}, // Crate
+    {0, 160, 16, 32}, // Crate active
+    {0, 192, 16, 32}, // Target
+};
 
-int TEMP_ENTITY_COUNT = 8;
+
+/////////////////////////////////////////////////////
 
 void populateCurrentEntities()
 {
     currentEntityLength = 0;
-    for(int i = 0; i < TEMP_ENTITY_COUNT; ++i)
+    for(int i = 0; i < environmentList[envId].entity_count; ++i)
     {
         currentEntities[currentEntityLength++] = environmentList[envId].entities[i];
     }
@@ -53,6 +66,7 @@ Entity *assignPlayer()
     for(int i = 0; i < currentEntityLength; ++i)
     {
         if(currentEntities[i].type == plr_t)
+            currentEntities[i].behaviour = &act_test;
             return &currentEntities[i];
     }
     return NULL;
@@ -82,16 +96,44 @@ void drawAllLocs()
     drawTerrain(0, 0, TERRAIN_WIDTH, TERRAIN_HEIGHT);
 
     uint16_t buf[512];
-    Entity *plr = currentEntities;
+    Entity *e = currentEntities;
+    const Rect *s_spec = spriteSrc;
+    int buf_start;
 
     // Draw entities (just plr for now)
     for(int i = 0; i < currentEntityLength; ++i)
     {
-        if(currentEntities[i].type == plr_t)
-            plr = &currentEntities[i];
-            blitTerrain(plr->x, plr->y-2, 2, 4, buf);
-            blitPlr(0, 0, 2, 4, buf, &plr_sprite[0]); 
-            screen.writeRect(plr->x*GRID_SIZE, (plr->y-2)*GRID_SIZE, 2*GRID_SIZE, 4*GRID_SIZE, buf);
+        e = &currentEntities[i];
+        switch(e->type)
+        {
+            case plr_t:
+                s_spec = &spriteSrc[1]; // plr standing
+                blitTerrain(e->x, e->y-2, 2, 4, buf);
+                blitPlr(0, 0, 2, 4, buf, &entity_sprites[0]); 
+                screen.writeRect(e->x*GRID_SIZE, (e->y-2)*GRID_SIZE, 2*GRID_SIZE, 4*GRID_SIZE, buf);
+                break;
+
+            case crate_t:
+                s_spec = &spriteSrc[4];
+                buf_start = spriteSrc[4].y * spriteSrc[4].w; // index = 4
+                blitTerrain(e->x, e->y-2, 2, 4, buf);
+                blitPlr(0, 0, 2, 4, buf, &entity_sprites[buf_start]); 
+                screen.writeRect(e->x*GRID_SIZE, (e->y-2)*GRID_SIZE, 2*GRID_SIZE, 4*GRID_SIZE, buf);
+                break;
+
+            case target_t:
+                s_spec = &spriteSrc[6];
+                buf_start = s_spec->y * s_spec->w;
+                blitTerrain(e->x, e->y-2, 2, 2, buf);
+                blitPlr(0, 0, 2, 2, buf, &entity_sprites[buf_start]); 
+                screen.writeRect(e->x*GRID_SIZE, (e->y)*GRID_SIZE, 2*GRID_SIZE, 2*GRID_SIZE, buf);
+                break;
+            default:
+                break;
+
+        }
+
+
     }
 }
 
@@ -196,76 +238,93 @@ void blitPlr(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSr
     }
 }
 
-
-
-void walkPlr_animated(Entity *plr, int x, int y)
+void moveEntity(Entity *e, int dx, int dy)
 {
-    // tiles used areeither 4x4 (horizontal move) or 2x6 (vertical move)
+
+    if(e->mx != 0 || e->my != 0)
+        return;
+
+    // Update entity coordinates
+    // note entity moves x2 tiles
+    e->x += dx * 2;
+    e->y += dy * 2;
+    // mx and my are in pixels.
+    // they indicate direction and distance sprite has to move
+    // note *2 to move 2 tiles
+    e->mx += dx * GRID_SIZE * 2;
+    e->my += dy * GRID_SIZE * 2;
+}
+
+void updateSpriteLocation(Entity *e)
+{
+    // entity sprite tiles are either 4x4 (horizontal move) or 2x6 (vertical move)
     // Use larger of the two.
     uint16_t buf[4096];
 
     int buf_w = 2;
     int buf_h = 4;
-    int terrain_x = plr->x;
-    int terrain_y = (plr->y - 2); // offset to allow sprite overlay
-    // sprite locations are relative to terrain
-    int start_x = 0;
-    int start_y = 0;
-    int end_x = 0;
-    int end_y = 0;
+    int terrain_x = e->x;
+    int terrain_y = (e->y - 2); // offset to allow sprite overlay
 
-    // update plr location,
-    plr->x += x * 2;
-    plr->y += y * 2;
+    int sprite_x = 0;
+    int sprite_y = 0;
 
-
-
+    int STEP_DISTANCE = 2; // TODO: this is not cool setup to control step distance
 
     // buffer shape and screen-location depend on moving up/down or left/right
-    // NOTE: all movements are x2 tile regardless of direction!
-    if(x < 0){
+    // NOTE: mx and my are offset. ie direction FROM current x and y
+    if(e->mx < 0){
         // move west
         buf_w = 4;
-        terrain_x -= 2;
-        start_x = 2 * GRID_SIZE;
+        terrain_x = e->x;
+        terrain_y = e->y-2;
+        e->mx += 1 * STEP_DISTANCE;
+        sprite_x = -1 * e->mx;
     }
-    else if(x > 0){
+    else if(e->mx > 0){
         // move east
         buf_w = 4;
-        end_x = 2 * GRID_SIZE;
+        terrain_x = e->x-2;
+        terrain_y = e->y-2;
+        e->mx -= 1 * STEP_DISTANCE;
+        sprite_x = 2*GRID_SIZE - e->mx;
     }
-    else if(y < 0){
+    else if(e->my < 0){
         // move north
         buf_h = 6;
-        terrain_y -= 2;
-        start_y = 2 * GRID_SIZE;
+        terrain_x = e->x;
+        terrain_y = e->y-2;
+        e->my += 1 * STEP_DISTANCE;
+        sprite_y = -1 * e->my;
     }
-    else if (y > 0){
+    else if (e->my > 0){
         // move south
         buf_h = 6;
-        end_y = 2 * GRID_SIZE;
+        terrain_x = e->x;
+        terrain_y = e->y-4;
+        e->my -= 1 * STEP_DISTANCE;
+        sprite_y = 2*GRID_SIZE - e->my;
     }
-    
-    for(int i = 0; i < 4; ++i)
+
+
+    int sprite_index = 0;
+    switch(e->type)
     {
-        static int sOffset = 512;
-        sOffset = sOffset >= 3*512 ? 512 : sOffset + 512;
-
-        blitTerrain(terrain_x, terrain_y, buf_w, buf_h, buf); 
-        blitPlr(start_x, start_y, buf_w, buf_h, buf, &plr_sprite[sOffset]);  
-        blitOverlay(terrain_x, terrain_y, buf_w, buf_h, buf); 
-
-        screen.writeRect(terrain_x*GRID_SIZE, terrain_y*GRID_SIZE, buf_w*GRID_SIZE, buf_h*GRID_SIZE, buf);
-
-        delay(100);
-
-        start_x += 4 * x;
-        start_y += 4 * y;
-
+        case plr_t:
+            sprite_index = 0;
+            break;
+        case crate_t:
+            sprite_index = 2048;
+            break;
+        default:
+            sprite_index = 0;
+            break;
     }
+
+
 
     blitTerrain(terrain_x, terrain_y, buf_w, buf_h, buf); 
-    blitPlr(end_x, end_y, buf_w, buf_h, buf, &plr_sprite[0]);  
+    blitPlr(sprite_x, sprite_y, buf_w, buf_h, buf, &entity_sprites[sprite_index]);  
     blitOverlay(terrain_x, terrain_y, buf_w, buf_h, buf); 
 
     screen.writeRect(terrain_x*GRID_SIZE, terrain_y*GRID_SIZE, buf_w*GRID_SIZE, buf_h*GRID_SIZE, buf);
@@ -274,6 +333,19 @@ void walkPlr_animated(Entity *plr, int x, int y)
 }
 
 
+void updateSprites()
+{
+    int now = millis();
+    if(now - ani_clock > 80)
+    {
+        ani_clock = now;
+        for(int i = 0; i < currentEntityLength; ++i)
+        {
+            if(currentEntities[i].mx != 0 || currentEntities[i].my != 0)
+                updateSpriteLocation(&currentEntities[i]);
+        }
+    }
+}
 
 /////////////////////////////////////////////////////
 
@@ -326,7 +398,7 @@ bool gameSolved()
 
 struct Entity *entityAtLocation(int x, int y)
 {
-    for(int i = 0; i < currentEntityLength; i++)
+    for(int i = 0; i < currentEntityLength; ++i)
     {
         if(currentEntities[i].x == x && currentEntities[i].y == y)
             return &currentEntities[i];
@@ -369,11 +441,6 @@ bool coLocated(Entity *a, Entity *b)
     return false;
 }
 
-
-
-
-
-
 void screenSetup()
 {
     screen.begin();
@@ -383,6 +450,20 @@ void screenSetup()
 void screenDrawBuf(uint16_t *buf, int x, int y){screen.drawCellBuffer(buf, x, y);}
 void screenSuccess(){ screen.drawSuccess(); }
 void screenEnvComplete(){ screen.drawMapComplete(); }
+
+/////////////////////////////////////////////////////////
+
+
+void act_test()
+{
+    Serial.println("hello entity animation action.");
+}
+
+
+
+
+
+
 
 /////////////////////////////////////////////////////////
 #ifdef __arm__

@@ -12,7 +12,6 @@ Entity *plr;
 
 enum GameMode gameMode;
 
-
 void setup()
 {
     Serial.begin(9600);
@@ -32,7 +31,14 @@ void setup()
 
 void loop()
 {
+    // Track user input
     int userInput = readUserInput();
+    int dx = 0;
+    int dy = 0;
+    // Track destination entity and tile
+    Entity *target_entity = NULL;
+    int nextX = plr->x;
+    int nextY = plr->y;
 
     if (gameMode != inGame)
     {
@@ -53,9 +59,6 @@ void loop()
     // Progress game
     if (userInput >= 3 && userInput <= 6)
     {
-        int nextX, nextY;
-        int dx = 0;
-        int dy = 0;
         switch (userInput)
         {
         case BTN_N:
@@ -71,8 +74,9 @@ void loop()
             dx = 1;
             break;
         }
-        nextX = plr->x + dx*2;
-        nextY = plr->y + dy*2;
+
+        nextX += dx*2;
+        nextY += dy*2;
 
         if (!inbounds(nextX, nextY))
         {
@@ -82,44 +86,29 @@ void loop()
         else if (terrainBlocksMovement(nextX, nextY, 2, 2))
         {
             Serial.println("There is no way through here.");
-            Serial.print(tileAtLoc(nextX, nextY));
-            Serial.print(", ");
-            Serial.print(tileAtLoc(nextX+1, nextY));
-            Serial.print(", ");
-            Serial.print(tileAtLoc(nextX, nextY+1));
-            Serial.print(", ");
-            Serial.println(tileAtLoc(nextX+1, nextY+1));
             return;
         }
-        // struct Entity *crate = entityAtLocation(nextX, nextY);
-        // if (crate != NULL)
-        // {
-        //     if (
-        //         !inbounds(crate->x + dx, crate->y + dy) || terrainBlocksMovement(crate->x + dx, crate->y + dy, 2, 2) || entityAtLocation(crate->x + dx, crate->y + dy) != NULL )
-        //     {
-        //         Serial.println("This crate isn't budging!");
-        //         return;
-        //     }
-        //     else
-        //     {
 
-        //         // Update crate location
-        //         crate->x += dx;
-        //         crate->y += dy;
-
-        //         // Update crate status
-        //         updateCrate(crate);
-        //         // Plr has moved into old location - no need to redraw it to remove crate
-        //         // Draw into new location
-        //         // drawLoc(crate->x, crate->y);
-        //         // drawLoc(crate->x, crate->y-1);
-
-        //     }
-        // }
+        target_entity = entityAtLocation(nextX, nextY);
+        Serial.println("searching for target entity...");
+        if(target_entity)
+        {
+            Serial.println("target entity found!");
+            // Test if tile after is free
+            nextX += dx*2;
+            nextY += dy*2;
+            if(terrainBlocksMovement(nextX, nextY, 2, 2) || target_entity->type != crate_t)
+            {
+                Serial.println("entity blocks way.");
+                // target entity cannot move, so plr cannot move
+                return; 
+            }
+            Serial.println("moving entity.");
+            moveEntity(target_entity, dx, dy);
+        }
         
-        // Move plr
-        walkPlr_animated(plr, dx, dy);     
-
+        Serial.println("moving plr.");
+        moveEntity(plr, dx, dy);
     
         if (gameSolved())
         {
@@ -134,6 +123,7 @@ void loop()
             else
                 screenEnvComplete();
         }
-    
     }
+
+    updateSprites();
 }

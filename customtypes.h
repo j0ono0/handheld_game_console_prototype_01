@@ -4,6 +4,7 @@
 // I had these in engine.h but some issue was causing compile 
 // to fail when including engine.h in resources.c!
 
+
 // Document index of all tiles in any map
 // *IMPORTANT* The order of these  match order of tile_ref file (tile_ref_8x8.png)
 // cv - convex
@@ -45,25 +46,25 @@ typedef enum TileOverlay
     null_to,
 } TileOverlay;
 
-typedef enum MaterialType
+typedef enum EntityType
 {
-    null_t,
-    floor_t,
-    water_t,
-    wall_t,
-    goal_t,
     plr_t,
     crate_t,
     crate_active_t,
-} MaterialType;
+    target_t,
+    null_t,
+} EntityType;
 
 typedef struct Entity
 {
+    EntityType type;
     int x;
     int y;
-    MaterialType type;
+    // track movement
+    int mx;
+    int my;
+    void (*behaviour)(void);
 } Entity;
-
 
 typedef struct TileSpec
 {
@@ -71,6 +72,16 @@ typedef struct TileSpec
     TileOverlay overlay;
     bool blocks_motion;
 } TileSpec;
+
+
+
+typedef struct Rect
+{
+    int x;
+    int y;
+    int w;
+    int h;
+} Rect;
 
 enum GameMode
 {
@@ -84,5 +95,5 @@ typedef struct EnvSpec
 {
     const uint8_t *terrain;
     const Entity *entities;
-    const int length;
+    const int entity_count;
 } EnvSpec;
