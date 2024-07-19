@@ -6,14 +6,26 @@
 #define TFT_DC 9
 #define TFT_CS 10
 
+/*
+    Note: 
+    Terrain grid size is chosen for more effecient graphics.
+    Env grid at x2 terrain size makes for better UI. 
+    
+    ?? Generally everything should be expressed in
+    env-grid leaving terrain-grid for lower level functions. ??
+*/
 
+// Terrain tiles are split into a grid. 
+// Each cell of this 'terrain grid' is 8x8 pixels
 # define TERRAIN_WIDTH 40
 # define TERRAIN_HEIGHT 30
-# define GRID_SIZE 8
+# define TERRAIN_UNIT 8
 
-// # define TERRAIN_WIDTH 20
-// # define TERRAIN_HEIGHT 15
-// # define GRID_SIZE 16
+// Entities are tracked within the an 'environment grid'. 
+// These grid cells are 16x16 pixels. 
+# define ENV_WIDTH 20
+# define ENV_HEIGHT 15
+# define ENV_UNIT 16
 
 
 #define COLOR_FLOOR 0xbe5c

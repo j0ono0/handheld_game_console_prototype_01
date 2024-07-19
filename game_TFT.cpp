@@ -39,5 +39,5 @@ void Extended_Tft::drawSuccess()
 
 void Extended_Tft::drawCellBuffer(uint16_t *buf, int x, int y)
 {
-    writeRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE, buf);
+    writeRect(x * TERRAIN_UNIT, y * TERRAIN_UNIT, TERRAIN_UNIT, TERRAIN_UNIT, buf);
 }

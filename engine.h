@@ -33,7 +33,7 @@ void drawAllLocs();
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
 void drawTerrain(int x, int y, int w, int h);
-void blitPlr(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSrc);
+void blitEntity(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSrc);
 
 void moveEntity(Entity *e, int mx, int my);
 void updateSpriteLocation(Entity *e);
