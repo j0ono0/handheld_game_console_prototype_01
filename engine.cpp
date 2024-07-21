@@ -93,48 +93,51 @@ int setEnvironment(int envIndex)
 
 void drawAllLocs()
 {
-    drawTerrain(0, 0, TERRAIN_WIDTH, TERRAIN_HEIGHT);
 
-    uint16_t buf[512];
-    Entity *e = currentEntities;
-    const Rect *s_spec = spriteSrc;
-    int buf_start;
+    drawPixelTerrain(12*ENV_UNIT, 6*ENV_UNIT, 2*ENV_UNIT, 1*ENV_UNIT + 14);
+    drawPixelTerrain(12*ENV_UNIT, 8*ENV_UNIT, 2*ENV_UNIT, 1*ENV_UNIT);
 
-    // Draw entities (just plr for now)
-    for(int i = 0; i < currentEntityLength; ++i)
-    {
-        e = &currentEntities[i];
-        switch(e->type)
-        {
-            case plr_t:
-                s_spec = &spriteSrc[1]; // plr standing
-                blitTerrain(e->x, e->y-2, 2, 4, buf);
-                blitEntity(0, 0, 2, 4, buf, &entity_sprites[0]); 
-                screen.writeRect(e->x*TERRAIN_UNIT, (e->y-2)*TERRAIN_UNIT, 2*TERRAIN_UNIT, 4*TERRAIN_UNIT, buf);
-                break;
+    // drawTerrain(0, 0, TERRAIN_WIDTH, TERRAIN_HEIGHT);
 
-            case crate_t:
-                s_spec = &spriteSrc[4];
-                buf_start = spriteSrc[4].y * spriteSrc[4].w; // index = 4
-                blitTerrain(e->x, e->y-2, 2, 4, buf);
-                blitEntity(0, 0, 2, 4, buf, &entity_sprites[buf_start]); 
-                screen.writeRect(e->x*TERRAIN_UNIT, (e->y-2)*TERRAIN_UNIT, 2*TERRAIN_UNIT, 4*TERRAIN_UNIT, buf);
-                break;
+    // uint16_t buf[512];
+    // Entity *e = currentEntities;
+    // const Rect *s_spec = spriteSrc;
+    // int buf_start;
 
-            case target_t:
-                s_spec = &spriteSrc[6];
-                buf_start = s_spec->y * s_spec->w;
-                blitTerrain(e->x, e->y-2, 2, 2, buf);
-                blitEntity(0, 0, 2, 2, buf, &entity_sprites[buf_start]); 
-                screen.writeRect(e->x*TERRAIN_UNIT, (e->y)*TERRAIN_UNIT, 2*TERRAIN_UNIT, 2*TERRAIN_UNIT, buf);
-                break;
-            default:
-                break;
+    // // Draw entities (just plr for now)
+    // for(int i = 0; i < currentEntityLength; ++i)
+    // {
+    //     e = &currentEntities[i];
+    //     switch(e->type)
+    //     {
+    //         case plr_t:
+    //             s_spec = &spriteSrc[1]; // plr standing
+    //             blitTerrain(e->x, e->y-2, 2, 4, buf);
+    //             blitEntity(0, 0, 2, 4, buf, &entity_sprites[0]); 
+    //             screen.writeRect(e->x*TERRAIN_UNIT, (e->y-2)*TERRAIN_UNIT, 2*TERRAIN_UNIT, 4*TERRAIN_UNIT, buf);
+    //             break;
 
-        }
+    //         case crate_t:
+    //             s_spec = &spriteSrc[4];
+    //             buf_start = spriteSrc[4].y * spriteSrc[4].w; // index = 4
+    //             blitTerrain(e->x, e->y-2, 2, 4, buf);
+    //             blitEntity(0, 0, 2, 4, buf, &entity_sprites[buf_start]); 
+    //             screen.writeRect(e->x*TERRAIN_UNIT, (e->y-2)*TERRAIN_UNIT, 2*TERRAIN_UNIT, 4*TERRAIN_UNIT, buf);
+    //             break;
+
+    //         case target_t:
+    //             s_spec = &spriteSrc[6];
+    //             buf_start = s_spec->y * s_spec->w;
+    //             blitTerrain(e->x, e->y-2, 2, 2, buf);
+    //             blitEntity(0, 0, 2, 2, buf, &entity_sprites[buf_start]); 
+    //             screen.writeRect(e->x*TERRAIN_UNIT, (e->y)*TERRAIN_UNIT, 2*TERRAIN_UNIT, 2*TERRAIN_UNIT, buf);
+    //             break;
+    //         default:
+    //             break;
+    //     }
+    // }
 
 
-    }
 }
 
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf)
@@ -205,6 +208,75 @@ void blitTerrain(int x, int y, int w, int h, uint16_t *buf)
         }
     }
 }
+
+void drawPixelTerrain(int x, int y, int w, int h)
+{
+    // Draw to screen terrain tiles cropped and positioned to pixel dimensions (*not whole tiles)
+    // All arguments are px units.
+    uint16_t buf[w * h];
+    uint16_t *buf_ptr = buf;
+
+    // round x and y down to whole tiles
+    int tx = x / TERRAIN_UNIT;
+    int ty = y / TERRAIN_UNIT;
+
+    //round w and h up
+    int tw = 1 + (w - 1) / TERRAIN_UNIT;
+    int th = 1 + (h - 1) / TERRAIN_UNIT;
+
+
+    // Iterate through tiles
+    for(int tile_row = 0 ; tile_row < th; ++tile_row)
+    {
+        for(int tile_col = 0; tile_col < tw; ++tile_col)
+        {
+            // Tile absolute px boundaries
+            int x1 = (tx * TERRAIN_UNIT) + tile_col;
+            int x2 = x1 + TERRAIN_UNIT;
+            int y1 = (y + tile_row) * TERRAIN_UNIT;
+            int y2 = y1 + TERRAIN_UNIT;
+
+            // calc relative section of tile to transfer
+            int start_x = x1 - x;
+            
+
+
+            //  ** set tile ptr **
+            uint16_t tileId = environmentList[envId].terrain[(ty + tile_row) * TERRAIN_WIDTH + (tx + tile_col)];
+            const uint16_t *tile_ptr = &sprite_tile_ref_8x8[TERRAIN_UNIT * TERRAIN_UNIT * tileId];
+
+
+            // // Iterate pixels in each tile
+            // for( int px_row = 0; px_row < TERRAIN_UNIT; ++px_row)
+            // {
+            //     for( int px_col = 0; px_col < TERRAIN_UNIT; ++px_col)
+            //     {
+        
+            //         // check pixel is inside requested rect
+            //         int px_x = px_col + (tile_col * TERRAIN_UNIT) + x;
+            //         int px_y = px_row + (tile_row * TERRAIN_UNIT) + y;
+            //         if(px_x >= x && px_x <= x + w && px_y >= y && px_y <= y + h)
+            //         {
+            //             // convert abs x and y to local and set buf_ptr
+            //             buf_ptr = &buf[(px_y - y) * w + px_x - x];
+
+            //             Serial.print(px_col);
+            //             Serial.print(", ");
+            //             *buf_ptr = *tile_ptr;
+            //         }
+
+            //         ++tile_ptr;
+            //     }
+            //     Serial.print("\n");
+
+            // }
+            // Serial.print("tile end.\n");
+        }
+        Serial.print("row end.\n");
+    }
+    screen.writeRect(x, y, w ,h ,buf);
+}
+
 
 void drawTerrain(int x, int y, int w, int h)
 {

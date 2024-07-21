@@ -6,7 +6,6 @@
 #include "Arduino.h"
 #include "config.h"
 #include "customtypes.h"
-#include "sprites.h"
 
 
 
@@ -32,6 +31,8 @@ Entity *assignPlayer();
 void drawAllLocs();
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
+
+void drawPixelTerrain(int x, int y, int w, int h);
 void drawTerrain(int x, int y, int w, int h);
 void blitEntity(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSrc);
 
