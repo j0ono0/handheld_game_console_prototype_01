@@ -4,6 +4,26 @@
 // I had these in engine.h but some issue was causing compile 
 // to fail when including engine.h in resources.c!
 
+typedef struct Rect
+{
+    int x;
+    int y;
+    int w;
+    int h;
+} Rect;
+
+typedef struct Dimensions
+{
+    int w;
+    int h;
+} Dimensions;
+
+typedef struct Location
+{
+    int x;
+    int y;
+} Location;
+
 
 // Document index of all tiles in any map
 // *IMPORTANT* The order of these  match order of tile_ref file (tile_ref_8x8.png)
@@ -73,15 +93,14 @@ typedef struct TileSpec
     bool blocks_motion;
 } TileSpec;
 
-
-
-typedef struct Rect
+typedef struct EntitySpecs
 {
-    int x;
-    int y;
-    int w;
-    int h;
-} Rect;
+    EntityType type;
+    Dimensions dimensions;
+    const uint16_t *sprite_addr;
+} EntitySpecs;
+
+
 
 enum GameMode
 {

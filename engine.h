@@ -28,16 +28,14 @@ void populateCurrentEntities();
 Entity *assignPlayer();
 
 //////////////////////////////////////////////////////////////////
-void drawAllLocs();
+void drawAll();
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
-
-void drawPixelTerrain(int x, int y, int w, int h);
-void drawTerrain(int x, int y, int w, int h);
+void sortEntityDrawOrder();
+void drawEntities();
 void blitEntity(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSrc);
 
 void moveEntity(Entity *e, int mx, int my);
-void updateSpriteLocation(Entity *e);
 void updateSprites();
 //////////////////////////////////////////////////////////////////
 int tileAtLoc(int x, int y);
@@ -47,7 +45,6 @@ bool inbounds(int x, int y);
 
 bool gameSolved();
 struct Entity *entityAtLocation(int x, int y);
-void updateCrate(Entity *crate);
 bool terrainBlocksMovement(int x, int y, int w, int h);
 bool terrainOverlays(EntityType type);
 bool typeBlocksMovement(EntityType type);

@@ -39,9 +39,9 @@ const uint8_t terrain_8x8[] = {
 };
 
 const Entity entities_8x8[]={
-		{plr_t, 32, 10, 0, 0, NULL},
-		{crate_t, 32, 14, 0, 0, NULL},
-		{target_t, 32, 16, 0, 0, NULL},
+		{plr_t, 16, 5, 0, 0, NULL},
+		{crate_t, 16, 7, 0, 0, NULL},
+		{target_t, 16, 8, 0, 0, NULL},
 };
 
 // Collate all terrains and entities

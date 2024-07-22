@@ -46,7 +46,7 @@ void loop()
         {
             Serial.println("starting game mode.");
             gameMode = inGame;
-            drawAllLocs();
+            drawAll();
             return;
         }
         else
@@ -75,8 +75,8 @@ void loop()
             break;
         }
 
-        nextX += dx*2;
-        nextY += dy*2;
+        nextX += dx;
+        nextY += dy;
 
         if (!inbounds(nextX, nextY))
         {
@@ -95,8 +95,8 @@ void loop()
         {
             Serial.println("target entity found!");
             // Test if tile after is free
-            nextX += dx*2;
-            nextY += dy*2;
+            nextX += dx;
+            nextY += dy;
             if(terrainBlocksMovement(nextX, nextY, 2, 2) || target_entity->type != crate_t)
             {
                 Serial.println("entity blocks way.");
@@ -123,7 +123,8 @@ void loop()
             else
                 screenEnvComplete();
         }
-    }
 
+    }
     updateSprites();
+    drawAll();
 }
