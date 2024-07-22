@@ -197,33 +197,34 @@ void drawEntities()
     // draw entities into buffer
     for(int i = 0; i < currentEntityLength; ++i)
     {
-        Entity *e = entitiesInDrawOrder[i];
-        blitEntity(e->x*ENV_UNIT - e->mx, (e->y - 1) *ENV_UNIT- e->my,  320 ,240 , screenbuf, sprite_specs[e->type].sprite_addr);
+        blitEntity(entitiesInDrawOrder[i], screenbuf);
     }
 
 }
 
-void blitEntity(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSrc)
+void blitEntity(Entity *e, uint16_t *buf)
 {
-    // x, y, w, and h are in PIXEL units <------- IMPORTANT! ---- 
-    // w and h are dimensions of buf
 
-    uint16_t *bufPtr = &buf[y * w + x];
+    int x = e->x * ENV_UNIT - e->mx;
+    int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - sprite_specs[e->type].dimensions.h);
+
+    const uint16_t *sprite_ptr = sprite_specs[e->type].sprite_addr;
+    uint16_t *bufPtr = &buf[y * SCREEN_WIDTH + x];
     
     // copy sprite into buf. 
     //Plr is 2x4 tiles (512 pixels) big so row = 2 and col = 4
-    for(int row = 0; row < 4 * TERRAIN_UNIT ; ++row)
+    for(int row = 0; row < sprite_specs[e->type].dimensions.h ; ++row)
     {
-        for(int col = 0; col < 2 * TERRAIN_UNIT ; ++col)
+        for(int col = 0; col < sprite_specs[e->type].dimensions.w ; ++col)
         {
             // Transfer row to buf
-            if(*spriteSrc != COLOR_TRANSPARENT)
-                *bufPtr = *spriteSrc;
+            if(*sprite_ptr != COLOR_TRANSPARENT)
+                *bufPtr = *sprite_ptr;
             ++bufPtr;
-            ++spriteSrc;
+            ++sprite_ptr;
         }
         // Move to start of next row
-        bufPtr += w - ENV_UNIT;
+        bufPtr += SCREEN_WIDTH - ENV_UNIT;
     }
 }
 

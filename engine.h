@@ -33,7 +33,7 @@ void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
 void sortEntityDrawOrder();
 void drawEntities();
-void blitEntity(int x, int y, int w, int h, uint16_t *buf, const uint16_t *spriteSrc);
+void blitEntity(Entity *e, uint16_t *buf);
 
 void moveEntity(Entity *e, int mx, int my);
 void updateSprites();

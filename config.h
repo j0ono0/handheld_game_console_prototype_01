@@ -15,6 +15,9 @@
     env-grid leaving terrain-grid for lower level functions. ??
 */
 
+# define SCREEN_WIDTH 320
+# define SCREEN_HEIGHT 240
+
 // Terrain tiles are split into a grid. 
 // Each cell of this 'terrain grid' is 8x8 pixels
 # define TERRAIN_WIDTH 40
