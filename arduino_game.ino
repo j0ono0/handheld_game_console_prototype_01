@@ -90,10 +90,8 @@ void loop()
         }
 
         target_entity = entityAtLocation(nextX, nextY);
-        Serial.println("searching for target entity...");
         if(target_entity)
         {
-            Serial.println("target entity found!");
             // Test if tile after is free
             nextX += dx;
             nextY += dy;
@@ -110,21 +108,30 @@ void loop()
         Serial.println("moving plr.");
         moveEntity(plr, dx, dy);
     
-        if (gameSolved())
-        {
-            Serial.println("game solved!");
-
-            delay(200);
-            gameMode = success;
-
-            // Prepare entityStore for next level
-            if(nextEnvironment() == 0)
-                screenSuccess();
-            else
-                screenEnvComplete();
-        }
 
     }
     updateSprites();
     drawAll();
+
+    if (gameSolved())
+    {
+
+        // Complete movement animations
+        while(spritesInMotion())
+        {         
+            updateSprites();
+            drawAll();
+        }
+
+        gameMode = success;
+        Serial.println("game solved!");
+        delay(200);
+
+        screenEnvComplete();
+        // // Prepare entityStore for next level
+        // if(nextEnvironment() == 0)
+        //     screenSuccess();
+        // else
+        //     screenEnvComplete();
+    }
 }

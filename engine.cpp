@@ -7,6 +7,8 @@ uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT]
 
 // throttle animation cycles
 unsigned long ani_clock = 0;
+// flag if motion animation is currently happening
+bool _sprites_in_motion = false;
 
 // Current environment
 int envId = 0;
@@ -43,11 +45,19 @@ const TileSpec tile_layers[] = {
 
 // Sprite locations 
 // IMPORTANT: order must match enum EntityType
-const EntitySpecs sprite_specs[] = {
+EntitySpecs sprite_specs[] = {
     {plr_t, {16, 32}, &entity_sprites[0]},   // Plr standing
     {crate_t, {16, 32}, &entity_sprites[8*ENV_UNIT*ENV_UNIT]},  // Crate
     {crate_active_t, {16, 32}, &entity_sprites[10*ENV_UNIT*ENV_UNIT]},  // Crate active
     {target_t, {16, 16}, &entity_sprites[12*ENV_UNIT*ENV_UNIT]},  // Target
+};
+
+const uint16_t *sprite_plr_stationary = &entity_sprites[0];
+const uint16_t *sprites_plr_walking[] = {
+    &entity_sprites[1*ENV_UNIT*2*ENV_UNIT],
+    &entity_sprites[1*ENV_UNIT*2*ENV_UNIT*2],
+    &entity_sprites[1*ENV_UNIT*2*ENV_UNIT*3],
+    &entity_sprites[1*ENV_UNIT*2*ENV_UNIT*2],
 };
 
 
@@ -63,6 +73,7 @@ void populateCurrentEntities()
 
         currentEntityLength++;
     }
+    sortEntityDrawOrder();
 }
 
 Entity *assignPlayer()
@@ -98,13 +109,9 @@ int setEnvironment(int envIndex)
 void drawAll()
 {
     blitTerrain(0, 0, TERRAIN_WIDTH, TERRAIN_HEIGHT, screenbuf);
-
     drawEntities();
-
     blitOverlay(0, 0, TERRAIN_WIDTH, TERRAIN_HEIGHT, screenbuf);
-
     screen.writeRect(0, 0, TERRAIN_WIDTH * TERRAIN_UNIT ,TERRAIN_HEIGHT * TERRAIN_UNIT ,screenbuf);
-
 }
 
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf)
@@ -176,6 +183,18 @@ void blitTerrain(int x, int y, int w, int h, uint16_t *buf)
     }
 }
 
+bool renderBefore(Entity *a, Entity *b)
+{
+    if(a->type == target_t){
+        return true;
+    }
+    if(a->y < b->y && b->type != target_t)
+    {
+        return true;
+    }
+    return false;
+}
+
 void sortEntityDrawOrder(){
     // Sort entitiesInDrawOrder array
     // Insertion sort
@@ -184,7 +203,9 @@ void sortEntityDrawOrder(){
     for (i = 1; i < currentEntityLength; i++) {
         key = entitiesInDrawOrder[i];
         j = i - 1;
-        while (j >= 0 && entitiesInDrawOrder[j]->y > key->y) {
+
+        // while (j >= 0 && entitiesInDrawOrder[j]->y > key->y) {
+        while (j >= 0 && renderBefore(key, entitiesInDrawOrder[j])) {
             entitiesInDrawOrder[j + 1] = entitiesInDrawOrder[j];
             j = j - 1;
         }
@@ -230,7 +251,7 @@ void blitEntity(Entity *e, uint16_t *buf)
 
 void moveEntity(Entity *e, int dx, int dy)
 {
-    // Block function until sprite has caught up
+    // Block function until sprite has caught up?
     // TODO: make an event queue instead? 
     // if(e->mx != 0 || e->my != 0)
     //     return;
@@ -248,33 +269,61 @@ void moveEntity(Entity *e, int dx, int dy)
         sortEntityDrawOrder();
 }
 
-
+/////////////////////////////////////////////////////
+// Sprite controls                                ///
 
 void updateSprites()
 {
+    // Progress all animation cycles with 'step'.
+    #define MAXANIMATIONSTEPS 4
+    static int step = 0;
+
     int now = millis();
-    if(now - ani_clock > 80)
+    if(now - ani_clock >= 80)
     {
-        int STEP_DISTANCE = 2; // TODO: this is not cool setup to control step distance
+        _sprites_in_motion = false;
+
+        step = step + 1 < MAXANIMATIONSTEPS ? step + 1 : 0;
         ani_clock = now;
         for(int i = 0; i < currentEntityLength; ++i)
         {
             Entity *e = &currentEntities[i];
+            int STEP_DISTANCE = 4; 
             if(e->mx ==0 && e->my == 0)
-                return;
+            {
+                if(e->type == plr_t){
+                    sprite_specs[plr_t].sprite_addr = sprite_plr_stationary;
+                }
+            }
+            else
+            {
+                _sprites_in_motion = true;
+                    
+                if(e->type == plr_t){
+                    sprite_specs[plr_t].sprite_addr = sprites_plr_walking[step];
+                }
 
-            if(e->mx > 0){
-                e->mx -= STEP_DISTANCE;
-            }else if(e->mx < 0){
-                e->mx += STEP_DISTANCE;
+                
+                if(e->mx > 0){
+                    e->mx -= STEP_DISTANCE;
+                }else if(e->mx < 0){
+                    e->mx += STEP_DISTANCE;
+                }
+                if(e->my > 0){
+                    e->my -= STEP_DISTANCE;
+                }else if(e->my < 0){
+                    e->my += STEP_DISTANCE;
+                }
+
             }
-            if(e->my > 0){
-                e->my -= STEP_DISTANCE;
-            }else if(e->my < 0){
-                e->my += STEP_DISTANCE;
-            }
+           
         }
     }
+}
+
+bool spritesInMotion()
+{
+    return _sprites_in_motion;
 }
 
 /////////////////////////////////////////////////////
@@ -299,20 +348,35 @@ bool inbounds(int x, int y)
 
 bool gameSolved()
 {
-    // Test if every goal has a crate on the same location.
-    for(int y = 0; y < TERRAIN_HEIGHT; y++)
+    Entity *target;
+    Entity *crate;
+    // Test if every target has a crate on the same location.
+    for(int i = 0; i < currentEntityLength; i++)
     {
-        for(int x = 0; x < TERRAIN_WIDTH; x++)
+        target = &currentEntities[i];
+        if(target->type == target_t)
         {
-            // Numbers are tile indexes from 'tile_ref_01.png'
-            if(tileAtLoc(x, y) == 9 || tileAtLoc(x, y) == 12)
+            bool has_crate = false;
+            
+            for(int j = 0; j < currentEntityLength; j++)
             {
-                Entity *e = entityAtLocation(x, y);
-                if(e == NULL || e->type != crate_active_t)
-                    return false;
+                crate = &currentEntities[j];
+                if((crate->type == crate_t || crate->type == crate_active_t)){
+
+                    if(coLocated(target, crate))
+                    {
+                        has_crate = true;
+                    }
+
+                }
+            }
+            if(!has_crate) 
+            {
+            return false;
             }
         }
     }
+    Serial.println("game solved!");
     return true;
 }
 
