@@ -20,7 +20,6 @@ extern const EnvSpec environmentList[];
 
 //////////////////////////////////////////////////////////////////
 
-
 int nextEnvironment();
 int setEnvironment(int envIndex);
 
@@ -28,6 +27,7 @@ void populateCurrentEntities();
 Entity *assignPlayer();
 
 //////////////////////////////////////////////////////////////////
+void advanceSpriteAnimations();
 void drawAll();
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
@@ -40,7 +40,7 @@ void moveEntity(Entity *e, int mx, int my);
 //////////////////////////////////////////////////////////////////
 
 void updateSprites();
-bool spritesInMotion();
+bool spritesInTransit();
 
 //////////////////////////////////////////////////////////////////
 int tileAtLoc(int x, int y);

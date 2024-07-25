@@ -7,8 +7,6 @@ uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT]
 
 // throttle animation cycles
 unsigned long ani_clock = 0;
-// flag if motion animation is currently happening
-bool _sprites_in_motion = false;
 
 // Current environment
 int envId = 0;
@@ -73,9 +71,6 @@ void populateCurrentEntities()
 
         switch(currentEntities[currentEntityLength].type)
         {
-            case crate_t:
-                currentEntities[currentEntityLength].behaviour = &crate_behaviour;
-                break;
             case plr_t:
                 currentEntities[currentEntityLength].behaviour = &act_test;
                 break;
@@ -116,6 +111,12 @@ int setEnvironment(int envIndex)
 }
 /////////////////////////////////////////////////////
 
+void advanceSpriteAnimations()
+{
+    // Progress all sprite movements of entities
+        updateSprites();
+        drawAll();
+}
 
 void drawAll()
 {
@@ -236,7 +237,15 @@ void drawEntities()
 
 void blitEntity(Entity *e, uint16_t *buf)
 {
-    int x = e->x * ENV_UNIT - e->mx;
+
+
+    /* TODO:
+    
+    walking plr to top of screen causes crash! sprite rendering outside buffer????
+    
+    */
+
+    int x = e->x * ENV_UNIT - e->mx ;
     int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - sprite_specs[e->type].dimensions.h);
 
     const uint16_t *sprite_ptr = sprite_specs[e->type].sprite_addr;
@@ -252,7 +261,6 @@ void blitEntity(Entity *e, uint16_t *buf)
         step_direction = -1;
     }
 
-    
     // copy sprite into buf. 
     //Plr is 2x4 tiles (512 pixels) big so row = 2 and col = 4
     for(int row = 0; row < sprite_specs[e->type].dimensions.h ; ++row)
@@ -273,14 +281,13 @@ void blitEntity(Entity *e, uint16_t *buf)
 
 void moveEntity(Entity *e, int dx, int dy)
 {
-    // Block function until sprite has caught up?
-    // TODO: make an event queue instead? 
-    // if(e->mx != 0 || e->my != 0)
-    //     return;
 
-    // Update entity coordinates
+    // Update entity (x, y) position
+    // *** NOTE: entity coordinates updated at immediately: 
+    // So subsequent entities moving interact with an up-to-date environment ***
     e->x += dx;
     e->y += dy;
+    
     // mx and my are in pixels.
     // they indicate direction and distance sprite has to move
     e->mx += dx * ENV_UNIT;
@@ -301,51 +308,62 @@ void updateSprites()
     #define STEP_DISTANCE 4 
     #define ANIMATIONSPEED 80
     static int step = 0;
+    // Track direction of change
+    // used to update final entity (x, y) position
+    int dx = 0;
+    int dy = 0;
 
     int now = millis();
-    if(now - ani_clock >= ANIMATIONSPEED)
+    if(now - ani_clock < ANIMATIONSPEED) { return; }
+    
+    ani_clock = now;
+    step = (step + 1) % MAXANIMATIONSTEPS;
+
+    for(int i = 0; i < currentEntityLength; ++i)
     {
-        ani_clock = now;
-        _sprites_in_motion = false;
-        step = (step + 1) % MAXANIMATIONSTEPS;
-
-        for(int i = 0; i < currentEntityLength; ++i)
+        Entity *e = &currentEntities[i];
+        if(e->mx == 0 && e->my == 0)
         {
-            Entity *e = &currentEntities[i];
-            if(e->mx ==0 && e->my == 0)
+            switch(e->type)
             {
-                // select plr standing sprite
-                if(e->type == plr_t){
-                    sprite_specs[plr_t].sprite_addr = sprite_plr_stationary;
-                }
-            }
-            else
-            {
-                _sprites_in_motion = true;
-                    
-                // select plr walking sprite
-                if(e->type == plr_t){
-                    sprite_specs[plr_t].sprite_addr = sprites_plr_walking[step];
-                }
-
-                //update x
-                if(e->mx > 0){
-                    e->mx -= STEP_DISTANCE;
-                }else if(e->mx < 0){
-                    e->mx += STEP_DISTANCE;
-                }
-                // update y
-                if(e->my > 0){
-                    e->my -= STEP_DISTANCE;
-                }else if(e->my < 0){
-                    e->my += STEP_DISTANCE;
-                }
+                case plr_t:
+                sprite_specs[plr_t].sprite_addr = sprite_plr_stationary;
+                break;
+                case crate_t:
+                case crate_active_t:
+                    crate_behaviour(e);
+                    break;
+                default:
+                    break;
             }
         }
+        else
+        {
+            // select plr walking sprite
+            if(e->type == plr_t){
+                sprite_specs[plr_t].sprite_addr = sprites_plr_walking[step];
+            }
+            //update x
+            if(e->mx > 0){
+                dx = 1;
+            }else if(e->mx < 0){
+                dx = -1;
+            }
+            // update y
+            if(e->my > 0){
+                dy = 1;
+            }else if(e->my < 0){
+                dy = -1;
+            }
+            // Reduce distance to destination location
+            e->mx -= STEP_DISTANCE * dx;
+            e->my -= STEP_DISTANCE * dy;
+        }
     }
+    
 }
 
-bool spritesInMotion()
+bool spritesInTransit()
 {
      for(int i = 0; i < currentEntityLength; ++i)
     {
@@ -368,7 +386,8 @@ int tileAtLoc(int x, int y)
 
 bool inbounds(int x, int y)
 {
-    if (x < 0 || y < 0 || x > TERRAIN_WIDTH || y > TERRAIN_HEIGHT)
+    // Note: x and y in ENV_UNITS
+    if (x < 0 || y < 0 || x >= ENV_WIDTH || y >= ENV_HEIGHT)
     {
         return false;
     }
@@ -401,13 +420,9 @@ bool gameSolved()
 
                 }
             }
-            if(!has_crate) 
-            {
-            return false;
-            }
+            if(!has_crate) return false;
         }
     }
-    Serial.println("game solved!");
     return true;
 }
 
@@ -493,6 +508,7 @@ void act_test(Entity *e)
 void crate_behaviour(Entity *e)
 {
     // Update crate appearance if on a target
+    
     for(int i = 0; i < currentEntityLength; ++i)
     {
         if(currentEntities[i].type == target_t && coLocated(e, &currentEntities[i])){
