@@ -32,37 +32,35 @@ typedef struct Location
 // ol - overlay
 typedef enum TileName
 {
-    void_tn,
+    void_t,
     floor_tn,
-    stone_tn,
-    wall_cv_ne_tn,
+    wall_tn,
+    wallcnr_cc_nw_tn,
+    wallcnr_cc_ne_tn,
     wall_n_tn,
-    wall_cv_nw_tn,
-    stoneedge_cv_se_tn,
-    stoneedge_s_tn,
-    stoneedge_sw_tn,
-    stoneedge_e_tn,
-    stoneedge_w_tn,
-    stoneedge_cv_ne_tn,
-    stoneedge_n_tn,
-    stoneedge_cv_nw_tn,
-    stoneedge_cc_wnw_tn,
-    stoneedge_cc_nw_tn,
-    stoneedge_cc_ne_tn,
-    stoneedge_cc_ene_tn,
-    stoneedge_cc_wsw_tn,
-    stoneedge_cc_sw_tn,
-    stoneedge_cc_se_tn,
-    stoneedge_cc_ese_tn,
+    wall_w_tn,
+    wall_e_tn,
+    wallcnr_cc_sw_tn,
+    wallcnr_cc_ssw_tn,
+    wall_s_tn,
+    wallcnr_cc_se,
+    wallcnr_cv_se,
+    wallcnr_cv_sw,
+    wallcnr_cv_ne_tn,
+    wallcnr_cv_nw_tn,
+    shadow_n_tn,
+    shadow_w_tn,
+    shadow_cc_nw_tn,
+    shadow_cv_nw_tn,
+    shadow_cv_ne_tn,
+    shadow_cv_sw_tn,
 } TileName;
 
 typedef enum TileOverlay
 {
-    stone_edge_s_to,
-    stoneedge_cv_se_to,
-    stoneedge_cv_sw_to,
-    stoneedge_cc_sw_to,
-    stoneedge_cc_se_to,
+    wall_s_to,
+    wall_cv_se_to,
+    wall_cv_sw_to,
     null_to,
 } TileOverlay;
 
@@ -83,7 +81,7 @@ typedef struct Entity
     // track movement
     int mx;
     int my;
-    void (*behaviour)(void);
+    void (*behaviour)(struct Entity *e);
 } Entity;
 
 typedef struct TileSpec

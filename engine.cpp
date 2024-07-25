@@ -19,28 +19,28 @@ Entity *entitiesInDrawOrder[MAX_ENTITIES];
 int currentEntityLength = 0;
 
 const TileSpec tile_layers[] = {
-    {void_tn, null_to, true},
+    {void_t, null_to, true},
     {floor_tn, null_to, false},
-    {stone_tn, null_to, true},
-    {wall_cv_ne_tn, null_to, true},
+    {wall_tn, null_to, true},
+    {wallcnr_cc_nw_tn, null_to, true},
+    {wallcnr_cc_ne_tn, null_to, true},
     {wall_n_tn, null_to, true},
-    {wall_cv_nw_tn, null_to, true},
-    {stoneedge_cv_se_tn, stoneedge_cv_se_to, false},
-    {stoneedge_s_tn, stone_edge_s_to, false},
-    {stoneedge_sw_tn, stoneedge_cv_sw_to, false},
-    {stoneedge_e_tn, null_to, true},
-    {stoneedge_w_tn, null_to, true},
-    {stoneedge_cv_ne_tn, null_to, true},
-    {stoneedge_n_tn, null_to, true},
-    {stoneedge_cv_nw_tn, null_to, true},
-    {stoneedge_cc_wnw_tn, null_to, true},
-    {stoneedge_cc_nw_tn, null_to, true},
-    {stoneedge_cc_ne_tn, null_to, true},
-    {stoneedge_cc_ene_tn, null_to, true},
-    {stoneedge_cc_wsw_tn, null_to, true},
-    {stoneedge_cc_sw_tn, stoneedge_cc_sw_to, false},
-    {stoneedge_cc_se_tn, stoneedge_cc_se_to, false},
-    {stoneedge_cc_ese_tn, null_to, true},
+    {wall_w_tn, null_to, true},
+    {wall_e_tn, null_to, true},
+    {wallcnr_cc_sw_tn, null_to, true},
+    {wallcnr_cc_ssw_tn, wall_s_to, false},
+    {wall_s_tn, wall_s_to, false},
+    {wallcnr_cc_se, null_to, true},
+    {wallcnr_cv_se, wall_cv_se_to, false},
+    {wallcnr_cv_sw, wall_cv_sw_to, false},
+    {wallcnr_cv_ne_tn, null_to, true},
+    {wallcnr_cv_nw_tn, null_to, true},
+    {shadow_n_tn, null_to, false},
+    {shadow_w_tn, null_to, false},
+    {shadow_cc_nw_tn, null_to, false},
+    {shadow_cv_nw_tn, null_to, false},
+    {shadow_cv_ne_tn, null_to, false},
+    {shadow_cv_sw_tn, null_to, false},
 };
 
 // Sprite locations 
@@ -71,6 +71,18 @@ void populateCurrentEntities()
         currentEntities[currentEntityLength] = environmentList[envId].entities[i];
         entitiesInDrawOrder[currentEntityLength] = &currentEntities[currentEntityLength];
 
+        switch(currentEntities[currentEntityLength].type)
+        {
+            case crate_t:
+                currentEntities[currentEntityLength].behaviour = &crate_behaviour;
+                break;
+            case plr_t:
+                currentEntities[currentEntityLength].behaviour = &act_test;
+                break;
+            default:
+                currentEntities[currentEntityLength].behaviour = &do_nothing;
+                break;
+        }
         currentEntityLength++;
     }
     sortEntityDrawOrder();
@@ -81,7 +93,6 @@ Entity *assignPlayer()
     for(int i = 0; i < currentEntityLength; ++i)
     {
         if(currentEntities[i].type == plr_t)
-            currentEntities[i].behaviour = &act_test;
             return &currentEntities[i];
     }
     return NULL;
@@ -225,12 +236,22 @@ void drawEntities()
 
 void blitEntity(Entity *e, uint16_t *buf)
 {
-
     int x = e->x * ENV_UNIT - e->mx;
     int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - sprite_specs[e->type].dimensions.h);
 
     const uint16_t *sprite_ptr = sprite_specs[e->type].sprite_addr;
     uint16_t *bufPtr = &buf[y * SCREEN_WIDTH + x];
+
+    int step_direction = 1;
+
+    if(e->mx < 0)
+    {
+        // entity moving to left, flip sprite
+        // TODO: record which sprites flip
+        bufPtr += sprite_specs[e->type].dimensions.w;  
+        step_direction = -1;
+    }
+
     
     // copy sprite into buf. 
     //Plr is 2x4 tiles (512 pixels) big so row = 2 and col = 4
@@ -238,14 +259,15 @@ void blitEntity(Entity *e, uint16_t *buf)
     {
         for(int col = 0; col < sprite_specs[e->type].dimensions.w ; ++col)
         {
-            // Transfer row to buf
-            if(*sprite_ptr != COLOR_TRANSPARENT)
-                *bufPtr = *sprite_ptr;
-            ++bufPtr;
-            ++sprite_ptr;
+                // Transfer row to buf
+                if(*sprite_ptr != COLOR_TRANSPARENT)
+                    *bufPtr = *sprite_ptr;
+                bufPtr += step_direction;
+                ++sprite_ptr;
+            
         }
         // Move to start of next row
-        bufPtr += SCREEN_WIDTH - ENV_UNIT;
+        bufPtr += SCREEN_WIDTH - ENV_UNIT * step_direction;
     }
 }
 
@@ -276,21 +298,23 @@ void updateSprites()
 {
     // Progress all animation cycles with 'step'.
     #define MAXANIMATIONSTEPS 4
+    #define STEP_DISTANCE 4 
+    #define ANIMATIONSPEED 80
     static int step = 0;
 
     int now = millis();
-    if(now - ani_clock >= 80)
+    if(now - ani_clock >= ANIMATIONSPEED)
     {
-        _sprites_in_motion = false;
-
-        step = step + 1 < MAXANIMATIONSTEPS ? step + 1 : 0;
         ani_clock = now;
+        _sprites_in_motion = false;
+        step = (step + 1) % MAXANIMATIONSTEPS;
+
         for(int i = 0; i < currentEntityLength; ++i)
         {
             Entity *e = &currentEntities[i];
-            int STEP_DISTANCE = 4; 
             if(e->mx ==0 && e->my == 0)
             {
+                // select plr standing sprite
                 if(e->type == plr_t){
                     sprite_specs[plr_t].sprite_addr = sprite_plr_stationary;
                 }
@@ -299,31 +323,38 @@ void updateSprites()
             {
                 _sprites_in_motion = true;
                     
+                // select plr walking sprite
                 if(e->type == plr_t){
                     sprite_specs[plr_t].sprite_addr = sprites_plr_walking[step];
                 }
 
-                
+                //update x
                 if(e->mx > 0){
                     e->mx -= STEP_DISTANCE;
                 }else if(e->mx < 0){
                     e->mx += STEP_DISTANCE;
                 }
+                // update y
                 if(e->my > 0){
                     e->my -= STEP_DISTANCE;
                 }else if(e->my < 0){
                     e->my += STEP_DISTANCE;
                 }
-
             }
-           
         }
     }
 }
 
 bool spritesInMotion()
 {
-    return _sprites_in_motion;
+     for(int i = 0; i < currentEntityLength; ++i)
+    {
+        if(currentEntities[i].mx != 0 || currentEntities[i].my != 0)
+        { 
+            return true;
+        }
+    }
+    return false;
 }
 
 /////////////////////////////////////////////////////
@@ -441,13 +472,36 @@ void screenEnvComplete(){ screen.drawMapComplete(); }
 
 /////////////////////////////////////////////////////////
 
-
-void act_test()
+void runBehaviours()
 {
-    Serial.println("hello entity animation action.");
+    for(int i = 0; i < currentEntityLength; ++i)
+    {
+        if(currentEntities[i].behaviour)
+        {
+            (*currentEntities[i].behaviour)(&currentEntities[i]);
+        }
+    }
 }
 
+void do_nothing(Entity *e){}
 
+void act_test(Entity *e)
+{
+    // Serial.println("hello entity animation action.");
+}
+
+void crate_behaviour(Entity *e)
+{
+    // Update crate appearance if on a target
+    for(int i = 0; i < currentEntityLength; ++i)
+    {
+        if(currentEntities[i].type == target_t && coLocated(e, &currentEntities[i])){
+            e->type = crate_active_t;
+            return;
+        }
+    }
+    e->type = crate_t;
+}
 
 
 

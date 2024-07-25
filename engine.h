@@ -62,8 +62,10 @@ void screenEnvComplete();
 
 ///////////////////////////////////////////////////////////////
 
-void act_test();
-
+void runBehaviours();
+void do_nothing(Entity *e);
+void act_test(Entity *e);
+void crate_behaviour(Entity *e);
 
 
 int availableMemory();
