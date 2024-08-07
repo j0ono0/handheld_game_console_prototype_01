@@ -27,6 +27,8 @@ void setup()
     Serial.println("free memory: ");
     Serial.println(availableMemory());
 
+    screenImgTest();
+
 }
 
 void loop()

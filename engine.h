@@ -13,6 +13,9 @@
 //////////////////////////////////////////////////////////////////
 /// External graphics and environment data in resources.h       //
 
+extern const uint16_t sprite_concept_art_01[];
+extern const uint16_t character_sprites[];
+
 extern const uint16_t sprite_tile_ref_8x8[];
 extern const uint16_t sprite_8x8_overlays[];
 extern const uint16_t entity_sprites[];
@@ -59,6 +62,8 @@ void screenSetup();
 void screenDrawBuf(uint16_t *buf, int x, int y);
 void screenSuccess();
 void screenEnvComplete();
+
+void screenImgTest();
 
 ///////////////////////////////////////////////////////////////
 

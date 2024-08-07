@@ -70,6 +70,11 @@ typedef enum EntityType
     crate_t,
     crate_active_t,
     target_t,
+    hoodie_t,
+    strongman_t,
+    officer_t,
+    sunlover_t,
+    office_chair_t,
     null_t,
 } EntityType;
 
@@ -84,12 +89,11 @@ typedef struct Entity
     void (*behaviour)(struct Entity *e);
 } Entity;
 
-typedef struct TileSpec
+typedef struct TileMeta
 {
-    TileName name;
-    TileOverlay overlay;
+    bool overlay;
     bool blocks_motion;
-} TileSpec;
+} TileMeta;
 
 typedef struct EntitySpecs
 {
