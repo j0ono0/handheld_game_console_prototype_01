@@ -14,7 +14,7 @@
 /// External graphics and environment data in resources.h       //
 
 extern const uint16_t sprite_concept_art_01[];
-extern const uint16_t character_sprites[];
+extern const uint16_t entity_sprites_2[];
 
 extern const uint16_t sprite_tile_ref_8x8[];
 extern const uint16_t sprite_8x8_overlays[];
@@ -35,7 +35,7 @@ void drawAll();
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
 void sortEntityDrawOrder();
-void drawEntities();
+void drawEntities(int layer);
 void blitEntity(Entity *e, uint16_t *buf);
 
 void moveEntity(Entity *e, int mx, int my);
@@ -51,7 +51,7 @@ int tileAtLoc(int x, int y);
 bool inbounds(int x, int y);
 
 bool gameSolved();
-struct Entity *entityAtLocation(int x, int y);
+struct Entity *entityAtLocation(int x, int y, int layer);
 bool terrainBlocksMovement(int x, int y, int w, int h);
 
 bool atLocation(Entity *entity, int x, int y);

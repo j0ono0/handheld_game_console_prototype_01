@@ -25,45 +25,6 @@ typedef struct Location
 } Location;
 
 
-// Document index of all tiles in any map
-// *IMPORTANT* The order of these  match order of tile_ref file (tile_ref_8x8.png)
-// cv - convex
-// cc - concave
-// ol - overlay
-typedef enum TileName
-{
-    void_t,
-    floor_tn,
-    wall_tn,
-    wallcnr_cc_nw_tn,
-    wallcnr_cc_ne_tn,
-    wall_n_tn,
-    wall_w_tn,
-    wall_e_tn,
-    wallcnr_cc_sw_tn,
-    wallcnr_cc_ssw_tn,
-    wall_s_tn,
-    wallcnr_cc_se,
-    wallcnr_cv_se,
-    wallcnr_cv_sw,
-    wallcnr_cv_ne_tn,
-    wallcnr_cv_nw_tn,
-    shadow_n_tn,
-    shadow_w_tn,
-    shadow_cc_nw_tn,
-    shadow_cv_nw_tn,
-    shadow_cv_ne_tn,
-    shadow_cv_sw_tn,
-} TileName;
-
-typedef enum TileOverlay
-{
-    wall_s_to,
-    wall_cv_se_to,
-    wall_cv_sw_to,
-    null_to,
-} TileOverlay;
-
 typedef enum EntityType
 {
     plr_t,
@@ -75,6 +36,7 @@ typedef enum EntityType
     officer_t,
     sunlover_t,
     office_chair_t,
+    desktop_terminal_t,
     null_t,
 } EntityType;
 
@@ -83,6 +45,8 @@ typedef struct Entity
     EntityType type;
     int x;
     int y;
+    // track if entity renders under (0) or over (1) terrain overlay
+    int layer;
     // track movement
     int mx;
     int my;
@@ -91,7 +55,7 @@ typedef struct Entity
 
 typedef struct TileMeta
 {
-    bool overlay;
+    int layer;
     bool blocks_motion;
 } TileMeta;
 

@@ -69,6 +69,11 @@ int kpq_length()
 
 void enqueue_kpq(int keyvalue)
 {
+    if (keyvalue < 0)
+    {
+        // valid values are equal or above 0 
+        return;
+    }
     if(size_kpq == KPQMAX)
     {
        Serial.println("Keypress queue full!");
