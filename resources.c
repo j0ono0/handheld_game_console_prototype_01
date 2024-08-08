@@ -77,6 +77,9 @@ const Entity entities_01[]={
 	{office_chair_t, 7, 7, 2, 0, 0, NULL},
 
 	{desktop_terminal_t, 12, 7, 4, 0, 0, NULL},
+	{dotpanel_right_t, 13, 9, 4, 0, 0, NULL},
+	{inbuilt_terminal_t, 14, 8, 4, 0, 0, NULL},
+	{desk_clutter_t, 13, 8, 4, 0, 0, NULL},
 
 	{target_t, 12,  7, 1, 0, 0, NULL},
 	{target_t, 16,  8, 1, 0, 0, NULL},

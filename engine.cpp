@@ -78,6 +78,9 @@ EntitySpecs sprite_specs[] = {
     {sunlover_t, {14, 28}, &entity_sprites_2[96 * 4 + 81]},            // sunlover
     {office_chair_t, {15, 23}, &entity_sprites_2[96 * 33 + 16]},        // office_chair
     {desktop_terminal_t, {15, 19}, &entity_sprites_2[96 * 58 + 17]},    // desktop_terminal
+    {dotpanel_right_t, {13, 20}, &entity_sprites_2[96 * 57 + 0]},  
+    {inbuilt_terminal_t, {14, 16}, &entity_sprites_2[96 * 61 + 32]},
+    {desk_clutter_t, {15, 18}, &entity_sprites_2[96 * 59 + 48]},
 };
 
 const uint16_t *sprite_plr_stationary = &entity_sprites[0];

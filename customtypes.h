@@ -37,6 +37,9 @@ typedef enum EntityType
     sunlover_t,
     office_chair_t,
     desktop_terminal_t,
+    dotpanel_right_t,
+    inbuilt_terminal_t,
+    desk_clutter_t,
     null_t,
 } EntityType;
 
