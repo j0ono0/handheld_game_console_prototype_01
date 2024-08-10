@@ -40,6 +40,8 @@ typedef enum EntityType
     dotpanel_right_t,
     inbuilt_terminal_t,
     desk_clutter_t,
+    powerconverter_t,
+    powerconverter_active_t,
     null_t,
 } EntityType;
 

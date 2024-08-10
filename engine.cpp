@@ -69,8 +69,8 @@ const TileMeta tile_meta[] =  {
 
 EntitySpecs sprite_specs[] = {
     {plr_t, {16, 32}, &entity_sprites_2[96 * 5 + 0]},                   // plr (standing)
-    {crate_t, {16, 24}, &entity_sprites_2[96 * 34 + 64]},               // crate
-    {crate_active_t, {16, 24}, &entity_sprites_2[96 * 34 + 80]},        // crate active
+    {crate_t, {16, 24}, &entity_sprites_2[96 * 33 + 64]},               // crate
+    {crate_active_t, {16, 24}, &entity_sprites_2[96 * 33 + 80]},        // crate active
     {target_t, {14, 13}, &entity_sprites_2[96 * 43 + 49]},              // target
     {hoodie_t, {16, 30}, &entity_sprites_2[96 * 2 + 32] },              // hoodie
     {strongman_t, {16, 33}, &entity_sprites_2[96 * 0 + 48]},            // strongman
@@ -81,6 +81,8 @@ EntitySpecs sprite_specs[] = {
     {dotpanel_right_t, {13, 20}, &entity_sprites_2[96 * 57 + 0]},  
     {inbuilt_terminal_t, {14, 16}, &entity_sprites_2[96 * 61 + 32]},
     {desk_clutter_t, {15, 18}, &entity_sprites_2[96 * 59 + 48]},
+    {powerconverter_t, {16, 24}, &entity_sprites_2[96 * 56 + 64]},
+    {powerconverter_active_t, {16, 24}, &entity_sprites_2[96 * 56 + 80]},
 };
 
 const uint16_t *sprite_plr_stationary = &entity_sprites[0];
