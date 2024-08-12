@@ -28,9 +28,6 @@ typedef struct Location
 typedef enum EntityType
 {
     plr_t,
-    crate_t,
-    crate_active_t,
-    target_t,
     hoodie_t,
     strongman_t,
     officer_t,
@@ -40,6 +37,9 @@ typedef enum EntityType
     dotpanel_right_t,
     inbuilt_terminal_t,
     desk_clutter_t,
+    target_t,
+    crate_t,
+    crate_active_t,
     powerconverter_t,
     powerconverter_active_t,
     null_t,

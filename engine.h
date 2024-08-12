@@ -70,7 +70,7 @@ void screenEnvComplete();
 void runBehaviours();
 void do_nothing(Entity *e);
 void act_test(Entity *e);
-void crate_behaviour(Entity *e);
+bool entity_on_target(Entity *e);
 
 
 int availableMemory();

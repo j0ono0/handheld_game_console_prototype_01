@@ -68,21 +68,21 @@ const TileMeta tile_meta[] =  {
 // ***** character sprite sheet is 96 px wide ********
 
 EntitySpecs sprite_specs[] = {
-    {plr_t, {16, 32}, &entity_sprites_2[96 * 5 + 0]},                   // plr (standing)
-    {crate_t, {16, 24}, &entity_sprites_2[96 * 33 + 64]},               // crate
-    {crate_active_t, {16, 24}, &entity_sprites_2[96 * 33 + 80]},        // crate active
-    {target_t, {14, 13}, &entity_sprites_2[96 * 43 + 49]},              // target
-    {hoodie_t, {16, 30}, &entity_sprites_2[96 * 2 + 32] },              // hoodie
-    {strongman_t, {16, 33}, &entity_sprites_2[96 * 0 + 48]},            // strongman
-    {officer_t, {15, 28}, &entity_sprites_2[96 * 4 + 65]},             // officer
-    {sunlover_t, {14, 28}, &entity_sprites_2[96 * 4 + 81]},            // sunlover
-    {office_chair_t, {15, 23}, &entity_sprites_2[96 * 33 + 16]},        // office_chair
-    {desktop_terminal_t, {15, 19}, &entity_sprites_2[96 * 58 + 17]},    // desktop_terminal
-    {dotpanel_right_t, {13, 20}, &entity_sprites_2[96 * 57 + 0]},  
+    {plr_t, {16, 27}, &entity_sprites_2[96 * 5 + 0]},
+    {hoodie_t, {16, 30}, &entity_sprites_2[96 * 2 + 32] },
+    {strongman_t, {16, 32}, &entity_sprites_2[96 * 0 + 48]},
+    {officer_t, {16, 28}, &entity_sprites_2[96 * 4 + 65]},
+    {sunlover_t, {15, 28}, &entity_sprites_2[96 * 4 + 81]},
+    {office_chair_t, {15, 23}, &entity_sprites_2[96 * 33 + 16]},
+    {desktop_terminal_t, {15, 19}, &entity_sprites_2[96 * 58 + 17]},
+    {dotpanel_right_t, {13, 20}, &entity_sprites_2[96 * 57 + 0]},
     {inbuilt_terminal_t, {14, 16}, &entity_sprites_2[96 * 61 + 32]},
     {desk_clutter_t, {15, 18}, &entity_sprites_2[96 * 59 + 48]},
-    {powerconverter_t, {16, 24}, &entity_sprites_2[96 * 56 + 64]},
-    {powerconverter_active_t, {16, 24}, &entity_sprites_2[96 * 56 + 80]},
+    {target_t, {14, 13}, &entity_sprites_2[96 * 43 + 49]},
+    {crate_t, {16, 23}, &entity_sprites_2[96 * 32 + 64]},
+    {crate_active_t, {16, 23}, &entity_sprites_2[96 * 32 + 80]},
+    {powerconverter_t, {16, 25}, &entity_sprites_2[96 * 55 + 80]},
+    {powerconverter_active_t, {16, 25}, &entity_sprites_2[96 * 55 + 64]},
 };
 
 const uint16_t *sprite_plr_stationary = &entity_sprites[0];
@@ -301,7 +301,6 @@ void blitEntity(Entity *e, uint16_t *buf)
     }
 
     // copy sprite into buf. 
-    //Plr is 2x4 tiles (512 pixels) big so row = 2 and col = 4
     for(int row = 0; row < sprite_specs[e->type].dimensions.h ; ++row)
     {
         for(int col = 0; col < sprite_specs[e->type].dimensions.w ; ++col)
@@ -371,7 +370,21 @@ void updateSprites()
                 break;
                 case crate_t:
                 case crate_active_t:
-                    crate_behaviour(e);
+                    if(entity_on_target(e))
+                    {
+                        e->type = crate_active_t;
+                    }else{
+                        e->type = crate_t;
+                    }
+                    break;
+                case powerconverter_t:
+                case powerconverter_active_t:
+                    if(entity_on_target(e))
+                    {
+                        e->type = powerconverter_active_t;
+                    }else{
+                        e->type = powerconverter_t;
+                    }
                     break;
                 default:
                     break;
@@ -550,7 +563,7 @@ void act_test(Entity *e)
     // Serial.println("hello entity animation action.");
 }
 
-void crate_behaviour(Entity *e)
+bool entity_on_target(Entity *e)
 {
     // Update crate appearance if on a target
     
@@ -558,9 +571,10 @@ void crate_behaviour(Entity *e)
     {
         if(currentEntities[i].type == target_t && coLocated(e, &currentEntities[i])){
             e->type = crate_active_t;
-            return;
+            return true;
         }
     }
+    return false;
     e->type = crate_t;
 }
 
