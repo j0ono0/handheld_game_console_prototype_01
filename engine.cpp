@@ -529,10 +529,6 @@ void screenDrawBuf(uint16_t *buf, int x, int y){screen.drawCellBuffer(buf, x, y)
 void screenSuccess(){ screen.drawSuccess(); }
 void screenEnvComplete(){ screen.drawMapComplete(); }
 
-void screenImgTest()
-{
-    screen.writeRect(0, 0, TERRAIN_WIDTH * TERRAIN_UNIT ,TERRAIN_HEIGHT * TERRAIN_UNIT , sprite_concept_art_01);
-}
 
 /////////////////////////////////////////////////////////
 
