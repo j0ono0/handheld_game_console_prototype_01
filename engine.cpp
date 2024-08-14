@@ -1,10 +1,14 @@
 #include "engine.h"
 
+
+
 Extended_Tft screen = Extended_Tft(TFT_CS, TFT_DC);
 
 uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT];
 
 #define CSWIDTH 96 // width of 'entity_sprites_2' graphics resource
+
+# define ENTITYSPEC(type, w, h, x, y) (EntitySpecs{type, {w, h}, &entity_sprites_2[96 * y + x]})
 
 // throttle animation cycles
 unsigned long ani_clock = 0;
@@ -18,48 +22,49 @@ Entity *entitiesInDrawOrder[MAX_ENTITIES];
 int currentEntityLength = 0;
 
 
+
 // This is auto-generated via python script
 // Order matches tileset order
 const TileMeta tile_meta[] =  {
-	 { 0, false },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 1, false },
-	 { 1, false },
-	 { 1, false },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, false },
-	 { 0, false },
-	 { 0, false },
-	 { 0, true },
-	 { 0, true },
-	 { 0, true },
-	 { 0, false },
-	 { 0, false },
-	 { 0, true },
-	 { 0, true },
-	 { 0, false },
-	 { 0, false },
-	 { 0, false },
-	 { 0, false },
-	 { 0, true },
-	 { 1, false },
-	 { 0, true },
-	 { 1, false },
-	 { 1, false },
-	 { 0, true },
+	 { false, false },
+	 { false, false },
+	 { true, false },
+	 { true, false },
+	 { true, false },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { true, false },
+	 { true, false },
+	 { true, false },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
+	 { false, true },
 };
 
 // Sprite locations 
@@ -68,20 +73,24 @@ const TileMeta tile_meta[] =  {
 // ***** character sprite sheet is 96 px wide ********
 
 EntitySpecs sprite_specs[] = {
-    {plr_t, {16, 27}, &entity_sprites_2[96 * 5 + 0]},
-    {hoodie_t, {16, 30}, &entity_sprites_2[96 * 2 + 32] },
-    {strongman_t, {16, 32}, &entity_sprites_2[96 * 0 + 48]},
-    {officer_t, {16, 28}, &entity_sprites_2[96 * 4 + 65]},
-    {sunlover_t, {15, 28}, &entity_sprites_2[96 * 4 + 81]},
-    {office_chair_t, {15, 23}, &entity_sprites_2[96 * 33 + 16]},
-    {desktop_terminal_t, {15, 19}, &entity_sprites_2[96 * 58 + 17]},
-    {dotpanel_right_t, {13, 20}, &entity_sprites_2[96 * 57 + 0]},
-    {inbuilt_terminal_t, {14, 16}, &entity_sprites_2[96 * 61 + 32]},
-    {desk_clutter_t, {15, 18}, &entity_sprites_2[96 * 59 + 48]},
-    {target_t, {14, 13}, &entity_sprites_2[96 * 43 + 49]},
-    {crate_t, {16, 23}, &entity_sprites_2[96 * 32 + 64]},
-    {crate_active_t, {16, 23}, &entity_sprites_2[96 * 32 + 80]},
-    {powerconverter_t, {16, 25}, &entity_sprites_2[96 * 55 + 80]},
+    ENTITYSPEC(plr_t, 16, 27, 0, 5),
+    ENTITYSPEC(hoodie_t, 16, 30, 32, 2),
+    ENTITYSPEC(strongman_t, 16, 32, 48, 0),
+    ENTITYSPEC(officer_t, 16, 28, 65, 4),
+    ENTITYSPEC(sunlover_t, 15, 28, 81, 4),
+    ENTITYSPEC(office_chair_t, 15, 23, 16, 33),
+    ENTITYSPEC(desktop_terminal_t, 15, 19, 17, 58),
+    ENTITYSPEC(dotpanel_right_t, 13, 20, 0, 57),
+    ENTITYSPEC(inbuilt_terminal_t, 14, 16, 32, 61),
+    ENTITYSPEC(desk_clutter_t, 15, 18, 48, 59),
+    ENTITYSPEC(target_t, 14, 13, 49, 43),
+    ENTITYSPEC(crate_t, 16, 23, 64, 32),
+    ENTITYSPEC(crate_active_t, 16, 23, 80, 32),
+    ENTITYSPEC(powerconverter_t, 16, 25, 80, 55),
+    ENTITYSPEC(powerconverter_active_t, 16, 25, 64, 55),
+
+
+
     {powerconverter_active_t, {16, 25}, &entity_sprites_2[96 * 55 + 64]},
 };
 
@@ -178,7 +187,7 @@ void blitOverlay(int x, int y, int w, int h, uint16_t *buf)
             if(tile_meta[tileId].layer == 0)
                 continue;
 
-            const uint16_t *spritePtr = &sprite_tile_ref_8x8[TERRAIN_UNIT * TERRAIN_UNIT * (tileId)];
+            const int *spritePtr = &terrain_tiles_indexed[TERRAIN_UNIT * TERRAIN_UNIT * tileId];
 
             // Set cellbuf to start of tile section
             cellbuf = &buf[i*w*TERRAIN_UNIT*TERRAIN_UNIT + j*TERRAIN_UNIT];
@@ -190,7 +199,7 @@ void blitOverlay(int x, int y, int w, int h, uint16_t *buf)
                     if(*spritePtr != COLOR_TRANSPARENT)
                     {
                     // Transfer row to buf
-                    *cellbuf = *spritePtr;
+                    *cellbuf = terrain_color_table[*spritePtr];
                     }
                     ++cellbuf;
                     ++spritePtr;
@@ -212,7 +221,7 @@ void blitTerrain(int x, int y, int w, int h, uint16_t *buf)
         for(int j = 0; j < w; ++j)
         {
             uint16_t tileId = environmentList[envId].terrain[(y + i) * TERRAIN_WIDTH + (x + j)];
-            const uint16_t *spritePtr = &sprite_tile_ref_8x8[TERRAIN_UNIT * TERRAIN_UNIT * tileId];
+            const int *spritePtr = &terrain_tiles_indexed[TERRAIN_UNIT * TERRAIN_UNIT * tileId];
 
             // Set cellbuf to start of tile section
             cellbuf = &buf[i*w*TERRAIN_UNIT*TERRAIN_UNIT + j*TERRAIN_UNIT];
@@ -222,7 +231,7 @@ void blitTerrain(int x, int y, int w, int h, uint16_t *buf)
                 for(int col = 0; col < TERRAIN_UNIT; ++col)
                 {
                     // Transfer row to buf
-                    *cellbuf++ = *spritePtr++;
+                    *cellbuf++ = terrain_color_table[*spritePtr++];
                 }
                 // Move cellbuf to start of next line
                 cellbuf += w*TERRAIN_UNIT - TERRAIN_UNIT;
@@ -580,24 +589,3 @@ bool entity_on_target(Entity *e)
 
 
 
-
-
-/////////////////////////////////////////////////////////
-#ifdef __arm__
-// should use uinstd.h to define sbrk but Due causes a conflict
-extern "C" char *sbrk(int incr);
-#else  // __ARM__
-extern char *__brkval;
-#endif // __arm__
-
-int availableMemory()
-{
-    char top;
-#ifdef __arm__
-    return &top - reinterpret_cast<char *>(sbrk(0));
-#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
-    return &top - __brkval;
-#else  // __arm__
-    return __brkval ? &top - __brkval : &top - __malloc_heap_start;
-#endif // __arm__
-}

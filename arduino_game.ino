@@ -24,9 +24,6 @@ void setup()
     plr = assignPlayer();
     gameMode = intro;
 
-    Serial.println("free memory: ");
-    Serial.println(availableMemory());
-
 }
 
 void loop()

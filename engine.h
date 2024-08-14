@@ -13,13 +13,13 @@
 //////////////////////////////////////////////////////////////////
 /// External graphics and environment data in resources.h       //
 
-extern const uint16_t title_screen_main[];
-extern const uint16_t title_screen_section[];
-
 extern const uint16_t entity_sprites_2[];
 
-extern const uint16_t sprite_tile_ref_8x8[];
-extern const uint16_t sprite_8x8_overlays[];
+extern const int terrain_tiles_indexed[];
+extern const uint16_t terrain_color_table[];
+
+extern const uint16_t sprite_tile_ref_8x8[]; // obselete?
+extern const uint16_t sprite_8x8_overlays[];    // obselete?
 extern const uint16_t entity_sprites[];
 extern const EnvSpec environmentList[];
 
