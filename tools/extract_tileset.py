@@ -1,0 +1,104 @@
+#!/usr/bin/python
+
+from pathlib import Path
+from PIL import Image, ImageChops
+
+
+def tile_in_tileset(tile, tileset):
+    for ref in tileset:
+        diff = ImageChops.difference(ref, tile)
+        if not diff.getbbox():
+            # Tileset already had tile
+            return True
+    return False
+
+
+def transparent_tile(tile):
+    pixel = tile.getpixel((0, 0))
+    if pixel == (0, 255, 0):
+        return True
+    return False
+
+
+def create_tileset(src, tile_size):
+    tileset = []
+    with Image.open(src) as im:
+        im_height = im.size[1]
+        im_width = im.size[0]
+
+        for y in range(0, im_height, tile_size):
+            for x in range(0, im_width, tile_size):
+                tile = im.crop((x, y, x + tile_size, y + tile_size))
+                if not tile_in_tileset(tile, tileset) and not transparent_tile(tile):
+                    tileset.append(tile)
+    return tileset
+
+
+def tile_location(tile, ref_im):
+    tile_size = tile.size[0]
+    with Image.open(ref_im) as im:
+        for y in range(0, im.size[1], tile_size):
+            for x in range(0, im.size[0], tile_size):
+                ref_tile = im.crop((x, y, x + tile_size, y + tile_size))
+                if not ImageChops.difference(ref_tile, tile).getbbox():
+                    return (x, y)
+    raise ValueError("tile not found in reference image.")
+
+
+def create_tileset_meta(src_img, meta_img, tileset):
+    legend = {
+        # [ < overlay > , <blocks motion> ]
+        (255, 0, 0): [False, True],
+        (255, 0, 255): [True, False],
+        (0, 0, 255): [False, False],
+    }
+    tilemeta = []
+    for tile in tileset:
+        coord = tile_location(tile, src_img)
+        with Image.open(meta_img) as im:
+            pixel = im.getpixel((coord))
+            tilemeta.append(legend[pixel])
+    return tilemeta
+
+
+def save_tileset(tileset, filename):
+
+    tile_size = tileset[0].size[0]
+    img = Image.new("RGB", (tile_size, tile_size * len(tileset)))
+    for i, tile in enumerate(tileset):
+        img.paste(tile, (0, i * tile_size))
+
+    img.save(filename)
+    print(f"tileset image saved to {filename}")
+
+
+def save_tilemeta(tilemeta, filename):
+    filename = Path(filename)
+    filename.parent.mkdir(parents=True, exist_ok=True)
+    with open(filename, "w") as f:
+        f.write("const bool tilemeta[] = {\n")
+
+        for item in tilemeta:
+            item = ["true" if i == True else "false" for i in item]
+            f.write(f"\t{{{', '.join(item)}}},\n")
+
+        f.write("};")
+
+
+def main():
+
+    src = "sprites/tileset_master_output.png"
+    meta = "sprites/tileset_master_meta_output.png"
+    dst_png = "sprites/output/tileset_test.png"
+    dst_meta = "sprites/output/tilemeta_test.c"
+    tile_size = 8
+
+    tileset = create_tileset(src, tile_size)
+    save_tileset(tileset, dst_png)
+
+    tilemeta = create_tileset_meta(src, meta, tileset)
+    save_tilemeta(tilemeta, dst_meta)
+
+
+if __name__ == "__main__":
+    main()
