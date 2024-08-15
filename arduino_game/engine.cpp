@@ -469,7 +469,14 @@ bool gameSolved()
             for(int j = 0; j < currentEntityLength; j++)
             {
                 crate = &currentEntities[j];
-                if((crate->type == crate_t || crate->type == crate_active_t)){
+                // TODO: This a is bad way to test if game is solved
+                // make it better !!!
+                if(
+                    crate->type == crate_t || 
+                    crate->type == crate_active_t ||
+                    crate->type == powerconverter_t ||
+                    crate->type == powerconverter_active_t
+                ){
 
                     if(coLocated(target, crate))
                     {
