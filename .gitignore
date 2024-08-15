@@ -1,9 +1,18 @@
 
+# virtual env
+env/
+venv/
 
-/__pycache__
-/test
-/temp
-/graphics
+# Python
+__pycache__/
 
+# WIP output
+test/
+temp/
+
+# binary graphics files
+/graphics/
+
+# vscode
 *.code-workspace
 /vscode
