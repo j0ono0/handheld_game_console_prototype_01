@@ -15,7 +15,7 @@ enum GameMode gameMode;
 void setup()
 {
     Serial.begin(9600);
-
+    Serial.println("hello serial?");
     setupButtonInputs();
     screenSetup();
 
