@@ -2,7 +2,7 @@ from pathlib import Path
 from PIL import Image
 
 src_path = "sprites/terrain_color_palettes.png"
-dst_path = "sprites/output/color_lut.c"
+dst_path = "temp/color_lut.c"
 swatch_size = 8
 
 

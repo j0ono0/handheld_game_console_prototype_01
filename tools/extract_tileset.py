@@ -20,9 +20,9 @@ def transparent_tile(tile):
     return False
 
 
-def create_tileset(src, tile_size):
+def create_tileset(src_img, tile_size):
     tileset = []
-    with Image.open(src) as im:
+    with Image.open(src_img) as im:
         im_height = im.size[1]
         im_width = im.size[0]
 
@@ -47,10 +47,12 @@ def tile_location(tile, ref_im):
 
 def create_tileset_meta(src_img, meta_img, tileset):
     legend = {
-        # [ < overlay > , <blocks motion> ]
-        (255, 0, 0): [False, True],
-        (255, 0, 255): [True, False],
-        (0, 0, 255): [False, False],
+        # [ < layer > , <blocks motion> ]
+        # layer: 0 = base layer
+        # layer: 3 = ovelay
+        (255, 0, 0): [0, True],
+        (255, 0, 255): [3, False],
+        (0, 0, 255): [0, False],
     }
     tilemeta = []
     for tile in tileset:
@@ -62,7 +64,8 @@ def create_tileset_meta(src_img, meta_img, tileset):
 
 
 def save_tileset(tileset, filename):
-
+    filename = Path(filename)
+    filename.parent.mkdir(parents=True, exist_ok=True)
     tile_size = tileset[0].size[0]
     img = Image.new("RGB", (tile_size, tile_size * len(tileset)))
     for i, tile in enumerate(tileset):
@@ -72,32 +75,37 @@ def save_tileset(tileset, filename):
     print(f"tileset image saved to {filename}")
 
 
-def save_tilemeta(tilemeta, filename):
+def save_tileset_meta(tilemeta, filename):
     filename = Path(filename)
     filename.parent.mkdir(parents=True, exist_ok=True)
     with open(filename, "w") as f:
-        f.write("const bool tilemeta[] = {\n")
-
+        f.write("const TileMeta tilemeta[] = {\n")
         for item in tilemeta:
-            item = ["true" if i == True else "false" for i in item]
-            f.write(f"\t{{{', '.join(item)}}},\n")
+            layer = str(item[0])
+            blocks_motion = "true" if item[1] is True else "false"
+            f.write(f"\t{{{layer}, {blocks_motion}}},\n")
 
         f.write("};")
+    print(f"tileset meta saved to {filename}")
 
 
 def main():
 
-    src = "sprites/tileset_master_output.png"
-    meta = "sprites/tileset_master_meta_output.png"
-    dst_png = "sprites/output/tileset_test.png"
-    dst_meta = "sprites/output/tilemeta_test.c"
+    tile_source = "../graphics/tileset_master.png"
+    meta_source = "../graphics/tileset_master_meta.png"
     tile_size = 8
 
-    tileset = create_tileset(src, tile_size)
-    save_tileset(tileset, dst_png)
+    ## Tileset
 
-    tilemeta = create_tileset_meta(src, meta, tileset)
-    save_tilemeta(tilemeta, dst_meta)
+    tileset_destination = "./temp/tileset_terrain.png"
+    tileset = create_tileset(tile_source, tile_size)
+    save_tileset(tileset, tileset_destination)
+
+    ## Tilemeta
+
+    meta_destination = "./temp/tileset_terrain_meta.c"
+    tilemeta = create_tileset_meta(tile_source, meta_source, tileset)
+    save_tileset_meta(tilemeta, meta_destination)
 
 
 if __name__ == "__main__":

@@ -10,8 +10,8 @@ __pycache__/
 test/
 temp/
 
-# binary graphics files
-/graphics/
+# Master graphics files
+/graphics
 
 # vscode
 *.code-workspace

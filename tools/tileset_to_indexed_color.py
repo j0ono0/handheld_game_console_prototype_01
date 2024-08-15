@@ -57,8 +57,8 @@ def image_to_indexed_list(img, width, height, palette):
     return indexed_img
 
 
-src_file = "sprites/output/tileset_test.png"
-dst_file = "sprites/output/terrain_tiles_indexed.c"
+src_file = "temp/tileset_terrain.png"
+dst_file = "temp/terrain_tiles_indexed.c"
 
 img, width, height = load_image(src_file)
 indexed_img = image_to_indexed_list(img, width, height, color_palette)
