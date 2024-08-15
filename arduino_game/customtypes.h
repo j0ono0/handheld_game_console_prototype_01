@@ -85,5 +85,7 @@ typedef struct EnvSpec
 {
     const uint8_t *terrain;
     const Entity *entities;
+    const uint8_t color_theme;
     const int entity_count;
 } EnvSpec;
+

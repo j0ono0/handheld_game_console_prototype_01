@@ -113,10 +113,13 @@ const Entity entities_02[]={
 
 // Collate all terrains and entities
 const EnvSpec environmentList[] = {
-    {terrain_1, entities_01, sizeof(entities_01)/sizeof(Entity)},
-    {terrain_2, entities_02, sizeof(entities_02)/sizeof(Entity)},
+    {terrain_1, entities_01, 1, sizeof(entities_01)/sizeof(Entity)},
+    {terrain_2, entities_02, 2, sizeof(entities_02)/sizeof(Entity)},
 };
 
+
+
+int terrain_color_table_length = 5;
 uint16_t terrain_color_table[] = {
 	0xdedb, 0xb596, 0x94d2, 0x632c, 0x4a69, 0x0, 0xffff, 0x5acb, 0x738e, 0x8410, 
 	0xce95, 0xbe31, 0xb5cd, 0x8c8a, 0x73a8, 0x0, 0xdf19, 0x7c09, 0x94eb, 0xa54b, 
@@ -126,7 +129,7 @@ uint16_t terrain_color_table[] = {
 };
 
 
-const int terrain_tiles_indexed[] = {
+const uint8_t terrain_tiles_indexed[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 

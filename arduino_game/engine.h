@@ -15,11 +15,12 @@
 
 extern const uint16_t entity_sprites_2[];
 
-extern const int terrain_tiles_indexed[];
+extern const uint8_t terrain_tiles_indexed[];
 extern const uint16_t terrain_color_table[];
 
 extern const uint16_t sprite_tile_ref_8x8[]; // obselete?
 extern const uint16_t sprite_8x8_overlays[];    // obselete?
+
 extern const uint16_t entity_sprites[];
 extern const EnvSpec environmentList[];
 
@@ -36,6 +37,7 @@ void advanceSpriteAnimations();
 void drawAll();
 void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
+uint16_t get_indexed_color(int color_index, int theme_index);
 void sortEntityDrawOrder();
 void drawEntities(int layer);
 void blitEntity(Entity *e, uint16_t *buf);

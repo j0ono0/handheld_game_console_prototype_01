@@ -14,7 +14,7 @@ uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT]
 unsigned long ani_clock = 0;
 
 // Current environment
-int envId = 0;
+uint8_t envId = 0;
 
 // Entities currently in environment.
 Entity currentEntities[MAX_ENTITIES];
@@ -177,13 +177,12 @@ void blitOverlay(int x, int y, int w, int h, uint16_t *buf)
     {
         for(int j = 0; j < w; ++j)
         {
-            uint16_t tileId = environmentList[envId].terrain[(y + i) * TERRAIN_WIDTH + (x + j)];
-
-            // Skip tiles with no overlay
+            uint8_t tileId = environmentList[envId].terrain[(y + i) * TERRAIN_WIDTH + (x + j)];
+            // Skip tiles on layer '0'
             if(tile_meta[tileId].layer == 0)
                 continue;
 
-            const int *spritePtr = &terrain_tiles_indexed[TERRAIN_UNIT * TERRAIN_UNIT * tileId];
+            const uint8_t *spritePtr = &terrain_tiles_indexed[TERRAIN_UNIT * TERRAIN_UNIT * tileId];
 
             // Set cellbuf to start of tile section
             cellbuf = &buf[i*w*TERRAIN_UNIT*TERRAIN_UNIT + j*TERRAIN_UNIT];
@@ -195,7 +194,7 @@ void blitOverlay(int x, int y, int w, int h, uint16_t *buf)
                     if(*spritePtr != COLOR_TRANSPARENT)
                     {
                     // Transfer row to buf
-                    *cellbuf = terrain_color_table[*spritePtr];
+                    *cellbuf = terrain_color_table[*spritePtr + envId * 10];
                     }
                     ++cellbuf;
                     ++spritePtr;
@@ -207,6 +206,7 @@ void blitOverlay(int x, int y, int w, int h, uint16_t *buf)
     }
 }
 
+
 void blitTerrain(int x, int y, int w, int h, uint16_t *buf)
 {
     // x, y, w, and h are in multiples of tiles (grid_size)
@@ -216,8 +216,10 @@ void blitTerrain(int x, int y, int w, int h, uint16_t *buf)
     {
         for(int j = 0; j < w; ++j)
         {
-            uint16_t tileId = environmentList[envId].terrain[(y + i) * TERRAIN_WIDTH + (x + j)];
-            const int *spritePtr = &terrain_tiles_indexed[TERRAIN_UNIT * TERRAIN_UNIT * tileId];
+            uint8_t tileId = environmentList[envId].terrain[(y + i) * TERRAIN_WIDTH + (x + j)];
+            const uint8_t *spritePtr = &terrain_tiles_indexed[TERRAIN_UNIT * TERRAIN_UNIT * tileId];
+
+
 
             // Set cellbuf to start of tile section
             cellbuf = &buf[i*w*TERRAIN_UNIT*TERRAIN_UNIT + j*TERRAIN_UNIT];
@@ -227,7 +229,7 @@ void blitTerrain(int x, int y, int w, int h, uint16_t *buf)
                 for(int col = 0; col < TERRAIN_UNIT; ++col)
                 {
                     // Transfer row to buf
-                    *cellbuf++ = terrain_color_table[*spritePtr++];
+                    *cellbuf++ = terrain_color_table[*spritePtr++ + envId * 10];
                 }
                 // Move cellbuf to start of next line
                 cellbuf += w*TERRAIN_UNIT - TERRAIN_UNIT;
@@ -235,6 +237,9 @@ void blitTerrain(int x, int y, int w, int h, uint16_t *buf)
         }
     }
 }
+
+
+
 
 bool renderBefore(Entity *a, Entity *b)
 {
