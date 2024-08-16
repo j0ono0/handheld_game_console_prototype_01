@@ -58,6 +58,20 @@ typedef struct Entity
     void (*behaviour)(struct Entity *e);
 } Entity;
 
+
+
+//////////////////////////////////////////////////
+//
+//  'layer' in TileMeta.
+//  expected layers currently are:
+//  0: base terrain
+//  1: entities as 'ground cover'
+//  2: entities located on base terrain
+//  3: raised terrain (overlaps entities on same location)
+//  4: entities located on raised terrain
+//
+//////////////////////////////////////////////////
+
 typedef struct TileMeta
 {
     int layer;
@@ -75,9 +89,10 @@ typedef struct EntitySpecs
 
 enum GameMode
 {
-    intro,
-    inGame,
-    success
+    gm_intro,
+    gm_inGame,
+    gm_success,
+    gm_end,
 };
 
 

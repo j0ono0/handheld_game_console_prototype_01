@@ -10,19 +10,17 @@ display is 320 x 240
 
 Entity *plr;
 
-enum GameMode gameMode;
 
 void setup()
 {
     Serial.begin(9600);
-    Serial.println("hello serial?");
     setupButtonInputs();
     screenSetup();
 
     setEnvironment(0);
     populateCurrentEntities();
     plr = assignPlayer();
-    gameMode = intro;
+    setGameMode(gm_intro);
 
 }
 
@@ -44,14 +42,25 @@ void loop()
 
     // Wait to start game  //////////////////////////////////////////////
 
-    if (gameMode != inGame)
+    if (gameMode() != gm_inGame)
     {
         if (dequeue_kpq() == 7)
         {
-            Serial.println("starting game mode.");
-            gameMode = inGame;
-            drawAll();
-            return;
+            if(gameMode() == gm_end)
+            {
+                // cycle game back to splashscreen
+                setGameMode(gm_intro);
+                screenIntro();
+                return;
+            }
+            else
+            {
+                // Commence new game play
+                Serial.println("starting game mode.");
+                setGameMode(gm_inGame);
+                drawAll();
+                return;
+            }
         }
         else
         {
@@ -60,30 +69,37 @@ void loop()
         }
     }
 
+    // Get next keypress input from queue
+    int next_input = dequeue_kpq();
+
     // Test for end game  //////////////////////////////////////////////
 
-    if (gameSolved())
+    if (gameSolved() || cheatGame(next_input))
     {
         // Draw final stationary sprites
         advanceSpriteAnimations();
 
-        gameMode = success;
         Serial.println("game solved!");
         delay(200);
 
-        // Prepare entityStore for next level
+        // Prepare entityStore for next level (or restart)
         if(nextEnvironment() == 0)
+        {
+            setGameMode(gm_end);
             screenSuccess();
+            
+        }
         else
+        {
+            setGameMode(gm_success);
             screenEnvComplete();
+        }
         
         // Return to loop start
         return;
     }
 
 
-    // Get next keypress input from queue
-    int next_input = dequeue_kpq();
 
     // Do another render. 
     // Entity may have change from in-transit to stationary sprites
@@ -113,10 +129,6 @@ void loop()
         break;
     case BTN_E:
         dx = 1;
-        break;
-    case BTN_SELECT:
-        // dev feature! Abort current env and start next one.
-        nextEnvironment();
         break;
     default:
      // Restart loop - no user input.

@@ -118,7 +118,6 @@ const EnvSpec environmentList[] = {
 };
 
 
-
 int terrain_color_table_length = 5;
 uint16_t terrain_color_table[] = {
 	0xdedb, 0xb596, 0x94d2, 0x632c, 0x4a69, 0x0, 0xffff, 0x5acb, 0x738e, 0x8410, 

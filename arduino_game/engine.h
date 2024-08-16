@@ -26,6 +26,9 @@ extern const EnvSpec environmentList[];
 
 //////////////////////////////////////////////////////////////////
 
+void setGameMode(GameMode mode);
+GameMode gameMode();
+
 int nextEnvironment();
 int setEnvironment(int envIndex);
 
@@ -35,8 +38,7 @@ Entity *assignPlayer();
 //////////////////////////////////////////////////////////////////
 void advanceSpriteAnimations();
 void drawAll();
-void blitOverlay(int x, int y, int w, int h, uint16_t *buf);
-void blitTerrain(int x, int y, int w, int h, uint16_t *buf);
+void blitTerrain(uint8_t layer, uint16_t *buf);
 uint16_t get_indexed_color(int color_index, int theme_index);
 void sortEntityDrawOrder();
 void drawEntities(int layer);
@@ -54,7 +56,9 @@ int tileAtLoc(int x, int y);
 
 bool inbounds(int x, int y);
 
+bool cheatGame(int keypress);
 bool gameSolved();
+
 struct Entity *entityAtLocation(int x, int y, int layer);
 bool terrainBlocksMovement(int x, int y, int w, int h);
 
@@ -64,6 +68,7 @@ bool coLocated(Entity *a, Entity *b);
 
 void screenSetup();
 void screenDrawBuf(uint16_t *buf, int x, int y);
+void screenIntro();
 void screenSuccess();
 void screenEnvComplete();
 
@@ -74,6 +79,4 @@ void do_nothing(Entity *e);
 void act_test(Entity *e);
 bool entity_on_target(Entity *e);
 
-
-int availableMemory();
 #endif
