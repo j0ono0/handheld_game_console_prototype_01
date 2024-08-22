@@ -13,16 +13,39 @@
 //////////////////////////////////////////////////////////////////
 /// External graphics and environment data in resources.h       //
 
+extern const uint16_t prof_walk_01[];
 extern const uint16_t entity_sprites_2[];
 
 extern const uint8_t terrain_tiles_indexed[];
 extern const uint16_t terrain_color_table[];
 
-extern const uint16_t sprite_tile_ref_8x8[]; // obselete?
-extern const uint16_t sprite_8x8_overlays[];    // obselete?
 
-extern const uint16_t entity_sprites[];
 extern const EnvSpec environmentList[];
+
+
+
+// extern Sprite sprite_prof_stationary_right;
+// extern Sprite sprite_prof_stationary_left;
+extern Sprite *prof_walk_east_cycle[];
+extern Sprite *prof_walk_west_cycle[];
+extern Sprite *prof_walk_north_cycle[];
+extern Sprite *prof_walk_south_cycle[];
+
+// extern Sprite sprite_crate;
+// extern Sprite sprite_crate_active;
+// extern Sprite sprite_target;
+
+extern const Sprite sprite_target;
+extern const Sprite sprite_crate;
+extern const Sprite sprite_crate_active;
+extern const Sprite sprite_prof_stationary_left;
+extern const Sprite sprite_prof_stationary_right;
+
+
+
+
+
+
 
 //////////////////////////////////////////////////////////////////
 
@@ -49,6 +72,7 @@ void moveEntity(Entity *e, int mx, int my);
 //////////////////////////////////////////////////////////////////
 
 void updateSprites();
+bool spriteInTransit(Entity *e);
 bool spritesInTransit();
 
 //////////////////////////////////////////////////////////////////

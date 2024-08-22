@@ -30,7 +30,7 @@ def palette_to_lut(filepath):
     return lut
 
 
-def save_to_file(array, filename):
+def save_to_file(array, dst_path):
     filename = Path(dst_path)
     filename.parent.mkdir(parents=True, exist_ok=True)
     with open(filename, "w") as f:

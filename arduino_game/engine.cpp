@@ -64,41 +64,6 @@ const TileMeta tile_meta[] =  {
 	{0, true},
 };
 
-// Sprite locations 
-// IMPORTANT: order must match enum EntityType
-
-// ***** character sprite sheet is 96 px wide ********
-
-EntitySpecs sprite_specs[] = {
-    ENTITYSPEC(plr_t, 16, 27, 0, 5),
-    ENTITYSPEC(hoodie_t, 16, 30, 32, 2),
-    ENTITYSPEC(strongman_t, 16, 32, 48, 0),
-    ENTITYSPEC(officer_t, 16, 28, 65, 4),
-    ENTITYSPEC(sunlover_t, 15, 28, 81, 4),
-    ENTITYSPEC(office_chair_t, 15, 23, 16, 33),
-    ENTITYSPEC(desktop_terminal_t, 15, 19, 17, 58),
-    ENTITYSPEC(dotpanel_right_t, 13, 20, 0, 57),
-    ENTITYSPEC(inbuilt_terminal_t, 14, 16, 32, 61),
-    ENTITYSPEC(desk_clutter_t, 15, 18, 48, 59),
-    ENTITYSPEC(target_t, 14, 13, 49, 43),
-    ENTITYSPEC(crate_t, 16, 23, 64, 32),
-    ENTITYSPEC(crate_active_t, 16, 23, 80, 32),
-    ENTITYSPEC(powerconverter_t, 16, 25, 80, 55),
-    ENTITYSPEC(powerconverter_active_t, 16, 25, 64, 55),
-
-
-
-    {powerconverter_active_t, {16, 25}, &entity_sprites_2[96 * 55 + 64]},
-};
-
-const uint16_t *sprite_plr_stationary = &entity_sprites[0];
-const uint16_t *sprites_plr_walking[] = {
-    &entity_sprites[1*ENV_UNIT*2*ENV_UNIT],
-    &entity_sprites[1*ENV_UNIT*2*ENV_UNIT*2],
-    &entity_sprites[1*ENV_UNIT*2*ENV_UNIT*3],
-    &entity_sprites[1*ENV_UNIT*2*ENV_UNIT*2],
-};
-
 
 /////////////////////////////////////////////////////
 
@@ -220,7 +185,7 @@ void blitTerrain(uint8_t layer, uint16_t *buf)
 
 
 
-
+// used in sortEntityDrawOrder
 bool renderBefore(Entity *a, Entity *b)
 {
     if(a->type == target_t){
@@ -275,36 +240,45 @@ void blitEntity(Entity *e, uint16_t *buf)
     */
 
     int x = e->x * ENV_UNIT - e->mx ;
-    int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - sprite_specs[e->type].dimensions.h);
+    int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - e->sprite->h);
 
-    const uint16_t *sprite_ptr = sprite_specs[e->type].sprite_addr;
+
+    const uint16_t *sprite_ptr = e->sprite->addr;
+
     uint16_t *bufPtr = &buf[y * SCREEN_WIDTH + x];
 
-    int step_direction = 1;
-
-    if(e->mx < 0)
-    {
-        // entity moving to left, flip sprite
-        // TODO: record which sprites flip
-        bufPtr += sprite_specs[e->type].dimensions.w;  
-        step_direction = -1;
-    }
-
     // copy sprite into buf. 
-    for(int row = 0; row < sprite_specs[e->type].dimensions.h ; ++row)
+    for(int row = 0; row < e->sprite->h ; ++row)
     {
-        for(int col = 0; col < sprite_specs[e->type].dimensions.w ; ++col)
+        for(int col = 0; col < e->sprite->w ; ++col)
         {
                 // Transfer row to buf
                 if(*sprite_ptr != COLOR_TRANSPARENT)
                     *bufPtr = *sprite_ptr;
-                bufPtr += step_direction;
+                ++bufPtr;
                 ++sprite_ptr;
             
         }
         // Move to start of next row
-        bufPtr += SCREEN_WIDTH - sprite_specs[e->type].dimensions.w * step_direction;
-        sprite_ptr += CSWIDTH - sprite_specs[e->type].dimensions.w;
+        bufPtr += SCREEN_WIDTH - e->sprite->w;
+
+        //////////// !!!!!!!!!!!!!!!!!!!!!! //////////////////////
+
+
+        // TODO: I need to access width of different sprite sheets here
+        //       in a meaningful way.
+
+        //////////// !!!!!!!!!!!!!!!!!!!!!! //////////////////////
+
+        // if(e->type == plr_t){
+        //     sprite_ptr += 80 -  e->sprite->w;
+
+        // }
+        // else{
+        //     sprite_ptr += CSWIDTH -  e->sprite->w;
+
+        // }
+
     }
 }
 
@@ -337,10 +311,6 @@ void updateSprites()
     #define STEP_DISTANCE 4 
     #define ANIMATIONSPEED 80
     static int step = 0;
-    // Track direction of change
-    // used to update final entity (x, y) position
-    int dx = 0;
-    int dy = 0;
 
     int now = millis();
     if(now - ani_clock < ANIMATIONSPEED) { return; }
@@ -350,67 +320,97 @@ void updateSprites()
 
     for(int i = 0; i < currentEntityLength; ++i)
     {
+        int8_t x_direction = 0;
+        int8_t y_direction = 0;
+
         Entity *e = &currentEntities[i];
-        if(e->mx == 0 && e->my == 0)
+        if(e->mx != 0 || e->my != 0)
         {
-            switch(e->type)
-            {
-                case plr_t:
-                // sprite_specs[plr_t].sprite_addr = sprite_plr_stationary;
-                break;
-                case crate_t:
-                case crate_active_t:
-                    if(entity_on_target(e))
-                    {
-                        e->type = crate_active_t;
-                    }else{
-                        e->type = crate_t;
-                    }
-                    break;
-                case powerconverter_t:
-                case powerconverter_active_t:
-                    if(entity_on_target(e))
-                    {
-                        e->type = powerconverter_active_t;
-                    }else{
-                        e->type = powerconverter_t;
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-        else
-        {
-            // // select plr walking sprite
-            // if(e->type == plr_t){
-            //     sprite_specs[plr_t].sprite_addr = sprites_plr_walking[step];
-            // }
-            //update x
-            if(e->mx > 0){
-                dx = 1;
-            }else if(e->mx < 0){
-                dx = -1;
-            }
-            // update y
-            if(e->my > 0){
-                dy = 1;
-            }else if(e->my < 0){
-                dy = -1;
-            }
+            x_direction = (e->mx > 0) - (e->mx < 0); // results in +/- 1 or 0 (1)
+            y_direction = (e->my > 0) - (e->my < 0); // results in +/- 1 or 0 (1)
             // Reduce distance to destination location
-            e->mx -= STEP_DISTANCE * dx;
-            e->my -= STEP_DISTANCE * dy;
+            e->mx -= STEP_DISTANCE * x_direction;
+            e->my -= STEP_DISTANCE * y_direction;
         }
+
+        switch(e->type)
+        {
+            case plr_t:
+                if(spriteInTransit(e)) 
+                {
+                    if(x_direction > 0)
+                    {
+                        e->sprite = prof_walk_east_cycle[step%2]; 
+                    }
+                    else if (x_direction < 0)
+                    {
+                        e->sprite = prof_walk_west_cycle[step%2]; 
+                    }
+                    else if (y_direction < 0)
+                    {
+                        e->sprite = prof_walk_north_cycle[step%2]; 
+                    }
+                    else if (y_direction > 0)
+                    {
+                        e->sprite = prof_walk_south_cycle[step%2]; 
+                    }
+                }
+                else
+                {
+                    if(x_direction > 0)
+                    {
+                        e->sprite = &sprite_prof_stationary_right;
+                    }
+                    else if (x_direction < 0)
+                    {
+                        e->sprite = &sprite_prof_stationary_left;
+                    }else if (y_direction != 0)
+                    {
+                        e->sprite = &sprite_prof_stationary_left;
+                    }
+                }
+                
+                break;
+
+
+            case crate_t:
+                if(entity_on_target(e))
+                {
+                    e->sprite = &sprite_crate_active;
+                }else{
+                    e->sprite = &sprite_crate;
+                }
+                break;
+            case powerconverter_t:
+            case powerconverter_active_t:
+                if(entity_on_target(e))
+                {
+                    e->type = powerconverter_active_t;
+                }else{
+                    e->type = powerconverter_t;
+                }
+                break;
+            default:
+                break;
+        }
+    
+    
+
+        
     }
     
+}
+
+bool spriteInTransit(Entity *e)
+{
+    return e->mx != 0 || e->my != 0;
 }
 
 bool spritesInTransit()
 {
      for(int i = 0; i < currentEntityLength; ++i)
     {
-        if(currentEntities[i].mx != 0 || currentEntities[i].my != 0)
+        if(spriteInTransit(&currentEntities[i]))
         { 
             return true;
         }
@@ -466,7 +466,6 @@ bool gameSolved()
                 // make it better !!!
                 if(
                     crate->type == crate_t || 
-                    crate->type == crate_active_t ||
                     crate->type == powerconverter_t ||
                     crate->type == powerconverter_active_t
                 ){
@@ -570,18 +569,14 @@ void act_test(Entity *e)
 }
 
 bool entity_on_target(Entity *e)
-{
-    // Update crate appearance if on a target
-    
+{   
     for(int i = 0; i < currentEntityLength; ++i)
     {
         if(currentEntities[i].type == target_t && coLocated(e, &currentEntities[i])){
-            e->type = crate_active_t;
             return true;
         }
     }
     return false;
-    e->type = crate_t;
 }
 
 

@@ -45,6 +45,20 @@ typedef enum EntityType
     null_t,
 } EntityType;
 
+typedef struct SpriteSheet
+{
+    uint8_t w;
+    uint16_t *addr;
+} SpriteSheet;
+
+typedef struct Sprite
+{
+    const uint8_t w;
+    const uint8_t h;
+    const uint16_t *addr;
+} Sprite;
+
+
 typedef struct Entity
 {
     EntityType type;
@@ -56,8 +70,8 @@ typedef struct Entity
     int mx;
     int my;
     void (*behaviour)(struct Entity *e);
+    const Sprite *sprite;
 } Entity;
-
 
 
 //////////////////////////////////////////////////
