@@ -1,8 +1,22 @@
+#ifndef game_customtypes_h
+#define game_customtypes_h
+
 	#include <inttypes.h>
     #include <stdbool.h>
-
+    #include "config.h"
 // I had these in engine.h but some issue was causing compile 
 // to fail when including engine.h in resources.c!
+
+
+
+enum GameMode
+{
+    gm_intro,
+    gm_inGame,
+    gm_success,
+    gm_end,
+};
+
 
 typedef struct Rect
 {
@@ -58,6 +72,9 @@ typedef struct Sprite
     const uint16_t *addr;
 } Sprite;
 
+// Declarations here due to circular refs.
+typedef struct Entity Entity;
+typedef struct GameManager GameManager;
 
 typedef struct Entity
 {
@@ -69,9 +86,17 @@ typedef struct Entity
     // track movement
     int mx;
     int my;
-    void (*behaviour)(struct Entity *e);
+    void (*behaviour)(struct Entity *self, GameManager *gm);
     const Sprite *sprite;
 } Entity;
+
+typedef struct GameManager
+{
+    enum GameMode mode;
+    uint8_t envId;
+    uint8_t e_len;
+    Entity entities[MAX_ENTITIES];
+} GameManager;
 
 
 //////////////////////////////////////////////////
@@ -101,15 +126,6 @@ typedef struct EntitySpecs
 
 
 
-enum GameMode
-{
-    gm_intro,
-    gm_inGame,
-    gm_success,
-    gm_end,
-};
-
-
 typedef struct EnvSpec
 {
     const uint8_t *terrain;
@@ -118,3 +134,4 @@ typedef struct EnvSpec
     const int entity_count;
 } EnvSpec;
 
+#endif

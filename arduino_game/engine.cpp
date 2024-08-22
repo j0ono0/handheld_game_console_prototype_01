@@ -6,21 +6,15 @@ Extended_Tft screen = Extended_Tft(TFT_CS, TFT_DC);
 
 uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT];
 
-#define CSWIDTH 96 // width of 'entity_sprites_2' graphics resource
-
-# define ENTITYSPEC(type, w, h, x, y) (EntitySpecs{type, {w, h}, &entity_sprites_2[96 * y + x]})
 
 // throttle animation cycles
 unsigned long ani_clock = 0;
 
-// Current game_mode and environment
-uint8_t envId = 0;
-enum GameMode game_mode;
+
+GameManager gm = {gm_intro, 0, 0, {}};
 
 // Entities currently in environment.
-Entity currentEntities[MAX_ENTITIES];
 Entity *entitiesInDrawOrder[MAX_ENTITIES];
-int currentEntityLength = 0;
 
 
 
@@ -69,32 +63,25 @@ const TileMeta tile_meta[] =  {
 
 void populateCurrentEntities()
 {
-    currentEntityLength = 0;
-    for(int i = 0; i < environmentList[envId].entity_count; ++i)
+    gm.e_len = 0;
+    for(int i = 0; i < environmentList[gm.envId].entity_count; ++i)
     {
-        currentEntities[currentEntityLength] = environmentList[envId].entities[i];
-        entitiesInDrawOrder[currentEntityLength] = &currentEntities[currentEntityLength];
+        gm.entities[gm.e_len] = environmentList[gm.envId].entities[i];
 
-        switch(currentEntities[currentEntityLength].type)
-        {
-            case plr_t:
-                currentEntities[currentEntityLength].behaviour = &act_test;
-                break;
-            default:
-                currentEntities[currentEntityLength].behaviour = &do_nothing;
-                break;
-        }
-        currentEntityLength++;
+        gm.entities[gm.e_len] = environmentList[gm.envId].entities[i];
+        entitiesInDrawOrder[gm.e_len] = &gm.entities[gm.e_len];
+
+        gm.e_len++;
     }
     sortEntityDrawOrder();
 }
 
 Entity *assignPlayer()
 {
-    for(int i = 0; i < currentEntityLength; ++i)
+    for(int i = 0; i < gm.e_len; ++i)
     {
-        if(currentEntities[i].type == plr_t)
-            return &currentEntities[i];
+        if(gm.entities[i].type == plr_t)
+            return &gm.entities[i];
     }
     return NULL;
 }
@@ -104,27 +91,26 @@ Entity *assignPlayer()
 
 void setGameMode(GameMode mode)
 {
-    game_mode = mode;
+    gm.mode = mode;
 }
 GameMode gameMode()
 {
-    return game_mode;
+    return gm.mode;
 }
 
 int nextEnvironment()
 {
-    return setEnvironment(++envId);
+    return setEnvironment(++gm.envId);
 }
 int setEnvironment(int envIndex)
 {
-    // TODO: ensure index cannot be outside terrainList
     if(envIndex > 1)
     {
-        envIndex = 0;
+        gm.envId = 0;
     }
-    envId = envIndex;
+    gm.envId = envIndex;
     populateCurrentEntities();
-    return envId;
+    return gm.envId;
 }
 /////////////////////////////////////////////////////
 
@@ -155,7 +141,7 @@ void blitTerrain(uint8_t layer, uint16_t *buf)
     {
         for(int j = 0; j < TERRAIN_WIDTH; ++j)
         {
-            uint8_t tileId = environmentList[envId].terrain[i * TERRAIN_WIDTH +  j];
+            uint8_t tileId = environmentList[gm.envId].terrain[i * TERRAIN_WIDTH +  j];
 
             if(tile_meta[tileId].layer != layer)
             {
@@ -172,7 +158,7 @@ void blitTerrain(uint8_t layer, uint16_t *buf)
                 for(int col = 0; col < TERRAIN_UNIT; ++col)
                 {
                     // Transfer row to buf
-                    *cellbuf = terrain_color_table[*spritePtr + envId * 10];
+                    *cellbuf = terrain_color_table[*spritePtr + gm.envId * 10];
                     ++cellbuf;
                     ++spritePtr;
                 }
@@ -203,7 +189,7 @@ void sortEntityDrawOrder(){
     // Insertion sort
     int i, j;
     Entity *key;
-    for (i = 1; i < currentEntityLength; i++) {
+    for (i = 1; i < gm.e_len; i++) {
         key = entitiesInDrawOrder[i];
         j = i - 1;
 
@@ -219,7 +205,7 @@ void sortEntityDrawOrder(){
 void drawEntities(int layer)
 {
     // draw entities into buffer
-    for(int i = 0; i < currentEntityLength; ++i)
+    for(int i = 0; i < gm.e_len; ++i)
     {
         if(entitiesInDrawOrder[i]->layer == layer)
         {
@@ -242,7 +228,6 @@ void blitEntity(Entity *e, uint16_t *buf)
     int x = e->x * ENV_UNIT - e->mx ;
     int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - e->sprite->h);
 
-
     const uint16_t *sprite_ptr = e->sprite->addr;
 
     uint16_t *bufPtr = &buf[y * SCREEN_WIDTH + x];
@@ -256,29 +241,10 @@ void blitEntity(Entity *e, uint16_t *buf)
                 if(*sprite_ptr != COLOR_TRANSPARENT)
                     *bufPtr = *sprite_ptr;
                 ++bufPtr;
-                ++sprite_ptr;
-            
+                ++sprite_ptr; 
         }
-        // Move to start of next row
+        // Move screen buffer to next row
         bufPtr += SCREEN_WIDTH - e->sprite->w;
-
-        //////////// !!!!!!!!!!!!!!!!!!!!!! //////////////////////
-
-
-        // TODO: I need to access width of different sprite sheets here
-        //       in a meaningful way.
-
-        //////////// !!!!!!!!!!!!!!!!!!!!!! //////////////////////
-
-        // if(e->type == plr_t){
-        //     sprite_ptr += 80 -  e->sprite->w;
-
-        // }
-        // else{
-        //     sprite_ptr += CSWIDTH -  e->sprite->w;
-
-        // }
-
     }
 }
 
@@ -318,16 +284,16 @@ void updateSprites()
     ani_clock = now;
     step = (step + 1) % MAXANIMATIONSTEPS;
 
-    for(int i = 0; i < currentEntityLength; ++i)
+    for(int i = 0; i < gm.e_len; ++i)
     {
         int8_t x_direction = 0;
         int8_t y_direction = 0;
 
-        Entity *e = &currentEntities[i];
+        Entity *e = &gm.entities[i];
         if(e->mx != 0 || e->my != 0)
         {
-            x_direction = (e->mx > 0) - (e->mx < 0); // results in +/- 1 or 0 (1)
-            y_direction = (e->my > 0) - (e->my < 0); // results in +/- 1 or 0 (1)
+            x_direction = (e->mx > 0) - (e->mx < 0); // results in +/- 1 or 0
+            y_direction = (e->my > 0) - (e->my < 0); // results in +/- 1 or 0
             // Reduce distance to destination location
             e->mx -= STEP_DISTANCE * x_direction;
             e->my -= STEP_DISTANCE * y_direction;
@@ -340,19 +306,19 @@ void updateSprites()
                 {
                     if(x_direction > 0)
                     {
-                        e->sprite = prof_walk_east_cycle[step%2]; 
+                        e->sprite = prof_walk_east_cycle[step%2];
                     }
                     else if (x_direction < 0)
                     {
-                        e->sprite = prof_walk_west_cycle[step%2]; 
+                        e->sprite = prof_walk_west_cycle[step%2];
                     }
                     else if (y_direction < 0)
                     {
-                        e->sprite = prof_walk_north_cycle[step%2]; 
+                        e->sprite = prof_walk_north_cycle[step%2];
                     }
                     else if (y_direction > 0)
                     {
-                        e->sprite = prof_walk_south_cycle[step%2]; 
+                        e->sprite = prof_walk_south_cycle[step%2];
                     }
                 }
                 else
@@ -373,17 +339,17 @@ void updateSprites()
                 break;
 
 
-            case crate_t:
-                if(entity_on_target(e))
-                {
-                    e->sprite = &sprite_crate_active;
-                }else{
-                    e->sprite = &sprite_crate;
-                }
-                break;
+            // case crate_t:
+            //     if(entity_on_target(e))
+            //     {
+            //         e->sprite = &sprite_crate_active;
+            //     }else{
+            //         e->sprite = &sprite_crate;
+            //     }
+            //     break;
             case powerconverter_t:
             case powerconverter_active_t:
-                if(entity_on_target(e))
+                if(entity_on_target(e, &gm))
                 {
                     e->type = powerconverter_active_t;
                 }else{
@@ -408,9 +374,9 @@ bool spriteInTransit(Entity *e)
 
 bool spritesInTransit()
 {
-     for(int i = 0; i < currentEntityLength; ++i)
+     for(int i = 0; i < gm.e_len; ++i)
     {
-        if(spriteInTransit(&currentEntities[i]))
+        if(spriteInTransit(&gm.entities[i]))
         { 
             return true;
         }
@@ -423,7 +389,7 @@ bool spritesInTransit()
 
 int tileAtLoc(int x, int y)
 {
-    return environmentList[envId].terrain[y * TERRAIN_WIDTH + x];
+    return environmentList[gm.envId].terrain[y * TERRAIN_WIDTH + x];
 }
 
 
@@ -452,16 +418,16 @@ bool gameSolved()
     Entity *target;
     Entity *crate;
     // Test if every target has a crate on the same location.
-    for(int i = 0; i < currentEntityLength; i++)
+    for(int i = 0; i < gm.e_len; i++)
     {
-        target = &currentEntities[i];
+        target = &gm.entities[i];
         if(target->type == target_t)
         {
             bool has_crate = false;
             
-            for(int j = 0; j < currentEntityLength; j++)
+            for(int j = 0; j < gm.e_len; j++)
             {
-                crate = &currentEntities[j];
+                crate = &gm.entities[j];
                 // TODO: This a is bad way to test if game is solved
                 // make it better !!!
                 if(
@@ -486,14 +452,14 @@ bool gameSolved()
 
 struct Entity *entityAtLocation(int x, int y, int layer)
 {
-    for(int i = 0; i < currentEntityLength; ++i)
+    for(int i = 0; i < gm.e_len; ++i)
     {
         if(
-            currentEntities[i].x == x && 
-            currentEntities[i].y == y &&
-            currentEntities[i].layer == layer
+            gm.entities[i].x == x && 
+            gm.entities[i].y == y &&
+            gm.entities[i].layer == layer
         )
-            return &currentEntities[i];
+            return &gm.entities[i];
     }
     return NULL;
 }
@@ -552,32 +518,25 @@ void screenEnvComplete(){ screen.drawMapComplete(); }
 
 void runBehaviours()
 {
-    for(int i = 0; i < currentEntityLength; ++i)
+    Serial.println("running behaviours");
+    for(int i = 0; i < gm.e_len; ++i)
     {
-        if(currentEntities[i].behaviour)
+        if(gm.entities[i].behaviour)
         {
-            (*currentEntities[i].behaviour)(&currentEntities[i]);
+            (*gm.entities[i].behaviour)(&gm.entities[i], &gm);
         }
     }
 }
 
-void do_nothing(Entity *e){}
-
-void act_test(Entity *e)
-{
-    // Serial.println("hello entity animation action.");
-}
-
-bool entity_on_target(Entity *e)
+bool entity_on_target(Entity *e, GameManager *gm)
 {   
-    for(int i = 0; i < currentEntityLength; ++i)
+    for(int i = 0; i < gm->e_len; ++i)
     {
-        if(currentEntities[i].type == target_t && coLocated(e, &currentEntities[i])){
+        if(gm->entities[i].type == target_t && coLocated(e, &gm->entities[i])){
             return true;
         }
     }
     return false;
 }
-
 
 

@@ -23,28 +23,19 @@ extern const uint16_t terrain_color_table[];
 extern const EnvSpec environmentList[];
 
 
+extern const Sprite sprite_target;
+extern const Sprite sprite_crate;
+extern const Sprite sprite_crate_active;
+extern const Sprite sprite_powerconverter;
+extern const Sprite sprite_powerconverter_active;
 
-// extern Sprite sprite_prof_stationary_right;
-// extern Sprite sprite_prof_stationary_left;
+extern const Sprite sprite_prof_stationary_left;
+extern const Sprite sprite_prof_stationary_right;
+
 extern Sprite *prof_walk_east_cycle[];
 extern Sprite *prof_walk_west_cycle[];
 extern Sprite *prof_walk_north_cycle[];
 extern Sprite *prof_walk_south_cycle[];
-
-// extern Sprite sprite_crate;
-// extern Sprite sprite_crate_active;
-// extern Sprite sprite_target;
-
-extern const Sprite sprite_target;
-extern const Sprite sprite_crate;
-extern const Sprite sprite_crate_active;
-extern const Sprite sprite_prof_stationary_left;
-extern const Sprite sprite_prof_stationary_right;
-
-
-
-
-
 
 
 //////////////////////////////////////////////////////////////////
@@ -99,8 +90,6 @@ void screenEnvComplete();
 ///////////////////////////////////////////////////////////////
 
 void runBehaviours();
-void do_nothing(Entity *e);
-void act_test(Entity *e);
-bool entity_on_target(Entity *e);
+bool entity_on_target(Entity *e, GameManager *gm);
 
 #endif
