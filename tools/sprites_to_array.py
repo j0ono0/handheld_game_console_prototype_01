@@ -82,6 +82,14 @@ def save_sprite_arrays(spriteset, dst_path):
 prof_data = [
     Sprite("prof_stationary_left", 0, 0, 16, 32),
     Sprite("prof_stationary_right", 16, 0, 16, 32),
+    Sprite("prof_walk_east_1", 0, 32, 16, 32),
+    Sprite("prof_walk_east_2", 32, 32, 16, 32),
+    Sprite("prof_walk_west_1", 48, 64, 16, 32),
+    Sprite("prof_walk_west_2", 16, 64, 16, 32),
+    Sprite("prof_walk_south_1", 0, 96, 16, 32),
+    Sprite("prof_walk_south_2", 16, 96, 16, 32),
+    Sprite("prof_walk_north_1", 32, 96, 16, 32),
+    Sprite("prof_walk_north_2", 48, 96, 16, 32),
 ]
 prof_sprites = split_spritesheet(load_image("../graphics/sprites_prof.png"), prof_data)
 # save_sprite_arrays(prof_sprites, "./temp/sprites_prof.c")
@@ -90,6 +98,8 @@ entity_data = [
     Sprite("target", 48, 43, 16, 13),
     Sprite("crate", 64, 32, 16, 23),
     Sprite("crate_active", 80, 32, 16, 23),
+    Sprite("powerconverter", 64, 55, 16, 25),
+    Sprite("powerconverter_active", 80, 55, 16, 25),
 ]
 entity_sprites = split_spritesheet(
     load_image("../graphics/entity_sprites_2.png"), entity_data
