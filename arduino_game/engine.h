@@ -11,11 +11,6 @@
 
 //////////////////////////////////////////////////////////////////
 
-void setGameMode(GameMode mode);
-GameMode gameMode();
-
-// int nextEnvironment();
-// int setEnvironment(int envIndex);
 
 void populateEntities(const Entity *entities, uint8_t length);
 Entity *assignPlayer();

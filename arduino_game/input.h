@@ -23,9 +23,8 @@ int readUserInput();
 
 // queue for user input (keypresses)
 #define KPQMAX 5
-int keypress_queue_length();
 void enqueue_kpq(int keyvalue);
 int dequeue_kpq();
-int queue_length();
+int kpq_next();
 
 #endif

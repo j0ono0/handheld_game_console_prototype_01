@@ -62,10 +62,6 @@ int size_kpq = 0;
 int front_kpq = 0;
 int rear_kpq = -1;
 
-int kpq_length()
-{
-    return rear_kpq - front_kpq;
-}
 
 void enqueue_kpq(int keyvalue)
 {
@@ -98,7 +94,11 @@ int dequeue_kpq()
     return value;
 }
 
-int queue_length()
+int kpq_next()
 {
-    return size_kpq;
+    if (size_kpq <= 0)
+    {
+        return -1;
+    }
+    return keypress_queue[front_kpq];
 }

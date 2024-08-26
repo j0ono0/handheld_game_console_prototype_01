@@ -7,13 +7,7 @@
 // I had these in engine.h but some issue was causing compile
 // to fail when including engine.h in resources.c!
 
-enum GameMode
-{
-    gm_intro,
-    gm_inGame,
-    gm_success,
-    gm_end,
-};
+
 
 typedef struct Rect
 {
@@ -88,7 +82,6 @@ typedef struct Entity
 
 typedef struct GameManager
 {
-    enum GameMode mode;
     uint8_t e_len;
     Entity entities[MAX_ENTITIES];
     const uint8_t *terrain;
