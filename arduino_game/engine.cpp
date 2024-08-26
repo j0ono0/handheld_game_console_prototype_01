@@ -1,6 +1,33 @@
 #include "engine.h"
 
+#include "resources.h"
 
+//////////////////////////////////////////////////////////////////
+/// External graphics and data                                  //
+
+extern const uint16_t prof_walk_01[];
+extern const uint16_t entity_sprites_2[];
+
+extern const uint8_t terrain_tiles_indexed[];
+extern const uint16_t terrain_color_table[];
+
+
+// extern const EnvSpec environmentList[];
+
+// extern const Sprite sprite_target;
+// extern const Sprite sprite_crate;
+// extern const Sprite sprite_crate_active;
+// extern const Sprite sprite_powerconverter;
+// extern const Sprite sprite_powerconverter_active;
+
+// extern const Sprite sprite_prof_stationary_left;
+// extern const Sprite sprite_prof_stationary_right;
+
+// extern Sprite *prof_walk_east_cycle[];
+// extern Sprite *prof_walk_west_cycle[];
+// extern Sprite *prof_walk_north_cycle[];
+// extern Sprite *prof_walk_south_cycle[];
+/////////////////////////////////////////////////////////////////
 
 Extended_Tft screen = Extended_Tft(TFT_CS, TFT_DC);
 
@@ -248,24 +275,6 @@ void blitEntity(Entity *e, uint16_t *buf)
     }
 }
 
-void moveEntity(Entity *e, int dx, int dy)
-{
-
-    // Update entity (x, y) position
-    // *** NOTE: entity coordinates updated at immediately: 
-    // So subsequent entities moving interact with an up-to-date environment ***
-    e->x += dx;
-    e->y += dy;
-    
-    // mx and my are in pixels.
-    // they indicate direction and distance sprite has to move
-    e->mx += dx * ENV_UNIT;
-    e->my += dy * ENV_UNIT;
-
-    // Draw order may need rearranging if entity moved vertically
-    if(dy !=0)
-        sortEntityDrawOrder();
-}
 
 /////////////////////////////////////////////////////
 // Sprite controls                                ///
@@ -450,19 +459,7 @@ bool gameSolved()
 }
 
 
-struct Entity *entityAtLocation(int x, int y, int layer)
-{
-    for(int i = 0; i < gm.e_len; ++i)
-    {
-        if(
-            gm.entities[i].x == x && 
-            gm.entities[i].y == y &&
-            gm.entities[i].layer == layer
-        )
-            return &gm.entities[i];
-    }
-    return NULL;
-}
+
 
 
 
@@ -484,23 +481,9 @@ bool terrainBlocksMovement(int x, int y, int w, int h)
     return false;
 }
 
-bool atLocation(Entity *entity, int x, int y)
-{
-    if (entity->x == x && entity->y == y)
-    {
-        return true;
-    }
-    return false;
-}
 
-bool coLocated(Entity *a, Entity *b)
-{
-    if (a->x == b->x && a->y == b->y)
-    {
-        return true;
-    }
-    return false;
-}
+
+
 
 void screenSetup()
 {   
@@ -518,7 +501,6 @@ void screenEnvComplete(){ screen.drawMapComplete(); }
 
 void runBehaviours()
 {
-    Serial.println("running behaviours");
     for(int i = 0; i < gm.e_len; ++i)
     {
         if(gm.entities[i].behaviour)

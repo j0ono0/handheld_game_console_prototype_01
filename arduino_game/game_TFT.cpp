@@ -1,6 +1,6 @@
 #include "game_TFT.h"
 
-#include "title_screen_main.c"
+extern const uint16_t title_screen_main[];
 
 void Extended_Tft::drawIntro()
 {   

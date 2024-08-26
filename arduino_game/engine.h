@@ -2,40 +2,11 @@
 #define game_engine_h
 
 #include <inttypes.h>
-#include "game_TFT.h"
 #include "Arduino.h"
+#include "game_TFT.h"
 #include "config.h"
 #include "customtypes.h"
-
-
-
-
-//////////////////////////////////////////////////////////////////
-/// External graphics and environment data in resources.h       //
-
-extern const uint16_t prof_walk_01[];
-extern const uint16_t entity_sprites_2[];
-
-extern const uint8_t terrain_tiles_indexed[];
-extern const uint16_t terrain_color_table[];
-
-
-extern const EnvSpec environmentList[];
-
-
-extern const Sprite sprite_target;
-extern const Sprite sprite_crate;
-extern const Sprite sprite_crate_active;
-extern const Sprite sprite_powerconverter;
-extern const Sprite sprite_powerconverter_active;
-
-extern const Sprite sprite_prof_stationary_left;
-extern const Sprite sprite_prof_stationary_right;
-
-extern Sprite *prof_walk_east_cycle[];
-extern Sprite *prof_walk_west_cycle[];
-extern Sprite *prof_walk_north_cycle[];
-extern Sprite *prof_walk_south_cycle[];
+#include "interactions.h"
 
 
 //////////////////////////////////////////////////////////////////
@@ -74,11 +45,11 @@ bool inbounds(int x, int y);
 bool cheatGame(int keypress);
 bool gameSolved();
 
-struct Entity *entityAtLocation(int x, int y, int layer);
+
 bool terrainBlocksMovement(int x, int y, int w, int h);
 
-bool atLocation(Entity *entity, int x, int y);
-bool coLocated(Entity *a, Entity *b);
+
+
 
 
 void screenSetup();

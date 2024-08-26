@@ -1,12 +1,6 @@
-	// Spritesheet
-	// terrain maps
 
-	#include <stddef.h>
-	#include "customtypes.h"
-	
-	
+#include "resources.h"
 
-	extern const uint16_t prof_spritesheet[];
 
 const uint8_t terrain_1[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -370,22 +364,7 @@ const uint8_t terrain_tiles_indexed[] = {
 };
 
 
-// from: sprites_entities.c
-extern const Sprite sprite_target;
-extern const Sprite sprite_crate;
-extern const Sprite sprite_crate_active;
-extern const Sprite sprite_powerconverter;
-extern const Sprite sprite_powerconverter_active;
-extern const Sprite sprite_prof_stationary_left;
-extern const Sprite sprite_prof_stationary_right;
-extern const Sprite sprite_prof_walk_east_1;
-extern const Sprite sprite_prof_walk_east_2;
-extern const Sprite sprite_prof_walk_west_1;
-extern const Sprite sprite_prof_walk_west_2;
-extern const Sprite sprite_prof_walk_south_1;
-extern const Sprite sprite_prof_walk_south_2;
-extern const Sprite sprite_prof_walk_north_1;
-extern const Sprite sprite_prof_walk_north_2;
+
 
 
 const Sprite *prof_walk_east_cycle[] = {
@@ -410,7 +389,7 @@ const Sprite *prof_walk_south_cycle[] = {
 
 
 const Entity entities_01[]={
-	{plr_t, 16, 6 , 2, 0, 0, NULL , &sprite_prof_stationary_left},
+	{plr_t, 16, 6 , 2, 0, 0, &plr_behaviour , &sprite_prof_stationary_left},
 	// {officer_t, 8, 8, 2, 0, 0, NULL , NULL},
 	// {office_chair_t, 7, 7, 2, 0, 0, NULL , NULL},
 
@@ -427,13 +406,13 @@ const Entity entities_01[]={
 	{target_t, 17, 11, 1, 0, 0, NULL , &sprite_target},
 	{target_t, 15, 12, 1, 0, 0, NULL , &sprite_target},
 
-	{crate_t,  15,  7, 2, 0, 0, NULL , &sprite_crate},
-	{crate_t,  15,  8, 2, 0, 0, NULL , &sprite_crate},
-	{crate_t,  15,  9, 2, 0, 0, NULL , &sprite_crate},
-	{crate_t,  12, 11, 2, 0, 0, NULL , &sprite_crate},
-	{crate_t,  14, 11, 2, 0, 0, NULL , &sprite_crate},
-	{crate_t,  15, 11, 2, 0, 0, NULL , &sprite_crate},
-	{crate_t,  16, 11, 2, 0, 0, NULL , &sprite_crate},
+	{crate_t,  15,  7, 2, 0, 0, &crate_behaviour , &sprite_crate},
+	{crate_t,  15,  8, 2, 0, 0, &crate_behaviour , &sprite_crate},
+	{crate_t,  15,  9, 2, 0, 0, &crate_behaviour , &sprite_crate},
+	{crate_t,  12, 11, 2, 0, 0, &crate_behaviour , &sprite_crate},
+	{crate_t,  14, 11, 2, 0, 0, &crate_behaviour , &sprite_crate},
+	{crate_t,  15, 11, 2, 0, 0, &crate_behaviour , &sprite_crate},
+	{crate_t,  16, 11, 2, 0, 0, &crate_behaviour , &sprite_crate},
 };
 
 const Entity entities_02[]={
