@@ -89,9 +89,9 @@ typedef struct Entity
 typedef struct GameManager
 {
     enum GameMode mode;
-    uint8_t envId;
     uint8_t e_len;
     Entity entities[MAX_ENTITIES];
+    const uint8_t *terrain;
 } GameManager;
 
 //////////////////////////////////////////////////

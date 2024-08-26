@@ -40,6 +40,5 @@
 #define COLOR_TRANSPARENT 0x07e0
 
 #define MAX_ENTITIES 100
-#define MAX_ENVIRONMENTS 2
 
 #endif

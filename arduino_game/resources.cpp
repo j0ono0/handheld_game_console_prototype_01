@@ -4746,7 +4746,6 @@ const Entity entities_01[] = {
     {crate_t, 15, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
     {crate_t, 16, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
 };
-
 const Entity entities_02[] = {
     {plr_t, 6, 7, 2, 0, 0, &plr_behaviour, &sprite_prof_stationary_left},
     // {strongman_t,     11, 10, 2, 0, 0, NULL , NULL},

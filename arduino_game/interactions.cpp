@@ -56,7 +56,7 @@ bool inbounds(int x, int y)
 
 int tileAtLoc(int x, int y, GameManager *gm)
 {
-    return environmentList[gm->envId].terrain[y * TERRAIN_WIDTH + x];
+    return gm->terrain[y * TERRAIN_WIDTH + x];
 }
 
 bool atLocation(Entity *entity, int x, int y)

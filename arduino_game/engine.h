@@ -7,17 +7,19 @@
 #include "config.h"
 #include "customtypes.h"
 #include "interactions.h"
+#include "sprites.h"
 
 //////////////////////////////////////////////////////////////////
 
 void setGameMode(GameMode mode);
 GameMode gameMode();
 
-int nextEnvironment();
-int setEnvironment(int envIndex);
+// int nextEnvironment();
+// int setEnvironment(int envIndex);
 
-void populateCurrentEntities();
+void populateEntities(const Entity *entities, uint8_t length);
 Entity *assignPlayer();
+void setTerrain(const uint8_t *terrain);
 
 //////////////////////////////////////////////////////////////////
 void advanceSpriteAnimations();

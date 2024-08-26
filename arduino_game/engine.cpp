@@ -1,7 +1,5 @@
 #include "engine.h"
 
-#include "resources.h"
-
 //////////////////////////////////////////////////////////////////
 /// External graphics and data                                  //
 
@@ -35,21 +33,21 @@ uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT]
 // throttle animation cycles
 unsigned long ani_clock = 0;
 
-GameManager gm = {gm_intro, 0, 0, {}};
+GameManager gm = {gm_intro, 0, {}, NULL};
 
 // Entities currently in environment.
 Entity *entitiesInDrawOrder[MAX_ENTITIES];
 
 /////////////////////////////////////////////////////
 
-void populateCurrentEntities()
+void populateEntities(const Entity *entities, uint8_t length)
 {
     gm.e_len = 0;
-    for (int i = 0; i < environmentList[gm.envId].entity_count; ++i)
+    for (int i = 0; i < length; ++i)
     {
-        gm.entities[gm.e_len] = environmentList[gm.envId].entities[i];
+        gm.entities[gm.e_len] = entities[i];
 
-        gm.entities[gm.e_len] = environmentList[gm.envId].entities[i];
+        gm.entities[gm.e_len] = entities[i];
         entitiesInDrawOrder[gm.e_len] = &gm.entities[gm.e_len];
 
         gm.e_len++;
@@ -67,6 +65,11 @@ Entity *assignPlayer()
     return NULL;
 }
 
+void setTerrain(const uint8_t *terrain)
+{
+    gm.terrain = terrain;
+}
+
 /////////////////////////////////////////////////////
 // GameMode and Env controls /////////////////////////////////////
 
@@ -79,20 +82,6 @@ GameMode gameMode()
     return gm.mode;
 }
 
-int nextEnvironment()
-{
-    return setEnvironment(++gm.envId);
-}
-int setEnvironment(int index)
-{
-    if (index > 1)
-    {
-        gm.envId = 0;
-    }
-    gm.envId = index;
-    populateCurrentEntities();
-    return gm.envId;
-}
 /////////////////////////////////////////////////////
 
 void advanceSpriteAnimations()
@@ -121,7 +110,7 @@ void blitTerrain(uint8_t layer, uint16_t *buf)
     {
         for (int j = 0; j < TERRAIN_WIDTH; ++j)
         {
-            uint8_t tileId = environmentList[gm.envId].terrain[i * TERRAIN_WIDTH + j];
+            uint8_t tileId = gm.terrain[i * TERRAIN_WIDTH + j];
             /////////////////////////////////////////////////////////////
             // tile_meta is in interactions.h -- not ideal filing?
             /////////////////////////////////////////////////////////////
@@ -140,7 +129,9 @@ void blitTerrain(uint8_t layer, uint16_t *buf)
                 for (int col = 0; col < TERRAIN_UNIT; ++col)
                 {
                     // Transfer row to buf
-                    *cellbuf = terrain_color_table[*spritePtr + gm.envId * 10];
+                    // TODO: select indexed colour table row
+                    // *cellbuf = terrain_color_table[*spritePtr + gm.envId * 10];
+                    *cellbuf = terrain_color_table[*spritePtr];
                     ++cellbuf;
                     ++spritePtr;
                 }
