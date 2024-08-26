@@ -8,7 +8,6 @@
 #include "customtypes.h"
 #include "interactions.h"
 
-
 //////////////////////////////////////////////////////////////////
 
 void setGameMode(GameMode mode);
@@ -38,19 +37,13 @@ bool spriteInTransit(Entity *e);
 bool spritesInTransit();
 
 //////////////////////////////////////////////////////////////////
-int tileAtLoc(int x, int y);
 
 bool inbounds(int x, int y);
 
 bool cheatGame(int keypress);
 bool gameSolved();
 
-
 bool terrainBlocksMovement(int x, int y, int w, int h);
-
-
-
-
 
 void screenSetup();
 void screenDrawBuf(uint16_t *buf, int x, int y);

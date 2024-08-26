@@ -1,13 +1,11 @@
 #ifndef game_customtypes_h
 #define game_customtypes_h
 
-	#include <inttypes.h>
-    #include <stdbool.h>
-    #include "config.h"
-// I had these in engine.h but some issue was causing compile 
+#include <inttypes.h>
+#include <stdbool.h>
+#include "config.h"
+// I had these in engine.h but some issue was causing compile
 // to fail when including engine.h in resources.c!
-
-
 
 enum GameMode
 {
@@ -16,7 +14,6 @@ enum GameMode
     gm_success,
     gm_end,
 };
-
 
 typedef struct Rect
 {
@@ -37,7 +34,6 @@ typedef struct Location
     int x;
     int y;
 } Location;
-
 
 typedef enum EntityType
 {
@@ -98,7 +94,6 @@ typedef struct GameManager
     Entity entities[MAX_ENTITIES];
 } GameManager;
 
-
 //////////////////////////////////////////////////
 //
 //  'layer' in TileMeta.
@@ -123,8 +118,6 @@ typedef struct EntitySpecs
     Dimensions dimensions;
     const uint16_t *sprite_addr;
 } EntitySpecs;
-
-
 
 typedef struct EnvSpec
 {
