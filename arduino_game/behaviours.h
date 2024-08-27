@@ -16,6 +16,7 @@
 
 void do_nothing(Entity *self, GameManager *gm);
 void crate_behaviour(Entity *self, GameManager *gm);
+void powerconverter_behaviour(Entity *self, GameManager *gm);
 void plr_behaviour(Entity *self, GameManager *gm);
 
 

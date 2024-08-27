@@ -16,8 +16,7 @@ Extended_Tft screen = Extended_Tft(TFT_CS, TFT_DC);
 
 uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT];
 
-// throttle animation cycles
-unsigned long ani_clock = 0;
+
 
 GameManager gm = {0, {}, NULL};
 
@@ -207,6 +206,7 @@ void updateSprites()
 #define STEP_DISTANCE 4
 #define ANIMATIONSPEED 80
     static int step = 0;
+    static unsigned long ani_clock = 0;
 
     int now = millis();
     if (now - ani_clock < ANIMATIONSPEED)

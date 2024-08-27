@@ -98,8 +98,8 @@ entity_data = [
     Sprite("target", 48, 43, 16, 13),
     Sprite("crate", 64, 32, 16, 23),
     Sprite("crate_active", 80, 32, 16, 23),
-    Sprite("powerconverter", 64, 55, 16, 25),
-    Sprite("powerconverter_active", 80, 55, 16, 25),
+    Sprite("powerconverter", 80, 55, 16, 25),
+    Sprite("powerconverter_active", 64, 55, 16, 25),
 ]
 entity_sprites = split_spritesheet(
     load_image("../graphics/entity_sprites_2.png"), entity_data
