@@ -1,5 +1,8 @@
 #include "engine.h"
 
+#define MAXANIMATIONSTEPS 4
+#define ANIMATIONSPEED 80
+
 //////////////////////////////////////////////////////////////////
 /// External graphics and data                                  //
 
@@ -8,7 +11,6 @@ extern const uint16_t entity_sprites_2[];
 
 extern const uint8_t terrain_tiles_indexed[];
 extern const uint16_t terrain_color_table[];
-
 
 /////////////////////////////////////////////////////////////////
 
@@ -19,7 +21,7 @@ uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT]
 // throttle animation cycles
 unsigned long ani_clock = 0;
 
-GameManager gm = {0, {}, NULL};
+GameManager gm = {0, {}, NULL, 0};
 
 // Entities currently in environment.
 Entity *entitiesInDrawOrder[MAX_ENTITIES];
@@ -56,14 +58,16 @@ void setTerrain(const uint8_t *terrain)
     gm.terrain = terrain;
 }
 
-
 /////////////////////////////////////////////////////
 
 void advanceSpriteAnimations()
 {
     // Progress all sprite movements of entities
-    updateSprites();
-    drawAll();
+    if (advance_animation_clock(&gm.animation_clock))
+    {
+        updateSprites(gm.animation_clock);
+        drawAll();
+    }
 }
 
 void drawAll()
@@ -200,22 +204,25 @@ void blitEntity(Entity *e, uint16_t *buf)
 /////////////////////////////////////////////////////
 // Sprite controls                                ///
 
-void updateSprites()
+bool step_animation_clock(uint8_t *clock)
+{
+    // #define MAXANIMATIONSTEPS 4
+    // #define ANIMATIONSPEED 80
+    static uint32_t last = 0;
+    uint32_t now = millis();
+    if (now - last >= ANIMATIONSPEED)
+    {
+        last = now;
+        *clock = *clock + 1 % MAXANIMATIONSTEPS;
+        return true;
+    }
+    return false;
+}
+
+void updateSprites(uint8_t clock)
 {
 // Progress all animation cycles with 'step'.
-#define MAXANIMATIONSTEPS 4
 #define STEP_DISTANCE 4
-#define ANIMATIONSPEED 80
-    static int step = 0;
-
-    int now = millis();
-    if (now - ani_clock < ANIMATIONSPEED)
-    {
-        return;
-    }
-
-    ani_clock = now;
-    step = (step + 1) % MAXANIMATIONSTEPS;
 
     for (int i = 0; i < gm.e_len; ++i)
     {
@@ -239,19 +246,19 @@ void updateSprites()
             {
                 if (x_direction > 0)
                 {
-                    e->sprite = prof_walk_east_cycle[step % 2];
+                    e->sprite = prof_walk_east_cycle[clock % 2];
                 }
                 else if (x_direction < 0)
                 {
-                    e->sprite = prof_walk_west_cycle[step % 2];
+                    e->sprite = prof_walk_west_cycle[clock % 2];
                 }
                 else if (y_direction < 0)
                 {
-                    e->sprite = prof_walk_north_cycle[step % 2];
+                    e->sprite = prof_walk_north_cycle[clock % 2];
                 }
                 else if (y_direction > 0)
                 {
-                    e->sprite = prof_walk_south_cycle[step % 2];
+                    e->sprite = prof_walk_south_cycle[clock % 2];
                 }
             }
             else
