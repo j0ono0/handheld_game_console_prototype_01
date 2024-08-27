@@ -7,8 +7,6 @@
 // I had these in engine.h but some issue was causing compile
 // to fail when including engine.h in resources.c!
 
-
-
 typedef struct Rect
 {
     int x;
@@ -85,6 +83,7 @@ typedef struct GameManager
     uint8_t e_len;
     Entity entities[MAX_ENTITIES];
     const uint8_t *terrain;
+    uint8_t animation_clock;
 } GameManager;
 
 //////////////////////////////////////////////////

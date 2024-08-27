@@ -11,7 +11,6 @@
 
 //////////////////////////////////////////////////////////////////
 
-
 void populateEntities(const Entity *entities, uint8_t length);
 Entity *assignPlayer();
 void setTerrain(const uint8_t *terrain);
@@ -28,8 +27,8 @@ void blitEntity(Entity *e, uint16_t *buf);
 void moveEntity(Entity *e, int mx, int my);
 
 //////////////////////////////////////////////////////////////////
-
-void updateSprites();
+bool advance_animation_clock(uint8_t *clock);
+void updateSprites(uint8_t clock);
 bool spriteInTransit(Entity *e);
 bool spritesInTransit();
 
