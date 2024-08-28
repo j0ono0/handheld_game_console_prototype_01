@@ -62,11 +62,13 @@ void setTerrain(const uint8_t *terrain)
 void advanceSpriteAnimations()
 {
     // Progress all sprite movements of entities
-    if (advance_animation_clock(&gm.animation_clock))
+    if(advance_animation_clock(&gm.animation_clock))
     {
         updateSprites(gm.animation_clock);
-        drawAll();
     }
+    // TODO: Investigate syncing drawAll() to animation clock causes full screen to flicker!
+    drawAll();
+    
 }
 
 void drawAll()
@@ -176,20 +178,20 @@ void blitEntity(Entity *e, uint16_t *buf)
     walking plr to top of screen causes crash! sprite rendering outside buffer????
 
     */
-
+   uint8_t i = gm.animation_clock % e->sprite->length;
 
     int x = e->x * ENV_UNIT - e->mx;
-    int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - e->sprite[0]->h);
+    int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - e->sprite->frameset[i]->h);
 
     // TODO: select sprite_frame based on gm.animation_clock
-    const uint16_t *sprite_ptr = e->sprite[0]->addr;
+    const uint16_t *sprite_ptr = e->sprite->frameset[i]->addr;
 
     uint16_t *bufPtr = &buf[y * SCREEN_WIDTH + x];
 
     // copy sprite into buf.
-    for (int row = 0; row < e->sprite[0]->h; ++row)
+    for (int row = 0; row < e->sprite->frameset[i]->h; ++row)
     {
-        for (int col = 0; col < e->sprite[0]->w; ++col)
+        for (int col = 0; col < e->sprite->frameset[i]->w; ++col)
         {
             // Transfer row to buf
             if (*sprite_ptr != COLOR_TRANSPARENT)
@@ -198,7 +200,7 @@ void blitEntity(Entity *e, uint16_t *buf)
             ++sprite_ptr;
         }
         // Move screen buffer to next row
-        bufPtr += SCREEN_WIDTH - e->sprite[0]->w;
+        bufPtr += SCREEN_WIDTH - e->sprite->frameset[i]->w;
     }
 }
 
@@ -207,14 +209,12 @@ void blitEntity(Entity *e, uint16_t *buf)
 
 bool advance_animation_clock(uint8_t *clock)
 {
-    // #define MAXANIMATIONSTEPS 4
-    // #define ANIMATIONSPEED 80
     static uint32_t last = 0;
     uint32_t now = millis();
     if (now - last >= ANIMATIONSPEED)
     {
         last = now;
-        *clock = *clock + 1 % MAXANIMATIONSTEPS;
+        *clock = (*clock + 1) % MAXANIMATIONSTEPS;
         return true;
     }
     return false;

@@ -53,11 +53,17 @@ typedef struct SpriteSheet
     uint16_t *addr;
 } SpriteSheet;
 
-typedef struct Sprite
+typedef struct SpriteFrame
 {
     const uint8_t w;
     const uint8_t h;
     const uint16_t *addr;
+} SpriteFrame;
+
+typedef struct Sprite
+{
+    const uint8_t length;
+    const SpriteFrame **frameset;
 } Sprite;
 
 // Declarations here due to circular refs.
@@ -75,7 +81,7 @@ typedef struct Entity
     int mx;
     int my;
     void (*behaviour)(struct Entity *self, GameManager *gm);
-    const Sprite **sprite;
+    const Sprite *sprite;
 } Entity;
 
 typedef struct GameManager
