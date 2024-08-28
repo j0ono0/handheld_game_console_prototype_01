@@ -13,7 +13,7 @@
 #include "sprites.h"
 #include "input.h"
 
-
+void updateMovementTransition(Entity *e, uint8_t step_distance);
 void do_nothing(Entity *self, GameManager *gm);
 void crate_behaviour(Entity *self, GameManager *gm);
 void powerconverter_behaviour(Entity *self, GameManager *gm);

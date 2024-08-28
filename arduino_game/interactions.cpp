@@ -133,3 +133,8 @@ bool entity_on_target(Entity *e, GameManager *gm)
     }
     return false;
 }
+
+bool entityInMotion(Entity *e)
+{
+    return e->mx != 0 || e->my != 0;
+}

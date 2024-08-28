@@ -408,7 +408,7 @@ const uint8_t terrain_tiles_indexed[] = {
 
 
 const Entity entities_01[] = {
-    {plr_t, 16, 6, 2, 0, 0, &plr_behaviour, &sprite_prof_walk_south},
+    {plr_t, 16, 6, 2, 0, 0, &plr_behaviour, &sprite_prof_stationary_west},
     // {officer_t, 8, 8, 2, 0, 0, NULL , NULL},
     // {office_chair_t, 7, 7, 2, 0, 0, NULL , NULL},
 
@@ -436,7 +436,7 @@ const Entity entities_01[] = {
 const uint8_t entities_01_length = sizeof(entities_01) / sizeof(Entity);
 
 const Entity entities_02[] = {
-    {plr_t, 6, 7, 2, 0, 0, &plr_behaviour, &sprite_prof_walk_south},
+    {plr_t, 6, 7, 2, 0, 0, &plr_behaviour, &sprite_prof_stationary_east},
     // {strongman_t,     11, 10, 2, 0, 0, NULL , NULL},
     // {office_chair_t,  11, 8, 2, 0, 0, NULL , NULL},
     // {powerconverter_t, 4, 11, 2, 0, 0, &powerconverter_behaviour, &sprite_powerconverter},

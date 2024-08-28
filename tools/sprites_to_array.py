@@ -80,8 +80,8 @@ def save_sprite_arrays(spriteset, dst_path):
 
 # data are rects containing each sprite: x, y, width, height
 prof_data = [
-    Sprite("prof_stationary_left", 0, 0, 16, 32),
-    Sprite("prof_stationary_right", 16, 0, 16, 32),
+    Sprite("prof_stationary_west", 0, 0, 16, 32),
+    Sprite("prof_stationary_east", 16, 0, 16, 32),
     Sprite("prof_walk_east_1", 0, 32, 16, 32),
     Sprite("prof_walk_east_2", 32, 32, 16, 32),
     Sprite("prof_walk_west_1", 48, 64, 16, 32),

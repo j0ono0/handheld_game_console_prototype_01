@@ -240,81 +240,77 @@ void updateSprites(uint8_t clock)
             e->my -= STEP_DISTANCE * y_direction;
         }
 
-    //     switch (e->type)
-    //     {
-    //     case plr_t:
-    //         if (spriteInTransit(e))
-    //         {
-    //             if (x_direction > 0)
-    //             {
-    //                 e->sprite = prof_walk_east_cycle[clock % 2];
-    //             }
-    //             else if (x_direction < 0)
-    //             {
-    //                 e->sprite = prof_walk_west_cycle[clock % 2];
-    //             }
-    //             else if (y_direction < 0)
-    //             {
-    //                 e->sprite = prof_walk_north_cycle[clock % 2];
-    //             }
-    //             else if (y_direction > 0)
-    //             {
-    //                 e->sprite = prof_walk_south_cycle[clock % 2];
-    //             }
-    //         }
-    //         else
-    //         {
-    //             if (x_direction > 0)
-    //             {
-    //                 e->sprite = &sprite_prof_stationary_right;
-    //             }
-    //             else if (x_direction < 0)
-    //             {
-    //                 e->sprite = &sprite_prof_stationary_left;
-    //             }
-    //             else if (y_direction != 0)
-    //             {
-    //                 e->sprite = &sprite_prof_stationary_left;
-    //             }
-    //         }
+        switch (e->type)
+        {
+        case plr_t:
+            if (entityInMotion(e))
+            {
+                // if (x_direction > 0)
+                // {
+                //     e->sprite = &sprite_prof_walk_east;
+                // }
+                // else if (x_direction < 0)
+                // {
+                //     e->sprite = &sprite_prof_walk_west;
+                // }
+                // else if (y_direction < 0)
+                // {
+                //     e->sprite = &sprite_prof_walk_north;
+                // }
+                // else if (y_direction > 0)
+                // {
+                //     e->sprite = &sprite_prof_walk_south;
+                // }
+            }
+            else
+            {
+                if (x_direction > 0)
+                {
+                    e->sprite = &sprite_prof_stationary_east;
+                }
+                else if (x_direction < 0)
+                {
+                    e->sprite = &sprite_prof_stationary_west;
+                }
+                else if (y_direction != 0)
+                {
+                    e->sprite = &sprite_prof_stationary_west;
+                }
+            }
 
-    //         break;
+            break;
 
-    //     // case crate_t:
-    //     //     if(entity_on_target(e))
-    //     //     {
-    //     //         e->sprite = &sprite_crate_active;
-    //     //     }else{
-    //     //         e->sprite = &sprite_crate;
-    //     //     }
-    //     //     break;
-    //     case powerconverter_t:
-    //     case powerconverter_active_t:
-    //         if (entity_on_target(e, &gm))
-    //         {
-    //             e->type = powerconverter_active_t;
-    //         }
-    //         else
-    //         {
-    //             e->type = powerconverter_t;
-    //         }
-    //         break;
-    //     default:
-    //         break;
-    //     }
+        // case crate_t:
+        //     if(entity_on_target(e))
+        //     {
+        //         e->sprite = &sprite_crate_active;
+        //     }else{
+        //         e->sprite = &sprite_crate;
+        //     }
+        //     break;
+        case powerconverter_t:
+        case powerconverter_active_t:
+            if (entity_on_target(e, &gm))
+            {
+                e->type = powerconverter_active_t;
+            }
+            else
+            {
+                e->type = powerconverter_t;
+            }
+            break;
+        default:
+            break;
+        }
     }
 }
 
-bool spriteInTransit(Entity *e)
-{
-    return e->mx != 0 || e->my != 0;
-}
 
 bool spritesInTransit()
 {
     for (int i = 0; i < gm.e_len; ++i)
     {
-        if (spriteInTransit(&gm.entities[i]))
+        if (entityInMotion(&gm.entities[i]))
         {
             return true;
         }

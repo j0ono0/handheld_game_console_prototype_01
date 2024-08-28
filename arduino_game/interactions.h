@@ -20,5 +20,6 @@ bool terrainBlocksMovement(int x, int y, int w, int h, GameManager *gm);
 struct Entity *entityAtLocation(int x, int y, int layer, GameManager *gm);
 void moveEntity(Entity *e, int dx, int dy);
 bool entity_on_target(Entity *e, GameManager *gm);
+bool entityInMotion(Entity *e);
 
 #endif
