@@ -5,27 +5,27 @@ void do_nothing(Entity *self, GameManager *gm) {}
 void crate_behaviour(Entity *self, GameManager *gm)
 {
     // Serial.println("crate behaving");
-    self->sprite = &sprite_crate;
-    for (int i = 0; i < gm->e_len; ++i)
-    {
-        if (gm->entities[i].type == target_t && coLocated(self, &gm->entities[i]) && gm->animation_clock %2 ==0)
-        {
-            self->sprite = &sprite_crate_active;
-        }
-    }
+    // self->sprite = &sprite_crate;
+    // for (int i = 0; i < gm->e_len; ++i)
+    // {
+    //     if (gm->entities[i].type == target_t && coLocated(self, &gm->entities[i]) && gm->animation_clock %2 ==0)
+    //     {
+    //         self->sprite = &sprite_crate_active;
+    //     }
+    // }
 }
 
 void powerconverter_behaviour(Entity *self, GameManager *gm)
 {
-    self->sprite = &sprite_powerconverter;
-    for (int i = 0; i < gm->e_len; ++i)
-    {
-        if (gm->entities[i].type == target_t && coLocated(self, &gm->entities[i]))
-        {
-            self->sprite = &sprite_powerconverter_active;
-            break;
-        }
-    }
+    // self->sprite = &sprite_powerconverter;
+    // for (int i = 0; i < gm->e_len; ++i)
+    // {
+    //     if (gm->entities[i].type == target_t && coLocated(self, &gm->entities[i]))
+    //     {
+    //         self->sprite = &sprite_powerconverter_active;
+    //         break;
+    //     }
+    // }
 }
 
 void plr_behaviour(Entity *self, GameManager *gm)

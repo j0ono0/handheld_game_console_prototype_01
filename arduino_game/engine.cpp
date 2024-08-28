@@ -177,17 +177,19 @@ void blitEntity(Entity *e, uint16_t *buf)
 
     */
 
-    int x = e->x * ENV_UNIT - e->mx;
-    int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - e->sprite->h);
 
-    const uint16_t *sprite_ptr = e->sprite->addr;
+    int x = e->x * ENV_UNIT - e->mx;
+    int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - e->sprite[0]->h);
+
+    // TODO: select sprite_frame based on gm.animation_clock
+    const uint16_t *sprite_ptr = e->sprite[0]->addr;
 
     uint16_t *bufPtr = &buf[y * SCREEN_WIDTH + x];
 
     // copy sprite into buf.
-    for (int row = 0; row < e->sprite->h; ++row)
+    for (int row = 0; row < e->sprite[0]->h; ++row)
     {
-        for (int col = 0; col < e->sprite->w; ++col)
+        for (int col = 0; col < e->sprite[0]->w; ++col)
         {
             // Transfer row to buf
             if (*sprite_ptr != COLOR_TRANSPARENT)
@@ -196,14 +198,14 @@ void blitEntity(Entity *e, uint16_t *buf)
             ++sprite_ptr;
         }
         // Move screen buffer to next row
-        bufPtr += SCREEN_WIDTH - e->sprite->w;
+        bufPtr += SCREEN_WIDTH - e->sprite[0]->w;
     }
 }
 
 /////////////////////////////////////////////////////
 // Sprite controls                                ///
 
-bool step_animation_clock(uint8_t *clock)
+bool advance_animation_clock(uint8_t *clock)
 {
     // #define MAXANIMATIONSTEPS 4
     // #define ANIMATIONSPEED 80
@@ -238,68 +240,68 @@ void updateSprites(uint8_t clock)
             e->my -= STEP_DISTANCE * y_direction;
         }
 
-        switch (e->type)
-        {
-        case plr_t:
-            if (spriteInTransit(e))
-            {
-                if (x_direction > 0)
-                {
-                    e->sprite = prof_walk_east_cycle[clock % 2];
-                }
-                else if (x_direction < 0)
-                {
-                    e->sprite = prof_walk_west_cycle[clock % 2];
-                }
-                else if (y_direction < 0)
-                {
-                    e->sprite = prof_walk_north_cycle[clock % 2];
-                }
-                else if (y_direction > 0)
-                {
-                    e->sprite = prof_walk_south_cycle[clock % 2];
-                }
-            }
-            else
-            {
-                if (x_direction > 0)
-                {
-                    e->sprite = &sprite_prof_stationary_right;
-                }
-                else if (x_direction < 0)
-                {
-                    e->sprite = &sprite_prof_stationary_left;
-                }
-                else if (y_direction != 0)
-                {
-                    e->sprite = &sprite_prof_stationary_left;
-                }
-            }
+    //     switch (e->type)
+    //     {
+    //     case plr_t:
+    //         if (spriteInTransit(e))
+    //         {
+    //             if (x_direction > 0)
+    //             {
+    //                 e->sprite = prof_walk_east_cycle[clock % 2];
+    //             }
+    //             else if (x_direction < 0)
+    //             {
+    //                 e->sprite = prof_walk_west_cycle[clock % 2];
+    //             }
+    //             else if (y_direction < 0)
+    //             {
+    //                 e->sprite = prof_walk_north_cycle[clock % 2];
+    //             }
+    //             else if (y_direction > 0)
+    //             {
+    //                 e->sprite = prof_walk_south_cycle[clock % 2];
+    //             }
+    //         }
+    //         else
+    //         {
+    //             if (x_direction > 0)
+    //             {
+    //                 e->sprite = &sprite_prof_stationary_right;
+    //             }
+    //             else if (x_direction < 0)
+    //             {
+    //                 e->sprite = &sprite_prof_stationary_left;
+    //             }
+    //             else if (y_direction != 0)
+    //             {
+    //                 e->sprite = &sprite_prof_stationary_left;
+    //             }
+    //         }
 
-            break;
+    //         break;
 
-        // case crate_t:
-        //     if(entity_on_target(e))
-        //     {
-        //         e->sprite = &sprite_crate_active;
-        //     }else{
-        //         e->sprite = &sprite_crate;
-        //     }
-        //     break;
-        case powerconverter_t:
-        case powerconverter_active_t:
-            if (entity_on_target(e, &gm))
-            {
-                e->type = powerconverter_active_t;
-            }
-            else
-            {
-                e->type = powerconverter_t;
-            }
-            break;
-        default:
-            break;
-        }
+    //     // case crate_t:
+    //     //     if(entity_on_target(e))
+    //     //     {
+    //     //         e->sprite = &sprite_crate_active;
+    //     //     }else{
+    //     //         e->sprite = &sprite_crate;
+    //     //     }
+    //     //     break;
+    //     case powerconverter_t:
+    //     case powerconverter_active_t:
+    //         if (entity_on_target(e, &gm))
+    //         {
+    //             e->type = powerconverter_active_t;
+    //         }
+    //         else
+    //         {
+    //             e->type = powerconverter_t;
+    //         }
+    //         break;
+    //     default:
+    //         break;
+    //     }
     }
 }
 

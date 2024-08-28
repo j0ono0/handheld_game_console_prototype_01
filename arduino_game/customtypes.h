@@ -75,7 +75,7 @@ typedef struct Entity
     int mx;
     int my;
     void (*behaviour)(struct Entity *self, GameManager *gm);
-    const Sprite *sprite;
+    const Sprite **sprite;
 } Entity;
 
 typedef struct GameManager
