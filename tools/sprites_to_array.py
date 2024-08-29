@@ -47,10 +47,17 @@ def save_sprite_arrays(spriteset, dst_path):
     filename = Path(dst_path)
     filename.parent.mkdir(parents=True, exist_ok=True)
 
-    sprite_declarations = ""
+    sprite_frames = ""
     extern_statements = ""
 
     with open(filename, "w") as f:
+        f.write(
+            "////////////////////////////////////////////////////////////////////\n"
+        )
+        f.write(
+            "// START: SCRIPT GENERATED CODE ////////////////////////////////////\n"
+        )
+
         f.write("#include <avr/pgmspace.h>\n")
         f.write("#include <inttypes.h>\n")
         f.write('#include "customtypes.h"\n\n')
@@ -65,12 +72,21 @@ def save_sprite_arrays(spriteset, dst_path):
                     f.write(", ")
             f.write("\n};\n\n")
 
-            # write sprite struct
-            sprite_declarations += f"const Sprite sprite_{sprite['name']} PROGMEM = {{ {sprite['width']}, {sprite['height']}, sprite_data_{sprite['name']} }};\n"
-            extern_statements += f"// extern const Sprite sprite_{sprite['name']};\n"
+            # write sprite-frame struct
+            sprite_frames += f"const SpriteFrame sprite_frame_{sprite['name']} PROGMEM = {{ {sprite['width']}, {sprite['height']}, sprite_data_{sprite['name']} }};\n"
+            extern_statements += (
+                f"// extern const SpriteFrame sprite_frame_{sprite['name']};\n"
+            )
 
-        f.write(f"{sprite_declarations}\n")
+        f.write(f"{sprite_frames}\n")
         f.write(extern_statements)
+
+        f.write(
+            "// END: SCRIPT GENERATED CODE ///////////////////////////////////////////\n"
+        )
+        f.write(
+            "/////////////////////////////////////////////////////////////////////////\n"
+        )
 
     print(f"file created: {filename}.")
 
@@ -92,18 +108,22 @@ prof_data = [
     Sprite("prof_walk_north_2", 48, 96, 16, 32),
 ]
 prof_sprites = split_spritesheet(load_image("../graphics/sprites_prof.png"), prof_data)
-# save_sprite_arrays(prof_sprites, "./temp/sprites_prof.c")
 
 entity_data = [
+    Sprite("strongman", 48, 0, 16, 32),
     Sprite("target", 48, 43, 16, 13),
     Sprite("crate", 64, 32, 16, 23),
     Sprite("crate_active", 80, 32, 16, 23),
     Sprite("powerconverter", 80, 55, 16, 25),
     Sprite("powerconverter_active", 64, 55, 16, 25),
+    Sprite("office_chair", 16, 33, 15, 23),
+    Sprite("desktop_panel", 0, 57, 13, 20),
+    Sprite("desktop_terminal", 16, 58, 16, 19),
+    Sprite("inbuilt_terminal", 32, 61, 14, 16),
+    Sprite("desktop_clutter", 48, 59, 15, 18),
 ]
 entity_sprites = split_spritesheet(
     load_image("../graphics/entity_sprites_2.png"), entity_data
 )
 
-
-save_sprite_arrays(entity_sprites + prof_sprites, "./temp/sprites_entities.c")
+save_sprite_arrays(entity_sprites + prof_sprites, "./temp/sprite_data.c")
