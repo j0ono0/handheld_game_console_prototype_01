@@ -80,17 +80,9 @@ void loop()
                 break;
         }
         return;
-        
-        
-        
     }
 
-    // Complete existing entity transits /////////////////////////////
-    if (spritesInTransit())
-    {
-        advanceSpriteAnimations();
-        return;
-    }    
+  
 
     // Test for end game  //////////////////////////////////////////////
 
@@ -121,12 +113,13 @@ void loop()
         return;
     }
 
+    // Complete existing movement transitions before running behaviours again ////
+    if (!spritesInTransit())
+    {
+        runBehaviours();
+        sortEntityDrawOrder();
+    }
 
-    // Do another render.
-    // Entity may have change from in-transit to stationary sprites
     advanceSpriteAnimations();
 
-    runBehaviours();
-
-    sortEntityDrawOrder();
 }

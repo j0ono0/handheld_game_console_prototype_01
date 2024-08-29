@@ -7,7 +7,6 @@
 #include "config.h"
 #include "customtypes.h"
 #include "interactions.h"
-#include "sprites.h"
 
 //////////////////////////////////////////////////////////////////
 
@@ -28,7 +27,7 @@ void moveEntity(Entity *e, int mx, int my);
 
 //////////////////////////////////////////////////////////////////
 bool advance_animation_clock(uint8_t *clock);
-void updateSprites(uint8_t clock);
+void updateSpriteTransits(uint8_t clock);
 bool spriteInTransit(Entity *e);
 bool spritesInTransit();
 

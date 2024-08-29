@@ -419,19 +419,19 @@ const Entity entities_01[] = {
 
     {target_t, 12, 7, 1, 0, 0, NULL, &sprite_target},
     {target_t, 16, 8, 1, 0, 0, NULL, &sprite_target},
-    // {target_t, 12, 9, 1, 0, 0, NULL, &sprite_target},
-    // {target_t, 15, 10, 1, 0, 0, NULL, &sprite_target},
-    // {target_t, 14, 11, 1, 0, 0, NULL, &sprite_target},
-    // {target_t, 17, 11, 1, 0, 0, NULL, &sprite_target},
-    // {target_t, 15, 12, 1, 0, 0, NULL, &sprite_target},
+    {target_t, 12, 9, 1, 0, 0, NULL, &sprite_target},
+    {target_t, 15, 10, 1, 0, 0, NULL, &sprite_target},
+    {target_t, 14, 11, 1, 0, 0, NULL, &sprite_target},
+    {target_t, 17, 11, 1, 0, 0, NULL, &sprite_target},
+    {target_t, 15, 12, 1, 0, 0, NULL, &sprite_target},
 
     {crate_t, 15, 7, 2, 0, 0, &crate_behaviour, &sprite_crate},
-    // {crate_t, 15, 8, 2, 0, 0, &crate_behaviour, &sprite_crate},
-    // {crate_t, 15, 9, 2, 0, 0, &crate_behaviour, &sprite_crate},
-    // {crate_t, 12, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
-    // {crate_t, 14, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
-    // {crate_t, 15, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
-    // {crate_t, 16, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
+    {crate_t, 15, 8, 2, 0, 0, &crate_behaviour, &sprite_crate},
+    {crate_t, 15, 9, 2, 0, 0, &crate_behaviour, &sprite_crate},
+    {crate_t, 12, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
+    {crate_t, 14, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
+    {crate_t, 15, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
+    {crate_t, 16, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
 };
 const uint8_t entities_01_length = sizeof(entities_01) / sizeof(Entity);
 
@@ -439,13 +439,13 @@ const Entity entities_02[] = {
     {plr_t, 6, 7, 2, 0, 0, &plr_behaviour, &sprite_prof_stationary_east},
     // {strongman_t,     11, 10, 2, 0, 0, NULL , NULL},
     // {office_chair_t,  11, 8, 2, 0, 0, NULL , NULL},
-    // {powerconverter_t, 4, 11, 2, 0, 0, &powerconverter_behaviour, &sprite_powerconverter},
-    // {powerconverter_t, 8, 8, 2, 0, 0, &powerconverter_behaviour, &sprite_powerconverter},
-    // {powerconverter_t, 7, 12, 2, 0, 0, &powerconverter_behaviour, &sprite_powerconverter},
-    // {powerconverter_t, 10, 13, 2, 0, 0, &powerconverter_behaviour, &sprite_powerconverter},
-    // {target_t, 6, 11, 1, 0, 0, NULL, &sprite_target},
-    // {target_t, 6, 12, 1, 0, 0, NULL, &sprite_target},
-    // {target_t, 6, 13, 1, 0, 0, NULL, &sprite_target},
+    {powerconverter_t, 4, 11, 2, 0, 0, &powerconverter_behaviour, &sprite_powerconverter},
+    {powerconverter_t, 8, 8, 2, 0, 0, &powerconverter_behaviour, &sprite_powerconverter},
+    {powerconverter_t, 7, 12, 2, 0, 0, &powerconverter_behaviour, &sprite_powerconverter},
+    {powerconverter_t, 10, 13, 2, 0, 0, &powerconverter_behaviour, &sprite_powerconverter},
+    {target_t, 6, 11, 1, 0, 0, NULL, &sprite_target},
+    {target_t, 6, 12, 1, 0, 0, NULL, &sprite_target},
+    {target_t, 6, 13, 1, 0, 0, NULL, &sprite_target},
 };
 const uint8_t entities_02_length = sizeof(entities_02) / sizeof(Entity);
 

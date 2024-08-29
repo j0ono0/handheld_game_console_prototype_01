@@ -47,7 +47,6 @@ typedef enum EntityType
     null_t,
 } EntityType;
 
-
 typedef struct SpriteSheet
 {
     uint8_t w;

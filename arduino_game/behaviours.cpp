@@ -21,54 +21,68 @@ void do_nothing(Entity *self, GameManager *gm) {}
 
 void crate_behaviour(Entity *self, GameManager *gm)
 {
-    Serial.println("crate behaving");
-    self->sprite = &sprite_crate;
-    for (int i = 0; i < gm->e_len; ++i)
+    if(entity_on_target(self, gm) && self->mx == 0 && self->my == 0)
     {
-        if (gm->entities[i].type == target_t && coLocated(self, &gm->entities[i]))
-        {
-            self->sprite = &sprite_crate_active;
-            break;
-        }
+        self->sprite = &sprite_crate_active;
+        return;
     }
+    self->sprite = &sprite_crate;
 }
 
 void powerconverter_behaviour(Entity *self, GameManager *gm)
 {
-    // self->sprite = &sprite_powerconverter;
-    // for (int i = 0; i < gm->e_len; ++i)
-    // {
-    //     if (gm->entities[i].type == target_t && coLocated(self, &gm->entities[i]))
-    //     {
-    //         self->sprite = &sprite_powerconverter_active;
-    //         break;
-    //     }
-    // }
+    if(entity_on_target(self, gm))
+    {
+        self->sprite = &sprite_powerconverter_active;
+        return;
+    }
+    self->sprite = &sprite_powerconverter;
 }
 
 void plr_behaviour(Entity *self, GameManager *gm)
 {
-
     int next_input = dequeue_kpq();
     int dx = 0;
     int dy = 0;
+    // if input aborted revert to prev_sprite
+    const Sprite *prev_sprite = self->sprite;
 
     switch (next_input)
     {
     case BTN_N:
         dy = -1;
+        self->sprite = &sprite_prof_walk_north;
         break;
     case BTN_S:
         dy = 1;
+        self->sprite = &sprite_prof_walk_south;
         break;
     case BTN_W:
         dx = -1;
+        self->sprite = &sprite_prof_walk_west;
         break;
     case BTN_E:
         dx = 1;
+        self->sprite = &sprite_prof_walk_east;
         break;
     default:
-        // No valid user input.
+        // Walking transition has completed and no user input.
+        if(self->sprite == &sprite_prof_walk_north)
+        {
+            self->sprite = &sprite_prof_stationary_east;
+        }
+        else if(self->sprite == &sprite_prof_walk_east)
+        {
+            self->sprite = &sprite_prof_stationary_east;
+        }
+        else if(self->sprite == &sprite_prof_walk_south)
+        {
+            self->sprite = &sprite_prof_stationary_east;
+        }
+        else if(self->sprite == &sprite_prof_walk_west)
+        {
+            self->sprite = &sprite_prof_stationary_west;
+        }
         return;
     }
 
@@ -77,49 +91,14 @@ void plr_behaviour(Entity *self, GameManager *gm)
 
     if (!inbounds(nextX, nextY))
     {
+        self->sprite = prev_sprite;
         Serial.println("Out of bounds!");
-        ///////////////////////////////////////
-        //
-        // TODO: much repeated status selection - make more DRY!!!
-        //
-        ///////////////////////////////////////
-        if(dx < 0)
-        {
-            self->sprite = &sprite_prof_stationary_west;
-        }
-        else if(dx > 0)
-        {
-            self->sprite = &sprite_prof_stationary_east;
-        }
-        else if(dy < 0)
-        {
-            self->sprite = &sprite_prof_stationary_west;
-        }
-        else if(dy > 0)
-        {
-            self->sprite = &sprite_prof_stationary_east;
-        }
         return;
     }
     else if (terrainBlocksMovement(nextX, nextY, 2, 2, gm))
     {
+        self->sprite = prev_sprite;
         Serial.println("There is no way through here.");
-        if(dx < 0)
-        {
-            self->sprite = &sprite_prof_stationary_west;
-        }
-        else if(dx > 0)
-        {
-            self->sprite = &sprite_prof_stationary_east;
-        }
-        else if(dy < 0)
-        {
-            self->sprite = &sprite_prof_stationary_west;
-        }
-        else if(dy > 0)
-        {
-            self->sprite = &sprite_prof_stationary_east;
-        }
         return;
     }
 
@@ -147,22 +126,4 @@ void plr_behaviour(Entity *self, GameManager *gm)
     }
 
     moveEntity(self, dx, dy);
-
-    // Set status: used for sprite selection
-    if(dx < 0)
-    {
-        self->sprite = &sprite_prof_walk_west;
-    }
-    else if(dx > 0)
-    {
-        self->sprite = &sprite_prof_walk_east;
-    }
-    else if(dy < 0)
-    {
-        self->sprite = &sprite_prof_walk_north;
-    }
-    else if(dy > 0)
-    {
-        self->sprite = &sprite_prof_walk_south;
-    }
 }

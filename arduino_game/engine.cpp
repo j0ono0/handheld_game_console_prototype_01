@@ -64,9 +64,10 @@ void advanceSpriteAnimations()
     // Progress all sprite movements of entities
     if(advance_animation_clock(&gm.animation_clock))
     {
-        updateSprites(gm.animation_clock);
+        updateSpriteTransits(gm.animation_clock);
     }
-    // TODO: Investigate syncing drawAll() to animation clock causes full screen to flicker!
+    // TODO: Investigate syncing drawAll() to 
+    // animation clock causes full screen to flicker!
     drawAll();
     
 }
@@ -220,10 +221,11 @@ bool advance_animation_clock(uint8_t *clock)
     return false;
 }
 
-void updateSprites(uint8_t clock)
+void updateSpriteTransits(uint8_t clock)
 {
-// Progress all animation cycles with 'step'.
-#define STEP_DISTANCE 4
+    // Progress all animation cycles with 'step'.
+    // must be factor of tile distance
+    #define STEP_DISTANCE 4
 
     for (int i = 0; i < gm.e_len; ++i)
     {
@@ -239,71 +241,9 @@ void updateSprites(uint8_t clock)
             e->mx -= STEP_DISTANCE * x_direction;
             e->my -= STEP_DISTANCE * y_direction;
         }
-
-        switch (e->type)
-        {
-        case plr_t:
-            if (entityInMotion(e))
-            {
-                // if (x_direction > 0)
-                // {
-                //     e->sprite = &sprite_prof_walk_east;
-                // }
-                // else if (x_direction < 0)
-                // {
-                //     e->sprite = &sprite_prof_walk_west;
-                // }
-                // else if (y_direction < 0)
-                // {
-                //     e->sprite = &sprite_prof_walk_north;
-                // }
-                // else if (y_direction > 0)
-                // {
-                //     e->sprite = &sprite_prof_walk_south;
-                // }
-            }
-            else
-            {
-                if (x_direction > 0)
-                {
-                    e->sprite = &sprite_prof_stationary_east;
-                }
-                else if (x_direction < 0)
-                {
-                    e->sprite = &sprite_prof_stationary_west;
-                }
-                else if (y_direction != 0)
-                {
-                    e->sprite = &sprite_prof_stationary_west;
-                }
-            }
-
-            break;
-
-        // case crate_t:
-        //     if(entity_on_target(e))
-        //     {
-        //         e->sprite = &sprite_crate_active;
-        //     }else{
-        //         e->sprite = &sprite_crate;
-        //     }
-        //     break;
-        case powerconverter_t:
-        case powerconverter_active_t:
-            if (entity_on_target(e, &gm))
-            {
-                e->type = powerconverter_active_t;
-            }
-            else
-            {
-                e->type = powerconverter_t;
-            }
-            break;
-        default:
-            break;
-        }
     }
 }
+
 
 
 bool spritesInTransit()
@@ -334,6 +274,12 @@ bool gameSolved()
 {
     Entity *target;
     Entity *crate;
+
+    // Wait for movement transistion to complete
+    if(spritesInTransit()){
+        return false;
+    }
+
     // Test if every target has a crate on the same location.
     for (int i = 0; i < gm.e_len; i++)
     {
@@ -345,14 +291,10 @@ bool gameSolved()
             for (int j = 0; j < gm.e_len; j++)
             {
                 crate = &gm.entities[j];
-                // TODO: This a is bad way to test if game is solved
-                // make it better !!!
                 if (
                     crate->type == crate_t ||
-                    crate->type == powerconverter_t ||
-                    crate->type == powerconverter_active_t)
+                    crate->type == powerconverter_t)
                 {
-
                     if (coLocated(target, crate))
                     {
                         has_crate = true;
