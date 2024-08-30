@@ -425,9 +425,9 @@ const Entity entities_01[] = {
     {target_t, 17, 11, 1, 0, 0, NULL, &sprite_target},
     {target_t, 15, 12, 1, 0, 0, NULL, &sprite_target},
 
-    {crate_t, 15, 7, 2, 0, 0, &crate_behaviour, &sprite_crate},
-    {crate_t, 15, 8, 2, 0, 0, &crate_behaviour, &sprite_crate},
-    {crate_t, 15, 9, 2, 0, 0, &crate_behaviour, &sprite_crate},
+    {crate_t, 15, 7, 2, 0, 0, &crate_behaviour, &sprite_crate_1},
+    {crate_t, 15, 8, 2, 0, 0, &crate_behaviour, &sprite_crate_2},
+    {crate_t, 15, 9, 2, 0, 0, &crate_behaviour, &sprite_crate_3},
     {crate_t, 12, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
     {crate_t, 14, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},
     {crate_t, 15, 11, 2, 0, 0, &crate_behaviour, &sprite_crate},

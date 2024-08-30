@@ -63,6 +63,9 @@ typedef struct SpriteFrame
 typedef struct Sprite
 {
     const uint8_t length;
+    // clock_divider slows animation speed. 
+    // Should be a factor of ANIMATIONSTEPS for even frame display lengths.
+    const uint8_t clock_divider;
     const SpriteFrame **frameset;
 } Sprite;
 

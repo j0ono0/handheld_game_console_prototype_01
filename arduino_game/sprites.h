@@ -26,4 +26,9 @@ extern const Sprite sprite_desktop_terminal;
 extern const Sprite sprite_inbuilt_terminal;
 extern const Sprite sprite_desktop_clutter;
 
+// Testing animation speeds
+extern const Sprite sprite_crate_1;
+extern const Sprite sprite_crate_2;
+extern const Sprite sprite_crate_3;
+
 #endif

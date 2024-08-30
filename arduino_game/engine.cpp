@@ -1,6 +1,7 @@
 #include "engine.h"
 
-#define MAXANIMATIONSTEPS 4
+// counts up to 100, incrementing every 80ms. Totalling 8s maximum animation loop 
+#define ANIMATIONSTEPS 100
 #define ANIMATIONSPEED 80
 
 //////////////////////////////////////////////////////////////////
@@ -179,7 +180,10 @@ void blitEntity(Entity *e, uint16_t *buf)
     walking plr to top of screen causes crash! sprite rendering outside buffer????
 
     */
-   uint8_t i = gm.animation_clock % e->sprite->length;
+
+    // Frame index
+    uint8_t i = (gm.animation_clock / e->sprite->clock_divider) % e->sprite->length;
+    // uint8_t i = gm.animation_clock % e->sprite->length;
 
     int x = e->x * ENV_UNIT - e->mx;
     int y = e->y * ENV_UNIT - e->my + (ENV_UNIT - e->sprite->frameset[i]->h);
@@ -191,7 +195,7 @@ void blitEntity(Entity *e, uint16_t *buf)
 
     // copy sprite into buf.
     for (int row = 0; row < e->sprite->frameset[i]->h; ++row)
-    {
+        {
         for (int col = 0; col < e->sprite->frameset[i]->w; ++col)
         {
             // Transfer row to buf
@@ -203,7 +207,7 @@ void blitEntity(Entity *e, uint16_t *buf)
         // Move screen buffer to next row
         bufPtr += SCREEN_WIDTH - e->sprite->frameset[i]->w;
     }
-}
+    }
 
 /////////////////////////////////////////////////////
 // Sprite controls                                ///
@@ -215,7 +219,7 @@ bool advance_animation_clock(uint8_t *clock)
     if (now - last >= ANIMATIONSPEED)
     {
         last = now;
-        *clock = (*clock + 1) % MAXANIMATIONSTEPS;
+        *clock = (*clock + 1) % ANIMATIONSTEPS;
         return true;
     }
     return false;

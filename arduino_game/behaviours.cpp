@@ -21,6 +21,14 @@ void do_nothing(Entity *self, GameManager *gm) {}
 
 void crate_behaviour(Entity *self, GameManager *gm)
 {
+    if(
+        self->sprite == &sprite_crate_1 || 
+        self->sprite == &sprite_crate_2 ||
+        self->sprite == &sprite_crate_3
+    )
+    {
+        return;
+    }
     if(entity_on_target(self, gm) && self->mx == 0 && self->my == 0)
     {
         self->sprite = &sprite_crate_active;

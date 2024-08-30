@@ -41,5 +41,4 @@
 
 #define MAX_ENTITIES 100
 
-#define MAX_ANIMATION_FRAMES 8
 #endif
