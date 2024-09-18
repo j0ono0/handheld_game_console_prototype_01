@@ -86,7 +86,7 @@ void advanceSpriteAnimations()
         updateSpriteTransits();
     }
     // TODO: Investigate syncing drawAll() to 
-    // animation clock causes full screen to flicker!
+    // animation clock, it causes full screen to flicker (but should not?).
     drawAll();
     
 }

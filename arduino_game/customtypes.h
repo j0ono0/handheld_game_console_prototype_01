@@ -11,18 +11,18 @@
 typedef enum InputButtons
 {
     // <button>_<set>_<direction>
-    btn_a_n,
-    btn_a_e,
-    btn_a_s,
-    btn_a_w,
-    btn_b_n,
-    btn_b_e,
-    btn_b_s,
-    btn_b_w,
-    btn_c_n,
-    btn_c_e,
-    btn_c_s,
-    btn_c_w,
+    btn_1_n,
+    btn_1_e,
+    btn_1_s,
+    btn_1_w,
+    btn_2_n,
+    btn_2_e,
+    btn_2_s,
+    btn_2_w,
+    btn_3_n,
+    btn_3_e,
+    btn_3_s,
+    btn_3_w,
 } InputButtons;
 
 typedef struct Rect

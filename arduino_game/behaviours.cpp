@@ -21,17 +21,6 @@ void do_nothing(Entity *self, GameManager *gm) {}
 
 void crate_behaviour(Entity *self, GameManager *gm)
 {
-    if(
-        self->sprite == &sprite_crate_1 || 
-        self->sprite == &sprite_crate_2 ||
-        self->sprite == &sprite_crate_3 ||
-        self->sprite == &sprite_crate_4 ||
-        self->sprite == &sprite_crate_5 ||
-        self->sprite == &sprite_crate_6 
-    )
-    {
-        return;
-    }
     if(entity_on_target(self, gm) && self->mx == 0 && self->my == 0)
     {
         self->sprite = &sprite_crate_active;
@@ -42,7 +31,7 @@ void crate_behaviour(Entity *self, GameManager *gm)
 
 void powerconverter_behaviour(Entity *self, GameManager *gm)
 {
-    if(entity_on_target(self, gm))
+    if(entity_on_target(self, gm) && self->mx == 0 && self->my == 0)
     {
         self->sprite = &sprite_powerconverter_active;
         return;
@@ -60,19 +49,19 @@ void plr_behaviour(Entity *self, GameManager *gm)
 
     switch (next_input)
     {
-    case btn_a_n:
+    case btn_1_n:
         dy = -1;
         self->sprite = &sprite_prof_walk_north;
         break;
-    case btn_a_s:
+    case btn_1_s:
         dy = 1;
         self->sprite = &sprite_prof_walk_south;
         break;
-    case btn_a_w:
+    case btn_1_w:
         dx = -1;
         self->sprite = &sprite_prof_walk_west;
         break;
-    case btn_a_e:
+    case btn_1_e:
         dx = 1;
         self->sprite = &sprite_prof_walk_east;
         break;

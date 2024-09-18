@@ -61,7 +61,7 @@ void loop()
 
     if (game_mode != gm_inGame)
     {
-        if (dequeue_kpq() != btn_b_w)
+        if (dequeue_kpq() != btn_2_w)
         {
             // Wait for start/cont' keypress
             return;

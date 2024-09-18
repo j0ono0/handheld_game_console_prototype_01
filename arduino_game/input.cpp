@@ -42,48 +42,48 @@ void updateButtonInput(){
     // Read button set A
     digitalWrite(PIN_MP_PWR_1, LOW);
     if( digitalRead(PIN_MP_N) == LOW){
-        bh.input = btn_a_n;
+        bh.input = btn_1_n;
     }
     else if ( digitalRead(PIN_MP_E) == LOW){
-        bh.input = btn_a_e;
+        bh.input = btn_1_e;
     }
     else if ( digitalRead(PIN_MP_S) == LOW){
-        bh.input = btn_a_s;
+        bh.input = btn_1_s;
     }
     else if ( digitalRead(PIN_MP_W) == LOW){
-        bh.input = btn_a_w;
+        bh.input = btn_1_w;
     }
     digitalWrite(PIN_MP_PWR_1, HIGH);
 
     // Read button set B
     digitalWrite(PIN_MP_PWR_2, LOW);
     if( digitalRead(PIN_MP_N) == LOW){
-        bh.input = btn_b_n;
+        bh.input = btn_2_n;
     }
     else if ( digitalRead(PIN_MP_E) == LOW){
-        bh.input = btn_b_e;
+        bh.input = btn_2_e;
     }
     else if ( digitalRead(PIN_MP_S) == LOW){
-        bh.input = btn_b_s;
+        bh.input = btn_2_s;
     }
     else if ( digitalRead(PIN_MP_W) == LOW){
-        bh.input = btn_b_w;
+        bh.input = btn_2_w;
     }
     digitalWrite(PIN_MP_PWR_2, HIGH);
 
     // Read button set C
     digitalWrite(PIN_MP_PWR_3, LOW);
     if( digitalRead(PIN_MP_N) == LOW){
-        bh.input = btn_c_n;
+        bh.input = btn_3_n;
     }
     else if ( digitalRead(PIN_MP_E) == LOW){
-        bh.input = btn_c_e;
+        bh.input = btn_3_e;
     }
     else if ( digitalRead(PIN_MP_S) == LOW){
-        bh.input = btn_c_s;
+        bh.input = btn_3_s;
     }
     else if ( digitalRead(PIN_MP_W) == LOW){
-        bh.input = btn_c_w;
+        bh.input = btn_3_w;
     }
     digitalWrite(PIN_MP_PWR_3, HIGH);
 

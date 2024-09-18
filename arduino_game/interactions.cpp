@@ -8,7 +8,7 @@ extern const EnvSpec environmentList[];
 // Order matches tileset order
 const TileMeta tile_meta[] = {
     {0, false},
-    {0, false},
+    {0, true},
     {3, false},
     {3, false},
     {3, false},
