@@ -69,7 +69,7 @@ const uint8_t terrain_2[] = {
 };
 
 
-int terrain_color_table_length = 5;
+int terrain_color_table_length = 10;
 uint16_t terrain_color_table[] = {
     0xdedb,
     0xb596,
@@ -452,6 +452,6 @@ const uint8_t entities_02_length = sizeof(entities_02) / sizeof(Entity);
 
 // Collate all terrains and entities
 const EnvSpec environmentList[] = {
-    {terrain_1, entities_01, 1, sizeof(entities_01) / sizeof(Entity)},
-    {terrain_2, entities_02, 2, sizeof(entities_02) / sizeof(Entity)},
+    {terrain_1, 0, entities_01, 1, sizeof(entities_01) / sizeof(Entity)},
+    {terrain_2, 10, entities_02, 2, sizeof(entities_02) / sizeof(Entity)},
 };

@@ -16,6 +16,7 @@ void spiSetup();
 void populateEntities(const Entity *entities, uint8_t length);
 Entity *assignPlayer();
 void setTerrain(const uint8_t *terrain);
+void setPalette(const uint8_t palette);
 
 //////////////////////////////////////////////////////////////////
 void advanceSpriteAnimations();

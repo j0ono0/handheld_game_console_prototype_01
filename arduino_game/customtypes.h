@@ -110,6 +110,7 @@ typedef struct GameManager
     uint8_t e_len;
     Entity entities[MAX_ENTITIES];
     const uint8_t *terrain;
+    uint8_t palette;
     uint16_t animation_clock;
 } GameManager;
 
@@ -141,6 +142,7 @@ typedef struct EntitySpecs
 typedef struct EnvSpec
 {
     const uint8_t *terrain;
+    const uint8_t palette;
     const Entity *entities;
     const uint8_t color_theme;
     const int entity_count;

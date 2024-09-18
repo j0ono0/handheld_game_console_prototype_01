@@ -111,7 +111,6 @@ int readUserInput(){
     }
     else{
         bh.processed = true;
-        Serial.println(bh.current);
         return bh.current;
     }
 }

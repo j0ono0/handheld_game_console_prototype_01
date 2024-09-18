@@ -32,6 +32,7 @@ void populate_env(uint8_t env_id)
     current_env = env_id;
     populateEntities(environmentList[current_env].entities, environmentList[current_env].entity_count);
     setTerrain(environmentList[current_env].terrain);
+    setPalette(environmentList[current_env].palette);
 }
 
 void setup()

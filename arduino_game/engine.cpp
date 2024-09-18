@@ -39,7 +39,7 @@ uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT]
 
 
 
-GameManager gm = {0, {}, NULL, 0};
+GameManager gm = {0, {}, NULL, 0, 0};
 
 // Entities currently in environment.
 Entity *entitiesInDrawOrder[MAX_ENTITIES];
@@ -74,6 +74,10 @@ Entity *assignPlayer()
 void setTerrain(const uint8_t *terrain)
 {
     gm.terrain = terrain;
+}
+void setPalette(const uint8_t palette)
+{
+    gm.palette = palette;
 }
 
 /////////////////////////////////////////////////////
@@ -131,7 +135,7 @@ void blitTerrain(uint8_t layer, uint16_t *buf)
                     // Transfer row to buf
                     // TODO: select indexed colour table row
                     // *cellbuf = terrain_color_table[*spritePtr + gm.envId * 10];
-                    *cellbuf = terrain_color_table[*spritePtr];
+                    *cellbuf = terrain_color_table[*spritePtr + gm.palette];
                     ++cellbuf;
                     ++spritePtr;
                 }
