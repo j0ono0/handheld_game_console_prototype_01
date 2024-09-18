@@ -2,8 +2,25 @@
 #define game_config_h
 
 // SPI hardware pins
-#define TFT_DC 9
-#define TFT_CS 10
+#define TFT_CS 14
+#define SD_CS 10
+#define XPT_CS 16 // touch cs
+
+#define TFT_DC 15
+
+
+// #define XPT_IRQ  17
+
+
+#define PIN_MP_PWR_1 18
+#define PIN_MP_PWR_2 0
+#define PIN_MP_PWR_3 21
+
+#define PIN_MP_N 19
+#define PIN_MP_W 20
+#define PIN_MP_E 21
+#define PIN_MP_S 22
+
 
 /*
     Note:

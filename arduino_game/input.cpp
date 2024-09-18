@@ -2,31 +2,90 @@
 #include "Arduino.h"
 #include "input.h"
 
+
+#define DEBOUNCE_THRESHOLD 50
+
+
+
+
+
+struct BtnHandler {
+    int input;
+    int current;
+    bool processed;
+    unsigned long duration;
+};
+
 // track button interactions
 BtnHandler bh = {.input=-1, .current=-1, .processed=false, .duration=0};
 
 void setupButtonInputs()
 {
-    pinMode(BTN_N, INPUT_PULLUP);
-    pinMode(BTN_E, INPUT_PULLUP);
-    pinMode(BTN_S, INPUT_PULLUP);
-    pinMode(BTN_W, INPUT_PULLUP);
-    pinMode(BTN_SELECT, INPUT_PULLUP);
+
+    pinMode(PIN_MP_PWR_1, OUTPUT);
+    pinMode(PIN_MP_PWR_2, OUTPUT);
+    pinMode(PIN_MP_PWR_3, OUTPUT);
+    digitalWrite(PIN_MP_PWR_1, HIGH);
+    digitalWrite(PIN_MP_PWR_2, HIGH);
+    digitalWrite(PIN_MP_PWR_3, HIGH);
+
+    pinMode(PIN_MP_N, INPUT_PULLUP);
+    pinMode(PIN_MP_E, INPUT_PULLUP);
+    pinMode(PIN_MP_S, INPUT_PULLUP);
+    pinMode(PIN_MP_W, INPUT_PULLUP);
+
+
 }
 
 void updateButtonInput(){
     bh.input = -1;
-    if( digitalRead(BTN_N) == LOW){
-        bh.input = BTN_N;
-    }else if ( digitalRead(BTN_W) == LOW){
-        bh.input = BTN_W;
-    }else if ( digitalRead(BTN_S) == LOW){
-        bh.input = BTN_S;
-    }else if ( digitalRead(BTN_E) == LOW){
-        bh.input = BTN_E;
-    }else if ( digitalRead(BTN_SELECT) == LOW){
-        bh.input = BTN_SELECT;
+    // Read button set A
+    digitalWrite(PIN_MP_PWR_1, LOW);
+    if( digitalRead(PIN_MP_N) == LOW){
+        bh.input = btn_a_n;
     }
+    else if ( digitalRead(PIN_MP_E) == LOW){
+        bh.input = btn_a_e;
+    }
+    else if ( digitalRead(PIN_MP_S) == LOW){
+        bh.input = btn_a_s;
+    }
+    else if ( digitalRead(PIN_MP_W) == LOW){
+        bh.input = btn_a_w;
+    }
+    digitalWrite(PIN_MP_PWR_1, HIGH);
+
+    // Read button set B
+    digitalWrite(PIN_MP_PWR_2, LOW);
+    if( digitalRead(PIN_MP_N) == LOW){
+        bh.input = btn_b_n;
+    }
+    else if ( digitalRead(PIN_MP_E) == LOW){
+        bh.input = btn_b_e;
+    }
+    else if ( digitalRead(PIN_MP_S) == LOW){
+        bh.input = btn_b_s;
+    }
+    else if ( digitalRead(PIN_MP_W) == LOW){
+        bh.input = btn_b_w;
+    }
+    digitalWrite(PIN_MP_PWR_2, HIGH);
+
+    // Read button set C
+    digitalWrite(PIN_MP_PWR_3, LOW);
+    if( digitalRead(PIN_MP_N) == LOW){
+        bh.input = btn_c_n;
+    }
+    else if ( digitalRead(PIN_MP_E) == LOW){
+        bh.input = btn_c_e;
+    }
+    else if ( digitalRead(PIN_MP_S) == LOW){
+        bh.input = btn_c_s;
+    }
+    else if ( digitalRead(PIN_MP_W) == LOW){
+        bh.input = btn_c_w;
+    }
+    digitalWrite(PIN_MP_PWR_3, HIGH);
 
     if(millis() - bh.duration < DEBOUNCE_THRESHOLD)
     {
@@ -41,8 +100,10 @@ void updateButtonInput(){
     }
 }
 
-int readUserInput(){
 
+
+int readUserInput(){
+    
     updateButtonInput();
     
     if (bh.processed == true){
@@ -50,6 +111,7 @@ int readUserInput(){
     }
     else{
         bh.processed = true;
+        Serial.println(bh.current);
         return bh.current;
     }
 }
@@ -102,3 +164,4 @@ int kpq_next()
     }
     return keypress_queue[front_kpq];
 }
+

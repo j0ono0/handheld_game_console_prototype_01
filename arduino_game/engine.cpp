@@ -1,8 +1,12 @@
 #include "engine.h"
 
-// counts up to 100, incrementing every 80ms. Totalling 8s maximum animation loop 
-#define ANIMATIONSTEPS 100
+// counts up to 200, incrementing every 80ms. 
+// Totalling 16s maximum animation loop
+// eg, The slowest a 2 frame animation will display is 8sec per frame 
+// #define ANIMATIONSTEPS 200
 #define ANIMATIONSPEED 80
+
+
 
 //////////////////////////////////////////////////////////////////
 /// External graphics and data                                  //
@@ -13,9 +17,23 @@ extern const uint16_t entity_sprites_2[];
 extern const uint8_t terrain_tiles_indexed[];
 extern const uint16_t terrain_color_table[];
 
-/////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////
+/// SPI devices                                                //
+
+
+// set up variables using the SD utility library functions:
+SdVolume volume;
+SdFile root;
+Sd2Card card;
+
+
+XPT2046_Touchscreen  touchscreen(XPT_CS); // Touch screen user interface
 Extended_Tft screen = Extended_Tft(TFT_CS, TFT_DC);
+
+
+
+/////////////////////////////////////////////////////////////////
 
 uint16_t screenbuf[TERRAIN_HEIGHT * TERRAIN_UNIT * TERRAIN_WIDTH * TERRAIN_UNIT];
 
@@ -65,7 +83,7 @@ void advanceSpriteAnimations()
     // Progress all sprite movements of entities
     if(advance_animation_clock(&gm.animation_clock))
     {
-        updateSpriteTransits(gm.animation_clock);
+        updateSpriteTransits();
     }
     // TODO: Investigate syncing drawAll() to 
     // animation clock causes full screen to flicker!
@@ -195,7 +213,7 @@ void blitEntity(Entity *e, uint16_t *buf)
 
     // copy sprite into buf.
     for (int row = 0; row < e->sprite->frameset[i]->h; ++row)
-        {
+    {
         for (int col = 0; col < e->sprite->frameset[i]->w; ++col)
         {
             // Transfer row to buf
@@ -207,25 +225,25 @@ void blitEntity(Entity *e, uint16_t *buf)
         // Move screen buffer to next row
         bufPtr += SCREEN_WIDTH - e->sprite->frameset[i]->w;
     }
-    }
+}
 
 /////////////////////////////////////////////////////
 // Sprite controls                                ///
 
-bool advance_animation_clock(uint8_t *clock)
+bool advance_animation_clock(uint16_t *clock)
 {
     static uint32_t last = 0;
     uint32_t now = millis();
     if (now - last >= ANIMATIONSPEED)
     {
         last = now;
-        *clock = (*clock + 1) % ANIMATIONSTEPS;
+        *clock = (*clock + 1);
         return true;
     }
     return false;
 }
 
-void updateSpriteTransits(uint8_t clock)
+void updateSpriteTransits()
 {
     // Progress all animation cycles with 'step'.
     // must be factor of tile distance
@@ -314,14 +332,114 @@ bool gameSolved()
 
 void screenSetup()
 {
+    touchscreen.begin();
+    touchscreen.setRotation(1);
+
+    initSDCard();
+
     screen.begin();
     screen.setRotation(1);
+
     screenIntro();
 }
 void screenDrawBuf(uint16_t *buf, int x, int y) { screen.drawCellBuffer(buf, x, y); }
 void screenIntro() { screen.drawIntro(); }
 void screenSuccess() { screen.drawSuccess(); }
 void screenEnvComplete() { screen.drawMapComplete(); }
+
+
+void initSDCard()
+{
+
+ // Open serial communications and wait for port to open:
+   while (!Serial) {
+    ; // wait for serial port to connect.
+  }
+
+
+  Serial.print("\nInitializing SD card...");
+
+
+  // we'll use the initialization code from the utility libraries
+  // since we're just testing if the card is working!
+  if (!card.init(SPI_HALF_SPEED, SD_CS)) {
+    Serial.println("initialization failed. Things to check:");
+    Serial.println("* is a card inserted?");
+    Serial.println("* is your wiring correct?");
+    Serial.println("* did you change the chipSelect pin to match your shield or module?");
+    return;
+  } else {
+   Serial.println("Wiring is correct and a card is present.");
+  }
+
+  // print the type of card
+  Serial.print("\nCard type: ");
+  switch(card.type()) {
+    case SD_CARD_TYPE_SD1:
+      Serial.println("SD1");
+      break;
+    case SD_CARD_TYPE_SD2:
+      Serial.println("SD2");
+      break;
+    case SD_CARD_TYPE_SDHC:
+      Serial.println("SDHC");
+      break;
+    default:
+      Serial.println("Unknown");
+  }
+
+  // Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32
+  if (!volume.init(card)) {
+    Serial.println("Could not find FAT16/FAT32 partition.\nMake sure you've formatted the card");
+    return;
+  }
+
+
+  // print the type and size of the first FAT-type volume
+  uint32_t volumesize;
+  Serial.print("\nVolume type is FAT");
+  Serial.println(volume.fatType(), DEC);
+  Serial.println();
+  
+  volumesize = volume.blocksPerCluster();    // clusters are collections of blocks
+  volumesize *= volume.clusterCount();       // we'll have a lot of clusters
+  if (volumesize < 8388608ul) {
+    Serial.print("Volume size (bytes): ");
+    Serial.println(volumesize * 512);        // SD card blocks are always 512 bytes
+  }
+  Serial.print("Volume size (Kbytes): ");
+  volumesize /= 2;
+  Serial.println(volumesize);
+  Serial.print("Volume size (Mbytes): ");
+  volumesize /= 1024;
+  Serial.println(volumesize);
+
+  
+  //Serial.println("\nFiles found on the card (name, date and size in bytes): ");
+  //root.openRoot(volume);
+  
+  // list all files in the card with date and size
+  //root.ls(LS_R | LS_DATE | LS_SIZE);
+
+}
+
+void testTouchscreen()
+{
+    // run every 100ms
+    static uint16_t last = 0;
+    if(millis() - last > 100)
+    {
+        last = millis();
+        boolean istouched = touchscreen.touched();
+        if (istouched) {
+            TS_Point p = touchscreen.getPoint();
+            Serial.print(", x = ");
+            Serial.print(p.x);
+            Serial.print(", y = ");
+            Serial.println(p.y);
+        }
+    }
+}
 
 /////////////////////////////////////////////////////////
 

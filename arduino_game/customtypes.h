@@ -7,6 +7,24 @@
 // I had these in engine.h but some issue was causing compile
 // to fail when including engine.h in resources.c!
 
+
+typedef enum InputButtons
+{
+    // <button>_<set>_<direction>
+    btn_a_n,
+    btn_a_e,
+    btn_a_s,
+    btn_a_w,
+    btn_b_n,
+    btn_b_e,
+    btn_b_s,
+    btn_b_w,
+    btn_c_n,
+    btn_c_e,
+    btn_c_s,
+    btn_c_w,
+} InputButtons;
+
 typedef struct Rect
 {
     int x;
@@ -92,7 +110,7 @@ typedef struct GameManager
     uint8_t e_len;
     Entity entities[MAX_ENTITIES];
     const uint8_t *terrain;
-    uint8_t animation_clock;
+    uint16_t animation_clock;
 } GameManager;
 
 //////////////////////////////////////////////////

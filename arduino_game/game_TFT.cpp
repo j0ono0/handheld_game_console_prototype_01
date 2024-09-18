@@ -45,3 +45,28 @@ void Extended_Tft::drawSplashScreen(const uint16_t *img)
 {
     writeRect(0, 0, 320, 240, img);
 }
+
+void Extended_Tft::showTouchData(TS_Point p)
+{
+    
+        fillScreen(ILI9341_BLACK);
+        setTextColor(ILI9341_YELLOW);
+        setFont(Arial_60);
+        setCursor(60, 80);
+        print("Touch");
+
+        fillRect(100, 150, 140, 60, ILI9341_BLACK);
+        setTextColor(ILI9341_GREEN);
+        setFont(Arial_24);
+        setCursor(100, 150);
+        print("X = ");
+        print(p.x);
+        setCursor(100, 180);
+        print("Y = ");
+        print(p.y);
+        Serial.print(", x = ");
+        Serial.print(p.x);
+        Serial.print(", y = ");
+        Serial.println(p.y);
+        return;
+}

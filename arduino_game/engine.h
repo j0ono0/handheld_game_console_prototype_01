@@ -8,6 +8,9 @@
 #include "customtypes.h"
 #include "interactions.h"
 
+
+
+void spiSetup();
 //////////////////////////////////////////////////////////////////
 
 void populateEntities(const Entity *entities, uint8_t length);
@@ -18,7 +21,7 @@ void setTerrain(const uint8_t *terrain);
 void advanceSpriteAnimations();
 void drawAll();
 void blitTerrain(uint8_t layer, uint16_t *buf);
-uint16_t get_indexed_color(int color_index, int theme_index);
+// uint16_t get_indexed_color(int color_index, int theme_index); // OBSELETE?
 void sortEntityDrawOrder();
 void drawEntities(int layer);
 void blitEntity(Entity *e, uint16_t *buf);
@@ -26,9 +29,8 @@ void blitEntity(Entity *e, uint16_t *buf);
 void moveEntity(Entity *e, int mx, int my);
 
 //////////////////////////////////////////////////////////////////
-bool advance_animation_clock(uint8_t *clock);
-void updateSpriteTransits(uint8_t clock);
-bool spriteInTransit(Entity *e);
+bool advance_animation_clock(uint16_t *clock);
+void updateSpriteTransits();
 bool spritesInTransit();
 
 //////////////////////////////////////////////////////////////////
@@ -38,7 +40,7 @@ bool inbounds(int x, int y);
 bool cheatGame(int keypress);
 bool gameSolved();
 
-bool terrainBlocksMovement(int x, int y, int w, int h);
+// bool terrainBlocksMovement(int x, int y, int w, int h); // OBSELETE?
 
 void screenSetup();
 void screenDrawBuf(uint16_t *buf, int x, int y);
@@ -46,9 +48,16 @@ void screenIntro();
 void screenSuccess();
 void screenEnvComplete();
 
+
+void initSDCard();
+void testTouchscreen();
+
 ///////////////////////////////////////////////////////////////
 
 void runBehaviours();
 bool entity_on_target(Entity *e, GameManager *gm);
+
+///////////////////////////////////////////////////////////////
+
 
 #endif

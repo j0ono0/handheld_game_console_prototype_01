@@ -24,7 +24,10 @@ void crate_behaviour(Entity *self, GameManager *gm)
     if(
         self->sprite == &sprite_crate_1 || 
         self->sprite == &sprite_crate_2 ||
-        self->sprite == &sprite_crate_3
+        self->sprite == &sprite_crate_3 ||
+        self->sprite == &sprite_crate_4 ||
+        self->sprite == &sprite_crate_5 ||
+        self->sprite == &sprite_crate_6 
     )
     {
         return;
@@ -57,19 +60,19 @@ void plr_behaviour(Entity *self, GameManager *gm)
 
     switch (next_input)
     {
-    case BTN_N:
+    case btn_a_n:
         dy = -1;
         self->sprite = &sprite_prof_walk_north;
         break;
-    case BTN_S:
+    case btn_a_s:
         dy = 1;
         self->sprite = &sprite_prof_walk_south;
         break;
-    case BTN_W:
+    case btn_a_w:
         dx = -1;
         self->sprite = &sprite_prof_walk_west;
         break;
-    case BTN_E:
+    case btn_a_e:
         dx = 1;
         self->sprite = &sprite_prof_walk_east;
         break;

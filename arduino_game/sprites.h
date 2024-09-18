@@ -30,5 +30,8 @@ extern const Sprite sprite_desktop_clutter;
 extern const Sprite sprite_crate_1;
 extern const Sprite sprite_crate_2;
 extern const Sprite sprite_crate_3;
+extern const Sprite sprite_crate_4;
+extern const Sprite sprite_crate_5;
+extern const Sprite sprite_crate_6;
 
 #endif

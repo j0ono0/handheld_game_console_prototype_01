@@ -10,6 +10,12 @@ display is 320 x 240
 // Resources supplied to the game engine to create the game
 #include "resources.h"
 
+
+
+
+
+
+
 enum GameMode
 {
     gm_intro,
@@ -30,16 +36,22 @@ void populate_env(uint8_t env_id)
 
 void setup()
 {
+
     Serial.begin(9600);
+
+
     setupButtonInputs();
     screenSetup();
     current_env = 0;
     populate_env(current_env);
     game_mode = gm_intro;
+
+    while ((millis() <= 1000));
 }
 
 void loop()
 {
+    testTouchscreen();
 
     // Queue user keypress
     enqueue_kpq(readUserInput());
@@ -49,7 +61,7 @@ void loop()
 
     if (game_mode != gm_inGame)
     {
-        if (dequeue_kpq() != 7)
+        if (dequeue_kpq() != btn_b_w)
         {
             // Wait for start/cont' keypress
             return;
