@@ -46,6 +46,7 @@ void Extended_Tft::drawSplashScreen(const uint16_t *img)
     writeRect(0, 0, 320, 240, img);
 }
 
+
 void Extended_Tft::showTouchData(TS_Point p)
 {
     

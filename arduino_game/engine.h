@@ -9,8 +9,9 @@
 #include "interactions.h"
 
 
-
-void spiSetup();
+void touchInit();
+void sdCardTest();
+void screenSetup();
 //////////////////////////////////////////////////////////////////
 
 void populateEntities(const Entity *entities, uint8_t length);
@@ -41,16 +42,13 @@ bool inbounds(int x, int y);
 bool cheatGame(int keypress);
 bool gameSolved();
 
-// bool terrainBlocksMovement(int x, int y, int w, int h); // OBSELETE?
 
-void screenSetup();
 void screenDrawBuf(uint16_t *buf, int x, int y);
 void screenIntro();
 void screenSuccess();
 void screenEnvComplete();
 
 
-void initSDCard();
 void testTouchscreen();
 
 ///////////////////////////////////////////////////////////////

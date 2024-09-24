@@ -40,12 +40,12 @@ void setup()
 
     Serial.begin(9600);
 
-
     setupButtonInputs();
+
     screenSetup();
+    game_mode = gm_intro;
     current_env = 0;
     populate_env(current_env);
-    game_mode = gm_intro;
 
     while ((millis() <= 1000));
 }
@@ -57,12 +57,20 @@ void loop()
     // Queue user keypress
     enqueue_kpq(readUserInput());
 
+    if(kpq_next() == btn_3_w)
+    {
+        // reset game
+        game_mode = gm_intro;
+        current_env = 0;
+        populate_env(current_env);
+        screenIntro();
+    }
 
     // Wait to start game  //////////////////////////////////////////////
 
     if (game_mode != gm_inGame)
     {
-        if (dequeue_kpq() != btn_2_w)
+        if (dequeue_kpq() != btn_3_n)
         {
             // Wait for start/cont' keypress
             return;

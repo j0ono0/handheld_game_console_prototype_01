@@ -14,7 +14,7 @@
 
 #define PIN_MP_PWR_1 18
 #define PIN_MP_PWR_2 0
-#define PIN_MP_PWR_3 21
+#define PIN_MP_PWR_3 23
 
 #define PIN_MP_N 19
 #define PIN_MP_W 20

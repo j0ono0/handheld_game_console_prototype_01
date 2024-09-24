@@ -5,7 +5,7 @@
 // eg, The slowest a 2 frame animation will display is 8sec per frame 
 // #define ANIMATIONSTEPS 200
 #define ANIMATIONSPEED 80
-
+#define SCREENROTATION 3
 
 
 //////////////////////////////////////////////////////////////////
@@ -43,6 +43,90 @@ GameManager gm = {0, {}, NULL, 0, 0};
 
 // Entities currently in environment.
 Entity *entitiesInDrawOrder[MAX_ENTITIES];
+
+/////////////////////////////////////////////////////
+
+void touchInit()
+{
+    touchscreen.begin();
+    touchscreen.setRotation(SCREENROTATION); 
+}
+
+void sdCardTest()
+{
+    // Check for errors first
+    screen.setTextColor(ILI9341_WHITE);
+    screen.setTextSize(1);
+    screen.setCursor(20, 20);
+
+    if (!card.init(SPI_HALF_SPEED, SD_CS)) {
+        screen.fillScreen(ILI9341_RED);
+        screen.println("No SD card found.");
+        delay(2000);
+        return;
+    }
+
+    // Try to open the 'volume'/'partition' - it should be FAT16 or FAT32
+    if (!volume.init(card)) {
+        screen.fillScreen(ILI9341_RED);
+        screen.println("No FAT16/FAT32 partition found.");
+        screen.println("Is the card is formatted?");
+        delay(2000);
+        return;
+    }
+    ////////////////////////////////////////
+    // print SD card details
+
+    screen.fillScreen(0x0327);
+    screen.print("\nCard type: ");
+    switch(card.type()) {
+    case SD_CARD_TYPE_SD1:
+        screen.println("SD1");
+        break;
+    case SD_CARD_TYPE_SD2:
+        screen.println("SD2");
+        break;
+    case SD_CARD_TYPE_SDHC:
+        screen.println("SDHC");
+        break;
+    default:
+        screen.println("Unknown");
+    }
+
+    // print the type and size of the first FAT-type volume
+    uint32_t volumesize;
+    screen.print("\nVolume type is FAT");
+    screen.println(volume.fatType(), DEC);
+    Serial.println();
+
+    volumesize = volume.blocksPerCluster();    // clusters are collections of blocks
+    volumesize *= volume.clusterCount();       // we'll have a lot of clusters
+    if (volumesize < 8388608ul) {
+    screen.print("Volume size (bytes): ");
+    screen.println(volumesize * 512);        // SD card blocks are always 512 bytes
+    }
+    screen.print("Volume size (Kbytes): ");
+    volumesize /= 2;
+    screen.println(volumesize);
+    screen.print("Volume size (Mbytes): ");
+    volumesize /= 1024;
+    screen.println(volumesize);
+
+    delay(5000);
+
+}
+
+void screenSetup()
+{
+    touchInit();
+
+    screen.begin();
+    screen.setRotation(SCREENROTATION);
+    
+    sdCardTest();
+
+    screenIntro();
+}
 
 /////////////////////////////////////////////////////
 
@@ -334,98 +418,14 @@ bool gameSolved()
     return true;
 }
 
-void screenSetup()
-{
-    touchscreen.begin();
-    touchscreen.setRotation(1);
 
-    initSDCard();
-
-    screen.begin();
-    screen.setRotation(1);
-
-    screenIntro();
-}
 void screenDrawBuf(uint16_t *buf, int x, int y) { screen.drawCellBuffer(buf, x, y); }
 void screenIntro() { screen.drawIntro(); }
 void screenSuccess() { screen.drawSuccess(); }
 void screenEnvComplete() { screen.drawMapComplete(); }
 
 
-void initSDCard()
-{
 
- // Open serial communications and wait for port to open:
-   while (!Serial) {
-    ; // wait for serial port to connect.
-  }
-
-
-  Serial.print("\nInitializing SD card...");
-
-
-  // we'll use the initialization code from the utility libraries
-  // since we're just testing if the card is working!
-  if (!card.init(SPI_HALF_SPEED, SD_CS)) {
-    Serial.println("initialization failed. Things to check:");
-    Serial.println("* is a card inserted?");
-    Serial.println("* is your wiring correct?");
-    Serial.println("* did you change the chipSelect pin to match your shield or module?");
-    return;
-  } else {
-   Serial.println("Wiring is correct and a card is present.");
-  }
-
-  // print the type of card
-  Serial.print("\nCard type: ");
-  switch(card.type()) {
-    case SD_CARD_TYPE_SD1:
-      Serial.println("SD1");
-      break;
-    case SD_CARD_TYPE_SD2:
-      Serial.println("SD2");
-      break;
-    case SD_CARD_TYPE_SDHC:
-      Serial.println("SDHC");
-      break;
-    default:
-      Serial.println("Unknown");
-  }
-
-  // Now we will try to open the 'volume'/'partition' - it should be FAT16 or FAT32
-  if (!volume.init(card)) {
-    Serial.println("Could not find FAT16/FAT32 partition.\nMake sure you've formatted the card");
-    return;
-  }
-
-
-  // print the type and size of the first FAT-type volume
-  uint32_t volumesize;
-  Serial.print("\nVolume type is FAT");
-  Serial.println(volume.fatType(), DEC);
-  Serial.println();
-  
-  volumesize = volume.blocksPerCluster();    // clusters are collections of blocks
-  volumesize *= volume.clusterCount();       // we'll have a lot of clusters
-  if (volumesize < 8388608ul) {
-    Serial.print("Volume size (bytes): ");
-    Serial.println(volumesize * 512);        // SD card blocks are always 512 bytes
-  }
-  Serial.print("Volume size (Kbytes): ");
-  volumesize /= 2;
-  Serial.println(volumesize);
-  Serial.print("Volume size (Mbytes): ");
-  volumesize /= 1024;
-  Serial.println(volumesize);
-
-  
-  //Serial.println("\nFiles found on the card (name, date and size in bytes): ");
-  //root.openRoot(volume);
-  
-  // list all files in the card with date and size
-  //root.ls(LS_R | LS_DATE | LS_SIZE);
-
-}
 
 void testTouchscreen()
 {
