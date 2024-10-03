@@ -27,26 +27,10 @@ Once assembled the reliability issues vanished. I assume controlling x3 SPI devi
 
 ## Firmware
 
-The project utilises the Arduino environment to streamline access to libraries, interfacing with hardware, and compiling/uploading tasks. Whilst Arduino is essentially C++, I've attempted to primarily write in C compatible code as practice for developing for more restricted hardware devices.
+Goals for this section of the project were less defined than the hardware - Something fun to show off and achievable to create. I have a 'secret' ongoing project of creating a roguelike and would very much like it to run on a handheld console. With several attempts of this game genre for desktop under my belt - all of them failures of varying degrees - I decided to set some further constraints around what a 'minimum viable product' might look like. The result is my homage to Sokoban (see intro for details). The code is total overkill for the task at hand but with the thought it might be the ground work for a more complex roguelike game.
 
+The project utilises the Arduino environment which streamlines access to libraries, interfacing with hardware, and compiling/uploading. Whilst Arduino is essentially C++, I've attempted to primarily write in C compatible code as practice for developing for more restricted hardware devices. 
 
-### Graphics
+In the course of processing graphics for embedding into into the game I wrote a hand-full of Python scripts. These are a work-in-progress as I experiment and streamline how I create graphical assets (sprites, level maps, and background tiles) and process them for embedding into the code.
 
-
-Game graphics are broken broadly into 2 categories, terrain tiles and entity sprites. Together the form an 'environment'. This environment is a grid of squares, each square is of 16x16 pixels in size.
-
-Terrain tiles are each 8x8 pixels, half sized compared to the environment grid. This size was chosen as a balance between convenience, efficiency, and fidelity.
-
-Sprites are all arbitary sizes but occupy a single environment grid location. Each sprite is compromised of 1 or more images allowing sprites to be animated within the game.
-
-Tiles and sprites are rendered onto 'layers' that result in overlapping graphics an a richer representation of the environment.
-
-
-...
-
-To use images as game graphics, they first need to be converted into C code. This was achieved by writing a handful of Python scripts.
-
-
-convert png images to C compatible arrays (and rgb565 color space)
-convert tiles into indexed-colour arrays
-convert graphical maps into a terrain/map arrays
+At the time of writing this the game is fully functional with 3 levels. The user interface includes buttons to reset, skip levels, plus display a demo art screen. The latter as a talking point for where the graphics may go when showing off the project.
