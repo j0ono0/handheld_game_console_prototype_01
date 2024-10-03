@@ -1,14 +1,17 @@
 #include "game_TFT.h"
 
 extern const uint16_t title_screen_main[];
+extern const uint16_t demo_screen_01[];
 
 void Extended_Tft::drawIntro()
 {   
-
     writeRect(0, 0, 320, 240, title_screen_main);
-
 }
 
+void Extended_Tft::drawDemo1()
+{   
+    writeRect(0, 0, 320, 240, demo_screen_01);
+}
 void Extended_Tft::drawMapComplete()
 {
     fillScreen(ILI9341_RED);

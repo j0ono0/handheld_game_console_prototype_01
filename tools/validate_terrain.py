@@ -33,12 +33,13 @@ def validate_terrain(terrain_path, tileset):
     return True
 
 
-tileset_path = "output/tileset_terrain.png"
+tileset_path = "temp/tileset_terrain.png"
 tileset = load_tileset(tileset_path)
 
 for path in [
     "../graphics/terrain_01.png",
     "../graphics/terrain_02.png",
+    "../graphics/terrain_03.png",
 ]:
     is_valid = validate_terrain(path, tileset)
 

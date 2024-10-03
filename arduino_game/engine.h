@@ -45,6 +45,7 @@ bool gameSolved();
 
 void screenDrawBuf(uint16_t *buf, int x, int y);
 void screenIntro();
+void screenDemo1();
 void screenSuccess();
 void screenEnvComplete();
 

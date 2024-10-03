@@ -112,18 +112,18 @@ void sdCardTest()
     volumesize /= 1024;
     screen.println(volumesize);
 
-    delay(5000);
+    delay(2000);
 
 }
 
 void screenSetup()
 {
-    touchInit();
-
     screen.begin();
     screen.setRotation(SCREENROTATION);
+    screen.fillScreen(ILI9341_BLACK);
     
-    sdCardTest();
+    // sdCardTest();
+    // touchInit();
 
     screenIntro();
 }
@@ -423,7 +423,7 @@ void screenDrawBuf(uint16_t *buf, int x, int y) { screen.drawCellBuffer(buf, x, 
 void screenIntro() { screen.drawIntro(); }
 void screenSuccess() { screen.drawSuccess(); }
 void screenEnvComplete() { screen.drawMapComplete(); }
-
+void screenDemo1() { screen.drawDemo1();}
 
 
 

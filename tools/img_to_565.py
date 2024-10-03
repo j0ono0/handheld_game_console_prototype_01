@@ -45,7 +45,7 @@ def save_to_file(array, dst_path):
 
 ################################################################
 
-img = load_image("../graphics/prof_walk_02.png")
+img = load_image("../graphics/demo_screen_01.png")
 img565 = rgb_to_565(img)
-save_to_file(img565, "./temp/prof_walk_02.c")
+save_to_file(img565, "./temp/demo_screen_01.c")
 print("img_to_565 finished.")

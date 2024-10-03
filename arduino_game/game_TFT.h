@@ -14,6 +14,7 @@ public:
     Extended_Tft(uint8_t cs, uint8_t dc) : ILI9341_t3{cs, dc}{}
 
     void drawIntro();
+    void drawDemo1();
     void drawMapComplete();
     void drawSuccess();
     void drawCellBuffer(uint16_t *buf, int x, int y);

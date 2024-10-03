@@ -66,14 +66,14 @@ def save_terrain_as_c(terrain, filename):
 
 if __name__ == "__main__":
 
-    tile_size = 8
-    tile_source = "../graphics/tileset_master.png"
-    meta_source = "../graphics/tileset_master_meta.png"
+    # tile_size = 8
+    # tile_source = "../graphics/tileset_master.png"
+    # meta_source = "../graphics/tileset_master_meta.png"
 
-    tileset = validate_terrain.load_tileset("output/tileset_terrain.png")
+    tileset = validate_terrain.load_tileset("temp/tileset_terrain.png")
 
-    terrain_src = "../graphics/terrain_02.png"
-    terrain_dst = "temp/terrain_02.c"
+    terrain_src = "../graphics/terrain_03.png"
+    terrain_dst = "temp/terrain_03.c"
     terrain = parse_terrain(terrain_src, tileset)
 
     # Save output

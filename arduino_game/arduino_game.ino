@@ -57,6 +57,10 @@ void loop()
     // Queue user keypress
     enqueue_kpq(readUserInput());
 
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    // Dev testing button inputs
+
     if(kpq_next() == btn_3_w)
     {
         // reset game
@@ -65,6 +69,34 @@ void loop()
         populate_env(current_env);
         screenIntro();
     }
+    else if (kpq_next() == btn_3_e)
+    {
+        // force game progression
+        if (current_env < 2)
+        {
+            game_mode = gm_success;
+            ++current_env;
+            populate_env(current_env);
+            screenEnvComplete();
+        }
+        else
+        {
+            game_mode = gm_end;
+            current_env = 0;
+            screenSuccess();
+        }
+    }
+    else if (kpq_next() == btn_2_n)
+    {
+        // show demo screen and wait for any button press
+        dequeue_kpq();
+        screenDemo1();
+        while(dequeue_kpq() == -1){
+            enqueue_kpq(readUserInput());
+        };
+    }
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
 
     // Wait to start game  //////////////////////////////////////////////
 
@@ -95,6 +127,8 @@ void loop()
                 game_mode = gm_intro;
                 populate_env(current_env);
                 screenIntro();
+                
+
                 break;
 
             default:
@@ -116,7 +150,7 @@ void loop()
         delay(200);
 
         // Prepare entityStore for next level (or restart)
-        if (current_env == 0)
+        if (current_env < 2)
         {
             game_mode = gm_success;
             ++current_env;
