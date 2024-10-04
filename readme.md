@@ -1,6 +1,6 @@
 # Handheld game console and Arduino game
 
-<img arc="hand_held_game_console_prototype.jpg" atl="prototype hand-held game hardware"  max-width="100%" >
+<img src="hand_held_game_console_prototype.jpg" alt="prototype hand-held game hardware"  max-width="100%" >
 
 The motivation and goal of this project was primarily as an excuse to try and design my first PCB. Choosing a handheld game console made an appealing form on several points:
 
