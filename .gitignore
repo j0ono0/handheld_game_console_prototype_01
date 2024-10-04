@@ -12,6 +12,7 @@ temp/
 
 # Master graphics files
 /graphics
+/promo
 
 # vscode
 *.code-workspace
